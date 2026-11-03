@@ -6,7 +6,7 @@
 <title>Peengo</title>
 <meta name="description" content="Arkadaşlarınla günün 1440 dakikasını doldur.">
 <meta name="theme-color" content="#13262B">
-<meta name="peengo-version" content="2026-11-04.1">
+<meta name="peengo-version" content="2026-11-04.2">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Peengo">
@@ -248,6 +248,8 @@ body.intro-open .chat-fab{z-index:45;animation:fabPulse 1.4s ease-in-out infinit
 .msg .meta{display:flex;gap:8px;align-items:baseline;font-size:11px;color:var(--muted);font-family:var(--f-mono)}
 .msg .meta b{color:var(--ink);font-size:13px;font-family:var(--f-body)}
 .msg p{margin:2px 0 0;white-space:pre-wrap;overflow-wrap:anywhere}
+.msg-del{border:0;background:transparent;color:var(--muted);font-size:11px;font-weight:700;padding:0 0 0 4px;margin-left:auto;font-family:var(--f-body)}
+.msg-del:hover,.msg-del[data-armed="1"]{color:var(--warn)}
 .day-sep{align-self:center;font-size:11px;font-weight:700;color:var(--muted);letter-spacing:.1em;text-transform:uppercase;margin:6px 0}
 .chat-empty{margin:auto;text-align:center;color:var(--muted);max-width:30ch}
 .chat-form{display:flex;gap:8px;padding:12px 16px;border-top:1px solid var(--grout)}
@@ -714,6 +716,9 @@ const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
       .on('postgres_changes', {event:'INSERT', schema:'public', table:'messages'}, p => {
         if (p.new) addMessage(p.new);
       })
+      .on('postgres_changes', {event:'DELETE', schema:'public', table:'messages'}, p => {
+        if (p.old && p.old.id != null) removeMessage(p.old.id);
+      })
       .subscribe();
     S.sb.channel('peengo-hunts')
       .on('postgres_changes', {event:'INSERT', schema:'public', table:'hunts'}, p => {
@@ -774,6 +779,30 @@ const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
     if (!S.profiles[m.player_id]) loadPlayers().then(() => renderChat(false)).catch(() => {});
     renderChat(m.player_id === S.me);
   }
+  function removeMessage(id){
+    const n = S.msgs.length;
+    S.msgs = S.msgs.filter(x => x.id !== id);
+    if (S.msgs.length !== n) renderChat(false);
+  }
+  /* Sohbet her pazar 00:00 (Türkiye, UTC+3) sıfırlanır */
+  function chatWeekStart(){
+    const TR = 3 * 3600 * 1000;
+    const t = new Date(Date.now() + TR);
+    return Date.UTC(t.getUTCFullYear(), t.getUTCMonth(), t.getUTCDate() - t.getUTCDay()) - TR;
+  }
+  const visibleMsgs = () => { const w = chatWeekStart(); return S.msgs.filter(m => Date.parse(m.at) >= w); };
+  async function deleteMsg(id, btn){
+    if (btn.dataset.armed !== '1'){
+      btn.dataset.armed = '1'; btn.textContent = 'Emin misin?';
+      setTimeout(() => { if (btn.isConnected){ btn.dataset.armed = ''; btn.textContent = 'Sil'; } }, 4000);
+      return;
+    }
+    btn.disabled = true;
+    try {
+      const ok = await rpc('delete_message', {p_token:S.token, p_id:id});
+      if (ok) removeMessage(id);
+    } catch(e){ $('#chatErr').textContent = errText(e); btn.disabled = false; }
+  }
   function chatDay(ms){
     const d = new Date(ms), today = new Date();
     const y = new Date(); y.setDate(today.getDate() - 1);
@@ -786,7 +815,8 @@ const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
     if (last > S.chatSeen){ S.chatSeen = last; store.set('peengo.chatSeen', String(last)); }
   }
   function renderChat(forceBottom){
-    const unread = S.msgs.filter(m => m.id > S.chatSeen && m.player_id !== S.me).length;
+    const msgs = visibleMsgs();
+    const unread = msgs.filter(m => m.id > S.chatSeen && m.player_id !== S.me).length;
     const badge = $('#chatBadge');
     badge.hidden = S.chatOpen || unread === 0;
     badge.textContent = unread > 9 ? '9+' : String(unread);
@@ -795,19 +825,23 @@ const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
     const list = $('#chatList');
     const nearBottom = list.scrollHeight - list.scrollTop - list.clientHeight < 80;
     list.textContent = '';
-    $('#chatSub').textContent = Object.keys(S.profiles).length + ' kişi · son mesajlar';
-    if (!S.msgs.length){
+    $('#chatSub').textContent = Object.keys(S.profiles).length + ' kişi · her pazar 00:00’da sıfırlanır';
+    if (!msgs.length){
       list.append(el('p', {class:'chat-empty', text:'Henüz mesaj yok. İlk mesajı sen yaz, arkadaşlarını gaza getir.'}));
     }
     let lastDay = '';
-    S.msgs.forEach(m => {
+    msgs.forEach(m => {
       const at = Date.parse(m.at), day = chatDay(at);
       if (day !== lastDay){ list.append(el('div', {class:'day-sep', text:day})); lastDay = day; }
       const d = new Date(at);
-      list.append(el('div', {class:'msg' + (m.player_id === S.me ? ' mine' : ''), style:'--c:' + colorOf(m.player_id)}, [
-        el('div', {class:'meta'}, [el('b', {text:nameOf(m.player_id)}), el('span', {text:pad(d.getHours()) + ':' + pad(d.getMinutes())})]),
-        el('p', {text:m.body})
-      ]));
+      const mine = m.player_id === S.me;
+      const meta = el('div', {class:'meta'}, [el('b', {text:nameOf(m.player_id)}), el('span', {text:pad(d.getHours()) + ':' + pad(d.getMinutes())})]);
+      if (mine){
+        const del = el('button', {type:'button', class:'msg-del', text:'Sil', 'aria-label':'Mesajını sil'});
+        del.onclick = () => deleteMsg(m.id, del);
+        meta.append(del);
+      }
+      list.append(el('div', {class:'msg' + (mine ? ' mine' : ''), style:'--c:' + colorOf(m.player_id)}, [meta, el('p', {text:m.body})]));
     });
     if (forceBottom || nearBottom) list.scrollTop = list.scrollHeight;
     markSeen();
