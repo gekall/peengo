@@ -1,0 +1,853 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Peengo</title>
+<meta name="description" content="Arkadaşlarınla günün 1440 dakikasını doldur.">
+<meta name="theme-color" content="#13262B">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Peengo">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" type="image/png" href="icon-192.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700&family=JetBrains+Mono:wght@500;700&family=Lilita+One&display=swap">
+<style>
+/* Layout: one tall column like a bathroom wall: the flush button on top, the 24×60 tile wall below, scores and badges after. */
+:root{
+  --bg:#E9F1F0; --wall:#DDE8E6; --surface:#FBFDFC; --tile:#EEF4F3; --grout:#C9D8D6;
+  --ink:#13262B; --muted:#557075; --accent:#0B7A84; --accent-soft:#D5ECEC;
+  --chrome-hi:#FFFFFF; --chrome-lo:#A9BBBD; --shadow:rgba(19,38,43,.16); --warn:#B3261E;
+  --f-display:"Lilita One","Arial Rounded MT Bold","Trebuchet MS",system-ui,sans-serif;
+  --f-body:"Figtree",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --f-mono:"JetBrains Mono",ui-monospace,"SFMono-Regular",Menlo,monospace;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#0B1518; --wall:#101E22; --surface:#13242A; --tile:#1A2E34; --grout:#0A1316;
+    --ink:#E4EFEE; --muted:#8CA4A8; --accent:#45C3CB; --accent-soft:#133A3F;
+    --chrome-hi:#506A70; --chrome-lo:#142327; --shadow:rgba(0,0,0,.45); --warn:#FF8A80;
+    color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0B1518; --wall:#101E22; --surface:#13242A; --tile:#1A2E34; --grout:#0A1316;
+  --ink:#E4EFEE; --muted:#8CA4A8; --accent:#45C3CB; --accent-soft:#133A3F;
+  --chrome-hi:#506A70; --chrome-lo:#142327; --shadow:rgba(0,0,0,.45); --warn:#FF8A80;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+html{background:var(--bg)}
+body{
+  background-color:var(--bg); color:var(--ink);
+  background-image:linear-gradient(var(--wall) 1px,transparent 1px),linear-gradient(90deg,var(--wall) 1px,transparent 1px);
+  background-size:56px 56px;
+  font-family:var(--f-body); font-size:15px; line-height:1.45;
+  padding-left:max(16px,env(safe-area-inset-left,0px));
+  padding-right:max(16px,env(safe-area-inset-right,0px));
+  padding-block:10px 48px;
+}
+button,input{font:inherit;color:inherit}
+button{cursor:pointer}
+:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+.wrap{max-width:780px;margin:0 auto;display:flex;flex-direction:column;gap:16px}
+
+/* header */
+.top{display:flex;align-items:center;justify-content:space-between;gap:12px;padding-block:6px;flex-wrap:wrap}
+.brand{display:flex;align-items:center;gap:10px}
+.brand svg{width:42px;height:42px;flex:none}
+.word{font-family:var(--f-display);font-size:32px;line-height:1;letter-spacing:.5px}
+.word b{font-weight:400;color:var(--accent)}
+.me-chip{display:flex;align-items:center;gap:8px;background:var(--surface);border:1px solid var(--grout);border-radius:999px;padding:4px 4px 4px 12px;min-width:0}
+.me-chip .nm{font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:140px}
+.dot{width:12px;height:12px;border-radius:50%;flex:none;box-shadow:inset 0 0 0 1px rgba(0,0,0,.18)}
+.ghost{border:0;background:var(--tile);border-radius:999px;padding:6px 12px;font-weight:600;font-size:13px;color:var(--muted)}
+.ghost:hover{color:var(--ink)}
+
+.card{background:var(--surface);border:1px solid var(--grout);border-radius:16px;padding:18px}
+.h{font-family:var(--f-display);font-weight:400;font-size:21px;letter-spacing:.3px;margin:0;text-wrap:balance}
+.eyebrow{font-size:11px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin:0}
+.muted{color:var(--muted)}
+.row{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.between{justify-content:space-between}
+.mono{font-family:var(--f-mono);font-variant-numeric:tabular-nums}
+
+/* boot / message */
+.boot{text-align:center;display:flex;flex-direction:column;align-items:center;gap:10px;padding-block:28px}
+.boot svg{width:84px;height:84px}
+.boot p{max-width:46ch;margin:0}
+
+/* auth */
+.tabs{display:inline-flex;background:var(--tile);border-radius:999px;padding:4px;gap:4px}
+.tabs button{border:0;background:transparent;border-radius:999px;padding:8px 16px;font-weight:700;color:var(--muted)}
+.tabs button[aria-pressed="true"]{background:var(--surface);color:var(--ink);box-shadow:0 1px 3px var(--shadow)}
+.form{display:flex;flex-direction:column;gap:14px;margin-top:16px}
+.field{display:flex;flex-direction:column;gap:6px}
+.field label{font-weight:700;font-size:13px}
+.field input{border:1px solid var(--grout);background:var(--tile);border-radius:10px;padding:11px 12px;font-size:16px;width:100%}
+.people{display:flex;flex-wrap:wrap;gap:8px}
+.person{display:flex;align-items:center;gap:8px;border:1px solid var(--grout);background:var(--tile);border-radius:999px;padding:8px 14px;font-weight:700}
+.person[aria-pressed="true"]{border-color:var(--ink);background:var(--surface);box-shadow:0 0 0 2px var(--ink) inset}
+.swatches{display:grid;grid-template-columns:repeat(auto-fill,minmax(64px,1fr));gap:10px}
+.sw{border:0;background:transparent;display:flex;flex-direction:column;align-items:center;gap:4px;padding:4px;border-radius:12px;font-size:12px;font-weight:600;color:var(--muted)}
+.sw i{width:38px;height:38px;border-radius:50%;display:block;box-shadow:inset 0 -4px 0 rgba(0,0,0,.15),0 0 0 3px var(--surface),0 0 0 4px var(--grout)}
+.sw[aria-pressed="true"] i{box-shadow:inset 0 -4px 0 rgba(0,0,0,.15),0 0 0 3px var(--surface),0 0 0 6px var(--ink)}
+.sw[aria-pressed="true"]{color:var(--ink)}
+.sw:disabled{cursor:not-allowed}
+.sw:disabled i{opacity:.28}
+.sw .own{font-size:10px;font-weight:700;max-width:70px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.primary{border:0;background:var(--ink);color:var(--bg);border-radius:12px;padding:13px 18px;font-weight:700;font-size:16px}
+.primary:disabled{opacity:.5;cursor:not-allowed}
+.err{color:var(--warn);font-weight:600;margin:0;min-height:1.3em}
+
+/* flush button */
+.hero{display:flex;flex-direction:column;align-items:center;gap:14px;padding-block:22px 18px}
+.flush{
+  --me:#F5C400; --on-me:#13262B;
+  width:min(66vw,236px);aspect-ratio:1;max-width:100%;border:0;border-radius:50%;padding:0;position:relative;
+  background:radial-gradient(circle at 34% 28%,var(--chrome-hi),var(--chrome-lo) 72%);
+  box-shadow:inset 0 -8px 16px rgba(0,0,0,.2),inset 0 6px 10px rgba(255,255,255,.35),0 14px 28px var(--shadow),0 0 0 10px var(--surface),0 0 0 11px var(--grout);
+  transition:transform .12s ease;
+  display:grid;place-items:center;
+}
+.flush:active{transform:scale(.96)}
+.flush .core{
+  width:74%;aspect-ratio:1;border-radius:50%;background:var(--me);color:var(--on-me);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;
+  box-shadow:inset 0 -6px 0 rgba(0,0,0,.16),inset 0 4px 8px rgba(255,255,255,.3);
+}
+.flush .lbl{font-family:var(--f-display);font-size:clamp(26px,8vw,34px);line-height:1}
+.flush .clk{font-family:var(--f-mono);font-weight:700;font-size:16px;opacity:.85}
+.flush.done .core{filter:saturate(.55);opacity:.8}
+.flush.busy{pointer-events:none;opacity:.8}
+.ring{position:absolute;inset:0;border-radius:50%;pointer-events:none;border:6px solid var(--me);opacity:0}
+.flush.pop .ring{animation:ring .7s ease-out}
+@keyframes ring{from{opacity:.8;transform:scale(.8)}to{opacity:0;transform:scale(1.35)}}
+.status{text-align:center;min-height:1.4em;font-weight:600;margin:0}
+.ro{background:var(--accent-soft);border-radius:12px;padding:10px 12px;font-weight:600;margin:0}
+
+/* stats */
+.stats{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.stat{display:flex;flex-direction:column;gap:8px}
+.big{font-family:var(--f-mono);font-weight:700;font-size:28px;line-height:1;font-variant-numeric:tabular-nums}
+.big small{font-size:15px;color:var(--muted);font-weight:500}
+.bar{height:10px;background:var(--tile);border-radius:999px;overflow:hidden;box-shadow:inset 0 0 0 1px var(--grout)}
+.bar i{display:block;height:100%;width:0;border-radius:999px;transition:width .4s ease}
+
+/* minute wall */
+.seg{display:inline-flex;background:var(--tile);border-radius:999px;padding:3px;gap:3px}
+.seg button{border:0;background:transparent;border-radius:999px;padding:6px 12px;font-weight:700;font-size:13px;color:var(--muted)}
+.seg button[aria-pressed="true"]{background:var(--surface);color:var(--ink);box-shadow:0 1px 3px var(--shadow)}
+.gridbox{margin-top:14px;overflow-x:auto}
+.grid{display:grid;grid-template-columns:22px repeat(60,minmax(3px,1fr));gap:1px;background:var(--grout);padding:1px;border-radius:8px;min-width:280px;touch-action:manipulation}
+.grid .cl{background:var(--surface);font-family:var(--f-mono);font-size:9px;color:var(--muted);line-height:14px;padding-left:2px;white-space:nowrap;overflow:hidden}
+.grid .hl{background:var(--surface);font-family:var(--f-mono);font-size:9px;color:var(--muted);display:flex;align-items:center;justify-content:flex-end;padding-right:3px;cursor:pointer}
+.grid .hl.sel{color:var(--ink);font-weight:700;background:var(--accent-soft)}
+.grid .c{aspect-ratio:1;background:var(--tile);cursor:pointer}
+.grid .c.now{outline:2px solid var(--ink);outline-offset:-1px;position:relative;z-index:1;animation:blink 1.6s ease-in-out infinite}
+@keyframes blink{50%{outline-color:transparent}}
+.legend{display:flex;flex-wrap:wrap;gap:6px 14px;margin-top:12px;font-size:13px;color:var(--muted)}
+.legend span{display:inline-flex;align-items:center;gap:6px}
+
+/* hour zoom */
+.dg{display:grid;grid-template-columns:repeat(10,minmax(0,1fr));gap:5px;margin-top:12px}
+.dt{aspect-ratio:1;border-radius:7px;background:var(--tile);border:1px solid var(--grout);font-family:var(--f-mono);font-size:11px;display:grid;place-items:center;color:var(--muted);padding:0}
+.dt.f{border-color:transparent;font-weight:700}
+.dt.sel{box-shadow:0 0 0 2px var(--surface),0 0 0 4px var(--ink)}
+.dt.now{outline:2px dashed var(--ink);outline-offset:1px}
+.info{margin-top:12px;min-height:1.5em;display:flex;flex-wrap:wrap;align-items:center;gap:6px 12px}
+.info .who{display:inline-flex;align-items:center;gap:6px;font-weight:600}
+.hnav{display:inline-flex;gap:6px}
+.hnav button{border:1px solid var(--grout);background:var(--tile);border-radius:10px;width:36px;height:36px;font-weight:700}
+
+/* scores */
+.two{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.lb{list-style:none;margin:12px 0 0;padding:0;display:flex;flex-direction:column;gap:10px}
+.lb li{display:grid;grid-template-columns:22px 1fr auto;align-items:center;gap:4px 10px}
+.lb .rk{font-family:var(--f-mono);color:var(--muted);font-size:13px}
+.lb .nm{display:flex;align-items:center;gap:8px;font-weight:700;min-width:0}
+.lb .nm span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.lb .ct{font-family:var(--f-mono);font-size:13px;text-align:right}
+.lb .bar{grid-column:2 / 4;height:6px}
+.gaps{margin:12px 0 0;padding:0;list-style:none;display:flex;flex-direction:column;gap:6px}
+.gaps li{display:flex;justify-content:space-between;gap:10px;font-size:14px}
+.badges{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px;margin-top:12px}
+.bd{display:flex;gap:10px;align-items:flex-start;border:1px dashed var(--grout);border-radius:12px;padding:10px;color:var(--muted)}
+.bd svg{width:28px;height:28px;flex:none}
+.bd b{display:block;color:inherit;font-size:14px}
+.bd small{display:block;font-size:12px;line-height:1.3}
+.bd.on{border-style:solid;border-color:var(--accent);background:var(--accent-soft);color:var(--ink)}
+.bd.on svg{color:var(--accent)}
+
+.tips ol{margin:10px 0 0;padding-left:20px;display:flex;flex-direction:column;gap:8px;max-width:65ch}
+code{font-family:var(--f-mono);background:var(--tile);border-radius:6px;padding:1px 6px;font-size:13px}
+
+.toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(16px + env(safe-area-inset-bottom,0px));background:var(--ink);color:var(--bg);border-radius:14px;padding:10px 10px 10px 16px;display:flex;align-items:center;gap:12px;box-shadow:0 10px 24px var(--shadow);max-width:calc(100% - 32px);z-index:20;font-weight:600}
+.toast button{border:0;background:var(--bg);color:var(--ink);border-radius:10px;padding:7px 12px;font-weight:700}
+
+@media (max-width:560px){
+  .stats,.two{grid-template-columns:1fr}
+  .word{font-size:28px}
+  .card{padding:14px}
+}
+@media (prefers-reduced-motion:reduce){
+  *{animation:none!important;transition:none!important}
+}
+</style>
+<style>
+html,body{margin:0}
+:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+[hidden]{display:none!important}
+img{max-width:100%}
+</style>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <div class="brand">
+      <svg viewBox="0 0 40 40" aria-hidden="true">
+        <path d="M20 2.5C27.5 12 33.5 19 33.5 26a13.5 13.5 0 0 1-27 0C6.5 19 12.5 12 20 2.5Z" fill="#F5C400" stroke="#C99A00" stroke-width="1.2"/>
+        <circle cx="20" cy="25.5" r="8" fill="#FFFFFF"/>
+        <text x="20" y="29.6" text-anchor="middle" font-family="Lilita One, Arial Rounded MT Bold, sans-serif" font-size="12" fill="#13262B">P</text>
+      </svg>
+      <span class="word">Pee<b>ngo</b></span>
+    </div>
+    <div class="me-chip" id="meChip" hidden>
+      <span class="dot" id="meDot"></span>
+      <span class="nm" id="meName"></span>
+      <button class="ghost" id="logout" type="button">Çıkış</button>
+    </div>
+  </header>
+
+  <section class="card boot" id="boot">
+    <svg viewBox="0 0 40 40" aria-hidden="true">
+      <path d="M20 2.5C27.5 12 33.5 19 33.5 26a13.5 13.5 0 0 1-27 0C6.5 19 12.5 12 20 2.5Z" fill="#F5C400" stroke="#C99A00" stroke-width="1.2"/>
+      <circle cx="20" cy="25.5" r="8" fill="#FFFFFF"/>
+      <text x="20" y="29.6" text-anchor="middle" font-family="Lilita One, Arial Rounded MT Bold, sans-serif" font-size="12" fill="#13262B">P</text>
+    </svg>
+    <h1 class="h">Günün 1440 dakikasını doldur</h1>
+    <p class="muted" id="bootMsg">Dakika duvarı yükleniyor…</p>
+  </section>
+
+  <section class="card" id="auth" hidden>
+    <div class="row between">
+      <h2 class="h" id="authTitle">Hoş geldin</h2>
+      <div class="tabs" id="tabs">
+        <button type="button" id="tabLogin" aria-pressed="true">Giriş yap</button>
+        <button type="button" id="tabNew" aria-pressed="false">Profil oluştur</button>
+      </div>
+    </div>
+
+    <form class="form" id="loginForm">
+      <div class="field">
+        <label for="loginName">Kullanıcı adı</label>
+        <input id="loginName" autocomplete="username" autocapitalize="off" spellcheck="false" placeholder="Örn. Eren">
+      </div>
+      <div class="field">
+        <label for="loginPw">Şifre</label>
+        <input id="loginPw" type="password" autocomplete="current-password" placeholder="Şifren">
+      </div>
+      <p class="err" id="loginErr"></p>
+      <button class="primary" type="submit" id="loginBtn">Giriş yap</button>
+      <p class="muted" style="margin:0;font-size:13px">Aynı kullanıcı adı ve şifreyle telefondan da bilgisayardan da girebilirsin.</p>
+    </form>
+
+    <form class="form" id="newForm" hidden>
+      <p class="muted" id="firstNote" hidden>Henüz kimse yok. İlk profili sen oluştur.</p>
+      <div class="field">
+        <label for="newName">Kullanıcı adı</label>
+        <input id="newName" maxlength="20" autocomplete="username" autocapitalize="off" spellcheck="false" placeholder="Örn. Eren">
+      </div>
+      <div class="field">
+        <label for="newPw">Şifre</label>
+        <input id="newPw" type="password" autocomplete="new-password" placeholder="En az 4 karakter">
+      </div>
+      <div class="field">
+        <label>Rengin</label>
+        <div class="swatches" id="swatches"></div>
+      </div>
+      <p class="err" id="newErr"></p>
+      <button class="primary" type="submit" id="newBtn">Profili oluştur ve gir</button>
+    </form>
+  </section>
+
+  <div id="game" hidden style="display:contents">
+    <section class="card hero">
+      <button class="flush" id="flush" type="button" aria-describedby="status">
+        <span class="ring"></span>
+        <span class="core"><span class="lbl" id="flushLbl">İşedim</span><span class="clk" id="clock">--:--</span></span>
+      </button>
+      <p class="status" id="status">Bastığın an, şu anki dakika senin renginle boyanır.</p>
+    </section>
+
+    <section class="stats">
+      <div class="card stat">
+        <p class="eyebrow">Senin duvarın</p>
+        <div class="big" id="myCount">0 <small>/ 1440</small></div>
+        <div class="bar"><i id="myBar"></i></div>
+        <p class="muted" style="margin:0" id="myPct">%0 tamamlandı</p>
+      </div>
+      <div class="card stat">
+        <p class="eyebrow">Ortak duvar</p>
+        <div class="big" id="allCount">0 <small>/ 1440</small></div>
+        <div class="bar"><i id="allBar" style="background:var(--accent)"></i></div>
+        <p class="muted" style="margin:0" id="allPct">Kimsenin olmadığı 1440 dakika var</p>
+      </div>
+    </section>
+
+    <section class="card">
+      <div class="row between">
+        <h2 class="h">Dakika duvarı</h2>
+        <div class="seg" role="group" aria-label="Görünüm">
+          <button type="button" id="modeAll" aria-pressed="true">Ortak</button>
+          <button type="button" id="modeMe" aria-pressed="false">Benim</button>
+        </div>
+      </div>
+      <p class="muted" style="margin:6px 0 0">Her satır bir saat, her kare bir dakika. Aynı dakikayı birden fazla kişi doldurduysa renkler karışır. Bir kareye dokun, o saati büyüt.</p>
+      <div class="gridbox"><div class="grid" id="grid" role="grid" aria-label="24 saat 60 dakika duvarı"></div></div>
+      <div class="legend" id="legend"></div>
+    </section>
+
+    <section class="card">
+      <div class="row between">
+        <h2 class="h" id="zoomTitle">00:00 saati</h2>
+        <div class="row">
+          <span class="mono muted" id="zoomCount">0/60</span>
+          <div class="hnav">
+            <button type="button" id="prevH" aria-label="Önceki saat">‹</button>
+            <button type="button" id="nextH" aria-label="Sonraki saat">›</button>
+          </div>
+        </div>
+      </div>
+      <div class="dg" id="dg"></div>
+      <div class="info" id="info"><span class="muted">Bir dakikaya dokun, kimlerin bastığını gör.</span></div>
+    </section>
+
+    <section class="two">
+      <div class="card">
+        <h2 class="h">Sıralama</h2>
+        <ol class="lb" id="lb"></ol>
+      </div>
+      <div class="card">
+        <h2 class="h">Boş kalanlar</h2>
+        <p class="muted" style="margin:6px 0 0" id="gapNote">Kimsenin dokunmadığı dakikalar.</p>
+        <ul class="gaps" id="gaps"></ul>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2 class="h">Başarımlar</h2>
+      <div class="badges" id="badges"></div>
+    </section>
+
+    <section class="card tips">
+      <h2 class="h">Telefona kur</h2>
+      <ol>
+        <li>Bu siteyi telefonunda aç ve bir kere giriş yap. Telefon seni hatırlar.</li>
+        <li>iPhone (Safari): Paylaş <span class="muted">›</span> Ana Ekrana Ekle. Android (Chrome): ⋮ menüsü <span class="muted">›</span> Ana ekrana ekle.</li>
+        <li>Tek dokunuşla kayıt için adresin sonuna <code>#bas</code> ekleyip o sayfayı ana ekrana koy. Açıldığı an o dakika kaydedilir. Android’de ikona basılı tutunca da “İşedim” kısayolu çıkar.</li>
+      </ol>
+    </section>
+  </div>
+</div>
+
+<div class="toast" id="toast" role="status" aria-live="polite" hidden>
+  <span id="toastText"></span>
+  <button type="button" id="undoBtn" hidden>Geri al</button>
+</div>
+
+<script>
+/* ==== AYARLAR: Supabase projesinin adresi ve anon (public) anahtarı ==== */
+const SUPABASE_URL = 'https://klaeugeeyltdgjexfhfk.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtsYWV1Z2VleWx0ZGdqZXhmaGZrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTM3Mjg3NDEsImV4cCI6MjEwOTMwNDc0MX0.7dWRtD9BC2w7eu2iV2g5KZWsBm3b_tXZwLh1V_HKJHY';
+/* ===================================================================== */
+(() => {
+  const $ = s => document.querySelector(s);
+  const COLORS = [
+    {k:'sari', n:'Sarı', h:'#F5C400'},
+    {k:'kirmizi', n:'Kırmızı', h:'#E5383B'},
+    {k:'mavi', n:'Mavi', h:'#2F6FEB'},
+    {k:'yesil', n:'Yeşil', h:'#2BA84A'},
+    {k:'mor', n:'Mor', h:'#8E44D9'},
+    {k:'pembe', n:'Pembe', h:'#EC4F9F'},
+    {k:'turkuaz', n:'Turkuaz', h:'#14B3AE'},
+    {k:'lacivert', n:'Lacivert', h:'#243B8F'},
+    {k:'fistik', n:'Fıstık', h:'#93C91B'}
+  ];
+  const CMAP = Object.fromEntries(COLORS.map(c => [c.k, c]));
+  const pad = n => String(n).padStart(2, '0');
+  const fmt = t => pad(Math.floor(t / 60)) + ':' + pad(t % 60);
+  const nowT = () => { const d = new Date(); return d.getHours() * 60 + d.getMinutes(); };
+  const dayStr = ms => new Date(ms).toLocaleDateString('tr-TR', {day:'numeric', month:'short'});
+  const sameDay = (a, b) => new Date(a).toDateString() === new Date(b).toDateString();
+  const store = {
+    get(k){ try { return localStorage.getItem(k); } catch(e){ return null; } },
+    set(k, v){ try { v == null ? localStorage.removeItem(k) : localStorage.setItem(k, v); } catch(e){} }
+  };
+
+  const S = {
+    sb:null, profiles:{}, marks:{}, me:null, token:store.get('peengo.token'),
+    loaded:false, mode:'all', selHour:null, selMin:null,
+    authTab:'login', newColor:null, lastMark:null, busy:false, hashDone:false,
+    lastT:-1, toastTimer:null
+  };
+
+  function el(tag, attrs, kids){
+    const e = document.createElement(tag);
+    if (attrs) for (const k in attrs){
+      if (k === 'text') e.textContent = attrs[k];
+      else if (k === 'style') e.style.cssText = attrs[k];
+      else if (k.startsWith('on')) e.addEventListener(k.slice(2), attrs[k]);
+      else e.setAttribute(k, attrs[k]);
+    }
+    (kids || []).forEach(c => c && e.append(c));
+    return e;
+  }
+  function rgb(h){ const n = parseInt(h.slice(1), 16); return [n >> 16 & 255, n >> 8 & 255, n & 255]; }
+  function mix(hexes){
+    let r = 0, g = 0, b = 0;
+    hexes.forEach(h => { const c = rgb(h); r += c[0]; g += c[1]; b += c[2]; });
+    const k = hexes.length;
+    return '#' + [r, g, b].map(v => Math.round(v / k).toString(16).padStart(2, '0')).join('');
+  }
+  function lum(h){
+    const [r, g, b] = rgb(h).map(v => { v /= 255; return v <= .03928 ? v / 12.92 : Math.pow((v + .055) / 1.055, 2.4); });
+    return .2126 * r + .7152 * g + .0722 * b;
+  }
+  function onColor(h){ const L = lum(h); return (1.05 / (L + .05)) >= ((L + .05) / .065) ? '#FFFFFF' : '#13262B'; }
+  const colorOf = pid => (CMAP[(S.profiles[pid] || {}).color] || {h:'#8A9A9C'}).h;
+  const nameOf = pid => (S.profiles[pid] || {}).name || 'Biri';
+
+  function errText(e){
+    const msg = (e && (e.message || e.error_description)) || '';
+    if (e && e.code === 'P0001' && msg) return msg;
+    if (/Failed to fetch|NetworkError|network/i.test(msg)) return 'İnternet bağlantısı yok gibi. Bağlanınca tekrar dene.';
+    if (msg && /[ğüşıöçİ]/i.test(msg)) return msg;
+    return 'Bir sorun oldu. Biraz sonra tekrar dene.';
+  }
+  async function rpc(fn, args){
+    const {data, error} = await S.sb.rpc(fn, args);
+    if (error) throw error;
+    return data;
+  }
+
+  /* ---------- static DOM ---------- */
+  const cells = [], hourLabels = [], tiles = [];
+  function buildGrid(){
+    const g = $('#grid');
+    g.append(el('div', {class:'cl'}));
+    [0, 15, 30, 45].forEach(m => g.append(el('div', {class:'cl', style:'grid-column:' + (m + 2) + ' / span 15', text:':' + pad(m)})));
+    for (let h = 0; h < 24; h++){
+      const hl = el('div', {class:'hl', 'data-h':h, text:pad(h)});
+      hourLabels.push(hl); g.append(hl);
+      for (let m = 0; m < 60; m++){
+        const c = el('div', {class:'c', 'data-t':h * 60 + m});
+        cells.push(c); g.append(c);
+      }
+    }
+    g.addEventListener('click', ev => {
+      const c = ev.target.closest('[data-t]');
+      const hl = ev.target.closest('[data-h]');
+      if (c){ const t = +c.dataset.t; S.selHour = Math.floor(t / 60); S.selMin = t % 60; render(); }
+      else if (hl){ S.selHour = +hl.dataset.h; S.selMin = null; render(); }
+    });
+  }
+  function buildZoom(){
+    const dg = $('#dg');
+    for (let m = 0; m < 60; m++){
+      const b = el('button', {class:'dt', type:'button', 'data-m':m, text:':' + pad(m)});
+      tiles.push(b); dg.append(b);
+    }
+    dg.addEventListener('click', ev => {
+      const b = ev.target.closest('[data-m]'); if (!b) return;
+      if (S.selHour == null) S.selHour = Math.floor(nowT() / 60);
+      S.selMin = +b.dataset.m; render();
+    });
+    $('#prevH').onclick = () => { S.selHour = ((S.selHour ?? Math.floor(nowT() / 60)) + 23) % 24; S.selMin = null; render(); };
+    $('#nextH').onclick = () => { S.selHour = ((S.selHour ?? Math.floor(nowT() / 60)) + 1) % 24; S.selMin = null; render(); };
+  }
+
+  /* ---------- data ---------- */
+  async function loadPlayers(){
+    const {data, error} = await S.sb.from('players_public').select('id,name,color,created_at');
+    if (error) throw error;
+    const p = {};
+    (data || []).forEach(r => { p[r.id] = {name:r.name, color:r.color, createdAt:Date.parse(r.created_at)}; });
+    S.profiles = p;
+  }
+  async function loadMarks(){
+    const m = {};
+    for (let from = 0; ; from += 1000){
+      const {data, error} = await S.sb.from('marks').select('player_id,minute,at')
+        .order('player_id').order('minute').range(from, from + 999);
+      if (error) throw error;
+      (data || []).forEach(r => { (m[r.player_id] ||= {})[r.minute] = Date.parse(r.at); });
+      if (!data || data.length < 1000) break;
+    }
+    S.marks = m;
+  }
+  function subscribe(){
+    S.sb.channel('peengo-marks')
+      .on('postgres_changes', {event:'*', schema:'public', table:'marks'}, p => {
+        if (p.eventType === 'INSERT' && p.new){
+          (S.marks[p.new.player_id] ||= {})[p.new.minute] = Date.parse(p.new.at);
+          if (!S.profiles[p.new.player_id]) loadPlayers().then(route).catch(() => {});
+        } else if (p.eventType === 'DELETE' && p.old && S.marks[p.old.player_id]){
+          delete S.marks[p.old.player_id][p.old.minute];
+        }
+        render();
+      })
+      .subscribe();
+  }
+  async function refreshAll(){
+    try { await Promise.all([loadPlayers(), loadMarks()]); route(); } catch(e){}
+  }
+
+  function derive(){
+    const owners = Array.from({length:1440}, () => []);
+    const counts = {};
+    for (const pid of Object.keys(S.profiles)){
+      const m = S.marks[pid] || {};
+      let c = 0;
+      for (const k in m){ const t = +k; if (m[k] && t >= 0 && t < 1440){ owners[t].push(pid); c++; } }
+      counts[pid] = c;
+    }
+    let union = 0; owners.forEach(o => { if (o.length) union++; });
+    return {owners, counts, union};
+  }
+  const mine = () => S.marks[S.me] || {};
+
+  /* ---------- routing ---------- */
+  function show(id){ ['#boot', '#auth', '#game'].forEach(s => $(s).hidden = s !== id); }
+  function route(){
+    if (!S.loaded){ show('#boot'); return; }
+    if (S.me && S.profiles[S.me]){ show('#game'); $('#meChip').hidden = false; }
+    else { show('#auth'); $('#meChip').hidden = true; }
+    render();
+    maybeHashPee();
+  }
+
+  /* ---------- auth ---------- */
+  function renderAuth(){
+    const ids = Object.keys(S.profiles);
+    const none = ids.length === 0;
+    if (none) S.authTab = 'new';
+    $('#tabs').hidden = none;
+    $('#firstNote').hidden = !none;
+    $('#authTitle').textContent = none ? 'İlk profil' : 'Hoş geldin';
+    $('#tabLogin').setAttribute('aria-pressed', S.authTab === 'login');
+    $('#tabNew').setAttribute('aria-pressed', S.authTab === 'new');
+    $('#loginForm').hidden = S.authTab !== 'login';
+    $('#newForm').hidden = S.authTab !== 'new';
+
+    const used = {};
+    ids.forEach(pid => { used[S.profiles[pid].color] = pid; });
+    if (S.newColor && used[S.newColor]) S.newColor = null;
+    const sw = $('#swatches'); sw.textContent = '';
+    COLORS.forEach(c => {
+      const owner = used[c.k];
+      const b = el('button', {type:'button', class:'sw', 'aria-pressed':S.newColor === c.k, 'aria-label':c.n + (owner ? ', ' + nameOf(owner) + ' kullanıyor' : ''),
+        onclick:() => { S.newColor = c.k; $('#newErr').textContent = ''; renderAuth(); }},
+        [el('i', {style:'background:' + c.h}), el('span', {class: owner ? 'own' : '', text: owner ? nameOf(owner) : c.n})]);
+      if (owner) b.disabled = true;
+      sw.append(b);
+    });
+  }
+
+  function signedIn(res){
+    S.token = res.token; S.me = res.id; store.set('peengo.token', res.token);
+  }
+
+  async function doLogin(ev){
+    ev.preventDefault();
+    const err = $('#loginErr'), btn = $('#loginBtn');
+    const name = $('#loginName').value.trim(), pw = $('#loginPw').value;
+    if (!name){ err.textContent = 'Kullanıcı adını yaz.'; return; }
+    if (!pw){ err.textContent = 'Şifreni yaz.'; return; }
+    btn.disabled = true; err.textContent = '';
+    try {
+      signedIn(await rpc('login', {p_name:name, p_pass:pw}));
+      if (!S.profiles[S.me]) await loadPlayers();
+      $('#loginPw').value = '';
+      route();
+    } catch(e){ err.textContent = errText(e); }
+    finally { btn.disabled = false; }
+  }
+
+  async function doCreate(ev){
+    ev.preventDefault();
+    const err = $('#newErr'), btn = $('#newBtn');
+    const name = $('#newName').value.trim().replace(/\s+/g, ' ');
+    const pw = $('#newPw').value;
+    if (name.length < 2){ err.textContent = 'Kullanıcı adı en az 2 harf olmalı.'; return; }
+    if (pw.length < 4){ err.textContent = 'Şifre en az 4 karakter olmalı.'; return; }
+    if (!S.newColor){ err.textContent = 'Bir renk seç.'; return; }
+    const low = name.toLocaleLowerCase('tr-TR');
+    if (Object.values(S.profiles).some(p => (p.name || '').toLocaleLowerCase('tr-TR') === low)){ err.textContent = 'Bu kullanıcı adı alınmış. Başka bir isim yaz.'; return; }
+    btn.disabled = true; err.textContent = '';
+    try {
+      signedIn(await rpc('register', {p_name:name, p_pass:pw, p_color:S.newColor}));
+      await loadPlayers();
+      $('#newName').value = ''; $('#newPw').value = ''; S.newColor = null;
+      route();
+    } catch(e){
+      err.textContent = errText(e);
+      loadPlayers().then(renderAuth).catch(() => {});
+    } finally { btn.disabled = false; }
+  }
+
+  /* ---------- the button ---------- */
+  async function pee(){
+    if (!S.me || S.busy) return;
+    const tLocal = nowT();
+    if (mine()[tLocal]){ toast(fmt(tLocal) + ' zaten senin. Bir sonraki dakikayı bekle.'); return; }
+    S.busy = true; $('#flush').classList.add('busy');
+    try {
+      const r = await rpc('pee', {p_token:S.token});
+      const t = r.minute, at = Date.parse(r.at);
+      (S.marks[S.me] ||= {})[t] = at;
+      if (!r.new){ toast(fmt(t) + ' zaten senin. Bir sonraki dakikayı bekle.'); render(); return; }
+      S.lastMark = {t, at:Date.now()};
+      const f = $('#flush'); f.classList.remove('pop'); void f.offsetWidth; f.classList.add('pop');
+      if (navigator.vibrate) try { navigator.vibrate(30); } catch(e){}
+      const h = Math.floor(t / 60);
+      let full = 0; for (let m = 0; m < 60; m++) if (mine()[h * 60 + m]) full++;
+      toast(full === 60 ? 'PEENGO! ' + pad(h) + ':00 saatinin 60 dakikası tamam.' : fmt(t) + ' kaydedildi.', true);
+      S.selHour = h; S.selMin = t % 60;
+      render();
+    } catch(e){
+      toast(errText(e));
+      if (/Oturumun kapanmış/.test(e && e.message || '')) logoutLocal();
+    } finally {
+      S.busy = false; $('#flush').classList.remove('busy');
+    }
+  }
+
+  async function undo(){
+    const lm = S.lastMark;
+    if (!lm || Date.now() - lm.at > 60000) return;
+    S.lastMark = null; $('#undoBtn').hidden = true;
+    try {
+      const ok = await rpc('undo', {p_token:S.token, p_minute:lm.t});
+      if (ok){ delete mine()[lm.t]; toast(fmt(lm.t) + ' geri alındı.'); }
+      else toast('Geri alma süresi doldu.');
+      render();
+    } catch(e){ toast(errText(e)); }
+  }
+
+  function toast(msg, withUndo){
+    $('#toastText').textContent = msg;
+    $('#undoBtn').hidden = !withUndo;
+    $('#toast').hidden = false;
+    clearTimeout(S.toastTimer);
+    S.toastTimer = setTimeout(() => { $('#toast').hidden = true; }, withUndo ? 60000 : 4000);
+  }
+
+  function maybeHashPee(){
+    if (S.hashDone || location.hash !== '#bas') return;
+    if (!S.loaded || !S.me || !S.profiles[S.me]) return;
+    S.hashDone = true;
+    pee();
+  }
+
+  function logoutLocal(){
+    S.token = null; S.me = null; store.set('peengo.token', null);
+    S.authTab = 'login'; route();
+  }
+
+  /* ---------- render ---------- */
+  const ICON = {
+    ilk:'<path d="M12 3c3.5 4.6 6 8 6 11a6 6 0 0 1-12 0c0-3 2.5-6.4 6-11z" fill="currentColor"/>',
+    gece:'<path d="M19.5 14.5A8 8 0 1 1 9.5 4.5a6.5 6.5 0 0 0 10 10z" fill="currentColor"/>',
+    tam:'<circle cx="12" cy="12" r="8.5" fill="none" stroke="currentColor" stroke-width="2"/><path d="M12 7v5l3.5 2" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>',
+    senkron:'<circle cx="9" cy="12" r="5.5" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="15" cy="12" r="5.5" fill="none" stroke="currentColor" stroke-width="2"/>',
+    yuz:'<text x="12" y="16" text-anchor="middle" font-size="10" font-weight="700" font-family="JetBrains Mono, monospace" fill="currentColor">100</text><rect x="2.5" y="5" width="19" height="14" rx="4" fill="none" stroke="currentColor" stroke-width="1.6"/>',
+    ceyrek:'<circle cx="12" cy="12" r="8.5" fill="none" stroke="currentColor" stroke-width="2"/><path d="M12 12V3.5A8.5 8.5 0 0 1 20.5 12z" fill="currentColor"/>',
+    peengo:'<path d="M12 3l2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1L3.2 9.5l6.1-.9z" fill="currentColor"/>'
+  };
+
+  function render(){
+    if (!$('#auth').hidden) renderAuth();
+    if ($('#game').hidden) return;
+    const D = derive();
+    const me = S.me, myHex = colorOf(me), my = D.counts[me] || 0;
+    $('#meDot').style.background = myHex;
+    $('#meName').textContent = nameOf(me);
+    const f = $('#flush');
+    f.style.setProperty('--me', myHex);
+    f.style.setProperty('--on-me', onColor(myHex));
+
+    $('#myCount').firstChild.nodeValue = my + ' ';
+    $('#myBar').style.width = (my / 14.4) + '%';
+    $('#myBar').style.background = myHex;
+    $('#myPct').textContent = '%' + (my / 14.4).toFixed(1).replace('.', ',') + ' tamamlandı';
+    $('#allCount').firstChild.nodeValue = D.union + ' ';
+    $('#allBar').style.width = (D.union / 14.4) + '%';
+    $('#allPct').textContent = (1440 - D.union) === 0 ? 'Bütün dakikalar dolu. PEENGO!' : 'Kimsenin olmadığı ' + (1440 - D.union) + ' dakika var';
+
+    const t0 = nowT();
+    for (let t = 0; t < 1440; t++){
+      let list = D.owners[t];
+      if (S.mode === 'me') list = list.filter(p => p === me);
+      const c = cells[t];
+      c.style.background = list.length ? mix(list.map(colorOf)) : '';
+      c.title = fmt(t) + ' · ' + (D.owners[t].length ? D.owners[t].map(nameOf).join(', ') : 'boş');
+      c.classList.toggle('now', t === t0);
+    }
+    const selH = S.selHour ?? Math.floor(t0 / 60);
+    hourLabels.forEach((hl, h) => hl.classList.toggle('sel', h === selH));
+    $('#modeAll').setAttribute('aria-pressed', S.mode === 'all');
+    $('#modeMe').setAttribute('aria-pressed', S.mode === 'me');
+    const lg = $('#legend'); lg.textContent = '';
+    const pids = Object.keys(S.profiles).sort((a, b) => S.profiles[a].createdAt - S.profiles[b].createdAt);
+    pids.forEach(pid => lg.append(el('span', null, [el('span', {class:'dot', style:'background:' + colorOf(pid)}), document.createTextNode(nameOf(pid))])));
+    if (pids.length > 1){
+      const two = pids.slice(0, 2);
+      lg.append(el('span', null, [el('span', {class:'dot', style:'background:' + mix(two.map(colorOf))}), document.createTextNode(two.map(nameOf).join(' + '))]));
+    }
+
+    $('#zoomTitle').textContent = pad(selH) + ':00 saati';
+    let filled = 0;
+    for (let m = 0; m < 60; m++){
+      const t = selH * 60 + m;
+      let list = D.owners[t];
+      if (S.mode === 'me') list = list.filter(p => p === me);
+      const b = tiles[m];
+      if (list.length){ filled++; const hx = mix(list.map(colorOf)); b.style.background = hx; b.style.color = onColor(hx); b.classList.add('f'); }
+      else { b.style.background = ''; b.style.color = ''; b.classList.remove('f'); }
+      b.classList.toggle('sel', S.selMin === m);
+      b.classList.toggle('now', t === t0);
+      b.setAttribute('aria-label', fmt(t) + ', ' + (D.owners[t].length ? D.owners[t].map(nameOf).join(', ') : 'boş'));
+    }
+    $('#zoomCount').textContent = filled + '/60';
+    const info = $('#info'); info.textContent = '';
+    if (S.selMin != null){
+      const t = selH * 60 + S.selMin;
+      info.append(el('b', {class:'mono', text:fmt(t)}));
+      const o = D.owners[t];
+      if (!o.length) info.append(el('span', {class:'muted', text:'Henüz kimse yok. Bu dakika boş.'}));
+      o.forEach(pid => info.append(el('span', {class:'who'}, [el('span', {class:'dot', style:'background:' + colorOf(pid)}), document.createTextNode(nameOf(pid) + ' · ' + dayStr(S.marks[pid][t]))])));
+    } else info.append(el('span', {class:'muted', text:'Bir dakikaya dokun, kimlerin bastığını gör.'}));
+
+    const lb = $('#lb'); lb.textContent = '';
+    pids.slice().sort((a, b) => (D.counts[b] || 0) - (D.counts[a] || 0)).forEach((pid, i) => {
+      const c = D.counts[pid] || 0;
+      lb.append(el('li', null, [
+        el('span', {class:'rk', text:'#' + (i + 1)}),
+        el('span', {class:'nm'}, [el('span', {class:'dot', style:'background:' + colorOf(pid)}), el('span', {text:nameOf(pid) + (pid === me ? ' (sen)' : '')})]),
+        el('span', {class:'ct', text:c + ' · %' + (c / 14.4).toFixed(1).replace('.', ',')}),
+        el('div', {class:'bar'}, [el('i', {style:'width:' + (c / 14.4) + '%;background:' + colorOf(pid)})])
+      ]));
+    });
+
+    const perHour = [];
+    for (let h = 0; h < 24; h++){ let e = 0; for (let m = 0; m < 60; m++) if (!D.owners[h * 60 + m].length) e++; perHour.push({h, e}); }
+    const worst = perHour.filter(x => x.e > 0).sort((a, b) => b.e - a.e || a.h - b.h).slice(0, 5);
+    const gaps = $('#gaps'); gaps.textContent = '';
+    $('#gapNote').textContent = worst.length ? 'En boş saatler. Hedef buralar.' : 'Boş dakika kalmadı.';
+    worst.forEach(x => gaps.append(el('li', null, [
+      el('button', {type:'button', class:'ghost mono', text:pad(x.h) + ':00 – ' + pad(x.h) + ':59', onclick:() => { S.selHour = x.h; S.selMin = null; render(); $('#dg').scrollIntoView({behavior:'smooth', block:'center'}); }}),
+      el('span', {class:'mono muted', text:x.e + ' boş'})
+    ])));
+
+    const mm = mine();
+    let fullHours = 0;
+    for (let h = 0; h < 24; h++){ let c = 0; for (let m = 0; m < 60; m++) if (mm[h * 60 + m]) c++; if (c === 60) fullHours++; }
+    let night = false;
+    for (let t = 180; t < 300; t++) if (mm[t]){ night = true; break; }
+    let sync = false;
+    outer: for (const k in mm){
+      if (!mm[k]) continue;
+      for (const pid of pids){
+        if (pid === me) continue;
+        const o = (S.marks[pid] || {})[k];
+        if (o && sameDay(o, mm[k])){ sync = true; break outer; }
+      }
+    }
+    const A = [
+      {k:'ilk', n:'İlk Damla', d:'İlk dakikanı kaydet', ok:my >= 1},
+      {k:'gece', n:'Gece Kuşu', d:'03:00 ile 04:59 arası bir dakika', ok:night},
+      {k:'tam', n:'Tam Saat', d:'Bir saatin 60 dakikasının hepsi', ok:fullHours >= 1, x:fullHours > 1 ? '×' + fullHours : ''},
+      {k:'senkron', n:'Senkron', d:'Bir arkadaşınla aynı gün aynı dakika', ok:sync},
+      {k:'yuz', n:'Yüzlük', d:'100 dakika topla', ok:my >= 100},
+      {k:'ceyrek', n:'Çeyrek', d:'360 dakika, günün dörtte biri', ok:my >= 360},
+      {k:'peengo', n:'PEENGO!', d:'1440 dakikanın hepsi', ok:my >= 1440}
+    ];
+    const bd = $('#badges'); bd.textContent = '';
+    A.forEach(a => {
+      const s = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+      s.setAttribute('viewBox', '0 0 24 24'); s.setAttribute('aria-hidden', 'true'); s.innerHTML = ICON[a.k];
+      bd.append(el('div', {class:'bd' + (a.ok ? ' on' : '')}, [s, el('div', null, [el('b', {text:a.n + (a.x ? ' ' + a.x : '') + (a.ok ? ' ✓' : '')}), el('small', {text:a.d})])]));
+    });
+
+    updateButton();
+  }
+
+  function updateButton(){
+    const t = nowT();
+    const done = !!mine()[t];
+    $('#flush').classList.toggle('done', done);
+    $('#flushLbl').textContent = done ? 'Sende ✓' : 'İşedim';
+    $('#status').textContent = done ? fmt(t) + ' senin. Bir sonraki dakikada tekrar basabilirsin.' : 'Bastığın an ' + fmt(t) + ' senin renginle boyanır.';
+  }
+
+  function tick(){
+    const d = new Date();
+    $('#clock').textContent = pad(d.getHours()) + ':' + pad(d.getMinutes());
+    const t = nowT();
+    if (t !== S.lastT){ S.lastT = t; if (!$('#game').hidden) render(); }
+    if (S.lastMark && Date.now() - S.lastMark.at > 60000){ S.lastMark = null; $('#undoBtn').hidden = true; }
+  }
+
+  /* ---------- wire up ---------- */
+  $('#tabLogin').onclick = () => { S.authTab = 'login'; renderAuth(); };
+  $('#tabNew').onclick = () => { S.authTab = 'new'; renderAuth(); };
+  $('#loginForm').addEventListener('submit', doLogin);
+  $('#newForm').addEventListener('submit', doCreate);
+  $('#flush').onclick = pee;
+  $('#undoBtn').onclick = undo;
+  $('#modeAll').onclick = () => { S.mode = 'all'; render(); };
+  $('#modeMe').onclick = () => { S.mode = 'me'; render(); };
+  $('#logout').onclick = () => { const tk = S.token; logoutLocal(); if (tk) rpc('logout', {p_token:tk}).catch(() => {}); };
+  window.addEventListener('hashchange', () => { S.hashDone = false; maybeHashPee(); });
+  document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible' && S.loaded) refreshAll(); });
+
+  buildGrid(); buildZoom(); tick(); setInterval(tick, 1000);
+
+  async function start(){
+    if (!SUPABASE_URL || !SUPABASE_ANON_KEY || !window.supabase){
+      $('#bootMsg').textContent = !window.supabase
+        ? 'Bağlantı kütüphanesi yüklenemedi. İnternet bağlantını kontrol edip sayfayı yenile.'
+        : 'Kurulum bitmedi: index.html içindeki SUPABASE_URL ve SUPABASE_ANON_KEY doldurulmalı.';
+      return;
+    }
+    S.sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {auth:{persistSession:false}});
+    const slow = setTimeout(() => { if (!S.loaded) $('#bootMsg').textContent = 'Sunucuya ulaşılamadı. İnternet bağlantını kontrol et; açık kalırsa kendisi yüklenir.'; }, 10000);
+    for (let i = 0; i < 3 && !S.loaded; i++){
+      try {
+        const jobs = [loadPlayers(), loadMarks()];
+        if (S.token) jobs.push(rpc('me', {p_token:S.token}).then(r => {
+          if (r && r.id) S.me = r.id; else { S.token = null; store.set('peengo.token', null); }
+        }));
+        await Promise.all(jobs);
+        S.loaded = true;
+      } catch(e){
+        $('#bootMsg').textContent = errText(e);
+        await new Promise(r => setTimeout(r, 1500 * (i + 1)));
+      }
+    }
+    clearTimeout(slow);
+    if (!S.loaded) return;
+    subscribe();
+    route();
+  }
+  start();
+})();
+</script>
+</body>
+</html>
