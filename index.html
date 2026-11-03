@@ -6,6 +6,7 @@
 <title>Peengo</title>
 <meta name="description" content="Arkadaşlarınla günün 1440 dakikasını doldur.">
 <meta name="theme-color" content="#13262B">
+<meta name="peengo-version" content="2026-11-03.5">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Peengo">
@@ -1196,6 +1197,20 @@ const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
   setInterval(() => { if (S.loaded && document.visibilityState === 'visible') loadPlayers().then(() => render()).catch(() => {}); }, 60000);
 
   buildGrid(); buildZoom(); tick(); setInterval(tick, 1000);
+
+  /* Yeni sürüm kontrolü: GitHub sayfaları 10 dakikaya kadar önbellekte tutabiliyor */
+  const MY_VERSION = (document.querySelector('meta[name="peengo-version"]') || {}).content || '';
+  async function checkVersion(){
+    try {
+      const html = await fetch(location.pathname + '?vc=' + Date.now(), {cache:'no-store'}).then(r => r.ok ? r.text() : '');
+      const m = html.match(/name="peengo-version" content="([^"]+)"/);
+      if (m && MY_VERSION && m[1] !== MY_VERSION && !S.busy && !S.huntBusy){
+        location.replace(location.pathname + '?v=' + encodeURIComponent(m[1]) + location.hash);
+      }
+    } catch(e){}
+  }
+  checkVersion();
+  document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') checkVersion(); });
 
   async function start(){
     if (!SUPABASE_URL || !SUPABASE_ANON_KEY || !window.supabase){
