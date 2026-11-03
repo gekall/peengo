@@ -64,6 +64,9 @@ button{cursor:pointer}
 .word b{font-weight:400;color:var(--accent)}
 .me-chip{display:flex;align-items:center;gap:8px;background:var(--surface);border:1px solid var(--grout);border-radius:999px;padding:4px 4px 4px 12px;min-width:0}
 .me-chip .nm{font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:140px}
+.nm-btn{border:0;background:transparent;display:flex;align-items:center;gap:6px;padding:2px 0;min-width:0;color:var(--ink)}
+.nm-btn .pen{color:var(--muted);font-size:13px}
+.nm-btn:hover .pen{color:var(--accent)}
 .dot{width:12px;height:12px;border-radius:50%;flex:none;box-shadow:inset 0 0 0 1px rgba(0,0,0,.18)}
 .ghost{border:0;background:var(--tile);border-radius:999px;padding:6px 12px;font-weight:600;font-size:13px;color:var(--muted)}
 .ghost:hover{color:var(--ink)}
@@ -252,10 +255,26 @@ img{max-width:100%}
     </div>
     <div class="me-chip" id="meChip" hidden>
       <span class="dot" id="meDot"></span>
-      <span class="nm" id="meName"></span>
+      <button class="nm-btn" type="button" id="meEdit" aria-label="Profili düzenle"><span class="nm" id="meName"></span><span class="pen" aria-hidden="true">✎</span></button>
       <button class="ghost" id="logout" type="button">Çıkış</button>
     </div>
   </header>
+
+  <section class="card" id="profilePanel" hidden>
+    <div class="row between">
+      <h2 class="h">Profilin</h2>
+      <button class="ghost" type="button" id="profClose">Kapat</button>
+    </div>
+    <form class="form" id="renameForm">
+      <div class="field">
+        <label for="renameName">Kullanıcı adı</label>
+        <input id="renameName" maxlength="20" autocomplete="username" autocapitalize="off" spellcheck="false">
+      </div>
+      <p class="muted" style="margin:0;font-size:13px">Değiştirirsen bundan sonra yeni isminle giriş yaparsın. Şifren ve rengin aynı kalır, dakikaların ve avların kaybolmaz.</p>
+      <p class="err" id="renameErr"></p>
+      <button class="primary" type="submit" id="renameBtn">Kaydet</button>
+    </form>
+  </section>
 
   <div class="leaders" id="leaders" hidden>
     <div class="crown">
@@ -786,7 +805,37 @@ const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
 
   function logoutLocal(){
     S.token = null; S.me = null; store.set('peengo.token', null);
-    S.authTab = 'login'; route();
+    S.authTab = 'login'; $('#profilePanel').hidden = true; route();
+  }
+
+  function openProfile(){
+    if (!S.me) return;
+    const p = $('#profilePanel');
+    if (!p.hidden){ p.hidden = true; return; }
+    $('#renameName').value = nameOf(S.me);
+    $('#renameErr').textContent = '';
+    p.hidden = false;
+    $('#renameName').focus();
+  }
+  async function doRename(ev){
+    ev.preventDefault();
+    const err = $('#renameErr'), btn = $('#renameBtn');
+    const name = $('#renameName').value.trim().replace(/\s+/g, ' ');
+    if (name === nameOf(S.me)){ $('#profilePanel').hidden = true; return; }
+    if (name.length < 2){ err.textContent = 'Kullanıcı adı en az 2 harf olmalı.'; return; }
+    const low = name.toLocaleLowerCase('tr-TR');
+    if (Object.keys(S.profiles).some(pid => pid !== S.me && (S.profiles[pid].name || '').toLocaleLowerCase('tr-TR') === low)){ err.textContent = 'Bu kullanıcı adı alınmış. Başka bir isim yaz.'; return; }
+    btn.disabled = true; err.textContent = '';
+    try {
+      const r = await rpc('rename', {p_token:S.token, p_name:name});
+      S.profiles[S.me].name = r.name;
+      $('#profilePanel').hidden = true;
+      toast('İsmin artık ' + r.name + '. Girişte bu ismi kullan.');
+      render();
+    } catch(e){
+      err.textContent = errText(e);
+      if (/Oturumun kapanmış/.test(e && e.message || '')) logoutLocal();
+    } finally { btn.disabled = false; }
   }
 
   /* ---------- render ---------- */
@@ -1140,6 +1189,11 @@ const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
   $('#logout').onclick = () => { const tk = S.token; logoutLocal(); if (tk) rpc('logout', {p_token:tk}).catch(() => {}); };
   window.addEventListener('hashchange', () => { S.hashDone = false; maybeHashPee(); });
   document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible' && S.loaded) refreshAll(); });
+
+  $('#meEdit').onclick = openProfile;
+  $('#profClose').onclick = () => { $('#profilePanel').hidden = true; };
+  $('#renameForm').addEventListener('submit', doRename);
+  setInterval(() => { if (S.loaded && document.visibilityState === 'visible') loadPlayers().then(() => render()).catch(() => {}); }, 60000);
 
   buildGrid(); buildZoom(); tick(); setInterval(tick, 1000);
 
