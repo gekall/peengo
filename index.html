@@ -187,6 +187,31 @@ button{cursor:pointer}
 .bcount{font-family:var(--f-mono);font-size:13px;color:var(--muted);font-variant-numeric:tabular-nums}
 .bcount b{color:var(--ink)}
 
+/* hunt */
+.crown{display:flex;align-items:center;gap:12px;background:var(--surface);border:1px solid var(--grout);border-radius:16px;padding:10px 14px}
+.crown .cr{font-size:26px;line-height:1}
+.crown .who{display:flex;align-items:center;gap:8px;font-weight:700;min-width:0}
+.crown .who span:last-child{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.crown .kc{margin-left:auto;font-family:var(--f-mono);font-size:13px;color:var(--muted);white-space:nowrap}
+.mob{display:grid;grid-template-columns:auto 1fr;gap:16px;align-items:center;margin-top:14px}
+.mob-art{width:96px;height:96px;border-radius:20px;background:var(--tile);border:2px solid var(--grout);display:grid;place-items:center;font-size:54px;line-height:1;position:relative}
+.mob.boss .mob-art{border-color:var(--warn);box-shadow:0 0 0 4px var(--surface),0 0 0 6px var(--warn)}
+.mob-tag{position:absolute;top:-10px;left:50%;transform:translateX(-50%);background:var(--warn);color:var(--surface);font-family:var(--f-display);font-size:12px;letter-spacing:.08em;padding:1px 8px;border-radius:999px}
+.mob-info{display:flex;flex-direction:column;gap:6px;min-width:0}
+.mob-name{font-family:var(--f-display);font-size:22px;line-height:1.1}
+.hp{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--muted)}
+.hp .hb{flex:1;max-width:220px;height:10px;border-radius:999px;background:var(--warn);opacity:.85}
+.mob.hit .mob-art{animation:shake .45s ease}
+.mob.dead .mob-art{animation:poof .6s ease forwards}
+@keyframes shake{20%{transform:translateX(-6px) rotate(-4deg)}40%{transform:translateX(6px) rotate(4deg)}60%{transform:translateX(-4px)}80%{transform:translateX(4px)}}
+@keyframes poof{0%{transform:scale(1)}40%{transform:scale(1.15);filter:brightness(1.6)}100%{transform:scale(.6);opacity:0}}
+.hunt-actions{display:flex;flex-wrap:wrap;gap:10px;margin-top:14px;align-items:center}
+.attack{border:0;background:var(--warn);color:var(--surface);border-radius:12px;padding:12px 18px;font-weight:700;font-size:16px}
+.attack.armed{box-shadow:0 0 0 3px var(--surface),0 0 0 5px var(--warn)}
+.attack:disabled{opacity:.5;cursor:not-allowed}
+.next-reward{margin:10px 0 0;font-size:14px}
+.hunt-lb{margin-top:16px}
+.title-chip{font-size:11px;font-weight:700;letter-spacing:.04em;color:var(--accent);margin-left:6px;white-space:nowrap}
 .tips ol{margin:10px 0 0;padding-left:20px;display:flex;flex-direction:column;gap:8px;max-width:65ch}
 code{font-family:var(--f-mono);background:var(--tile);border-radius:6px;padding:1px 6px;font-size:13px}
 
@@ -227,6 +252,15 @@ img{max-width:100%}
       <button class="ghost" id="logout" type="button">Çıkış</button>
     </div>
   </header>
+
+  <div class="crown" id="crown" hidden>
+    <span class="cr" aria-hidden="true">👑</span>
+    <div style="min-width:0">
+      <p class="eyebrow">Canavar Avcısı</p>
+      <div class="who" id="crownWho"></div>
+    </div>
+    <span class="kc" id="crownCount"></span>
+  </div>
 
   <section class="card boot" id="boot">
     <svg viewBox="0 0 40 40" aria-hidden="true">
@@ -301,6 +335,32 @@ img{max-width:100%}
         <div class="big" id="allCount">0 <small>/ 1440</small></div>
         <div class="bar"><i id="allBar" style="background:var(--accent)"></i></div>
         <p class="muted" style="margin:0" id="allPct">Kimsenin olmadığı 1440 dakika var</p>
+      </div>
+    </section>
+
+    <section class="card" id="huntCard">
+      <div class="row between">
+        <h2 class="h">Canavar avı</h2>
+        <span class="bcount" id="huntNo"></span>
+      </div>
+      <div class="mob" id="mob">
+        <div class="mob-art" id="mobArt" aria-hidden="true">🐀</div>
+        <div class="mob-info">
+          <p class="eyebrow" id="mobKind">Sıradaki canavar</p>
+          <span class="mob-name" id="mobName">Kanalizasyon Faresi</span>
+          <div class="hp"><span class="hb" id="mobBar"></span><span class="mono" id="mobCost">2 dakika</span></div>
+          <p class="muted" style="margin:0;font-size:13px" id="mobNote">Kesmek için duvarından rastgele 2 dakika silinir. Hangilerinin gideceğini sistem seçer.</p>
+        </div>
+      </div>
+      <div class="hunt-actions">
+        <button class="attack" type="button" id="huntBtn">Saldır</button>
+        <button class="ghost" type="button" id="huntCancel" hidden>Vazgeç</button>
+      </div>
+      <p class="status" id="huntMsg" style="text-align:left;margin-top:10px"></p>
+      <p class="next-reward muted" id="nextReward"></p>
+      <div class="hunt-lb">
+        <p class="eyebrow">Av tablosu</p>
+        <ol class="lb" id="huntLb"></ol>
       </div>
     </section>
 
@@ -401,8 +461,38 @@ const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
     sb:null, profiles:{}, marks:{}, me:null, token:store.get('peengo.token'),
     loaded:false, mode:'all', selHour:null, selMin:null,
     authTab:'login', newColor:null, lastMark:null, busy:false, hashDone:false,
-    lastT:-1, toastTimer:null
+    lastT:-1, toastTimer:null,
+    hunts:{}, huntArmed:false, huntBusy:false, huntTimer:null
   };
+
+  const MOBS = [
+    {e:'🐀', n:'Kanalizasyon Faresi'},
+    {e:'🕷️', n:'Tuvalet Örümceği'},
+    {e:'🦠', n:'Lavabo Mikrobu'},
+    {e:'🐍', n:'Gider Yılanı'},
+    {e:'🦇', n:'Sifon Yarasası'},
+    {e:'🦀', n:'Klozet Yengeci'},
+    {e:'🪳', n:'Fayans Hamamböceği'},
+    {e:'👻', n:'Tıkanık Hortlak'},
+    {e:'🐸', n:'Rögar Kurbağası'}
+  ];
+  const BOSSES = [
+    {e:'🗿', n:'Kireç Golemi'},
+    {e:'🐉', n:'Kanalizasyon Ejderi'},
+    {e:'🦑', n:'Rögar Krakeni'},
+    {e:'👹', n:'Sifonların Efendisi'}
+  ];
+  const TITLES = [[40, 'Efsane Avcı'], [30, 'Ejder Avcısı'], [20, 'Kılıç Ustası'], [10, 'Çaylak Avcı']];
+  function mobFor(n){
+    const boss = n % 10 === 0;
+    const round = Math.floor((n - 1) / 40);
+    const pre = round > 0 ? (round === 1 ? 'Öfkeli ' : 'Kadim ') : '';
+    if (boss){ const b = BOSSES[(n / 10 - 1) % 4]; return {e:b.e, n:pre + b.n, boss:true, cost:4}; }
+    const m = MOBS[(n - 1) % 10 % 9];
+    return {e:m.e, n:pre + m.n, boss:false, cost:2};
+  }
+  const kills = pid => (S.hunts[pid] || {}).count || 0;
+  const titleOf = pid => { const k = kills(pid); for (const [n, t] of TITLES) if (k >= n) return t; return ''; };
 
   function el(tag, attrs, kids){
     const e = document.createElement(tag);
@@ -498,7 +588,25 @@ const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
     }
     S.marks = m;
   }
+  async function loadHunts(){
+    const h = {};
+    for (let from = 0; ; from += 1000){
+      const {data, error} = await S.sb.from('hunts').select('id,player_id,at').order('id').range(from, from + 999);
+      if (error) return;
+      (data || []).forEach(r => { const x = (h[r.player_id] ||= {count:0, last:0}); x.count++; x.last = Math.max(x.last, Date.parse(r.at)); });
+      if (!data || data.length < 1000) break;
+    }
+    S.hunts = h;
+  }
   function subscribe(){
+    S.sb.channel('peengo-hunts')
+      .on('postgres_changes', {event:'INSERT', schema:'public', table:'hunts'}, p => {
+        if (!p.new || S.huntSeen === p.new.id) return;
+        const x = (S.hunts[p.new.player_id] ||= {count:0, last:0});
+        if (p.new.mob_no > x.count){ x.count = p.new.mob_no; x.last = Date.parse(p.new.at); }
+        render();
+      })
+      .subscribe();
     S.sb.channel('peengo-marks')
       .on('postgres_changes', {event:'*', schema:'public', table:'marks'}, p => {
         if (p.eventType === 'INSERT' && p.new){
@@ -512,7 +620,7 @@ const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
       .subscribe();
   }
   async function refreshAll(){
-    try { await Promise.all([loadPlayers(), loadMarks()]); route(); } catch(e){}
+    try { await Promise.all([loadPlayers(), loadMarks(), loadHunts()]); route(); } catch(e){}
   }
 
   function derive(){
@@ -692,6 +800,13 @@ const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
     golge:'<circle cx="10" cy="10" r="6" fill="currentColor" opacity=".35"/><circle cx="14" cy="14" r="6" fill="none" stroke="currentColor" stroke-width="2"/>',
     zirve:'<path d="M2.5 20.5L9.5 9l3.5 6 2.2-3.2 6.3 8.7z" fill="currentColor"/><path d="M9.5 9V3l4.5 1.6-4.5 1.6" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/>'
   };
+  Object.assign(ICON, {
+    ilkkan:'<path d="M12 3c3.5 4.6 6 8 6 11a6 6 0 0 1-12 0c0-3 2.5-6.4 6-11z" fill="none" stroke="currentColor" stroke-width="2"/><path d="M9 14.5a3 3 0 0 0 3 3" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>',
+    kilic:'<path d="M14.5 3.5H20.5V9.5L10 20l-2-2-2 2-2-2 2-2-2-2z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><path d="M8 12l4 4" fill="none" stroke="currentColor" stroke-width="1.8"/>',
+    ejder:'<path d="M3 15c3-1 4-5 8-6 3-.8 6 .5 7.5 2.5L21 9l-.5 5c-1 3-4 5-8 5-4 0-6-2-9.5-4z" fill="currentColor"/><circle cx="16" cy="12" r="1.1" style="fill:var(--surface)"/>',
+    efsane:'<path d="M12 2.5l2.4 6.1 6.6.4-5.1 4.2 1.7 6.3L12 16l-5.6 3.5 1.7-6.3L3 9l6.6-.4z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><circle cx="12" cy="11.5" r="2.2" fill="currentColor"/>',
+    tac:'<path d="M3 18.5h18L19.5 8l-4.5 4-3-6-3 6-4.5-4z" fill="currentColor"/><path d="M3 21h18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>'
+  });
   const dayKey = ms => { const d = new Date(ms); return d.getFullYear() + '-' + (d.getMonth() + 1) + '-' + d.getDate(); };
 
   function render(){
@@ -778,6 +893,7 @@ const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
       el('span', {class:'mono muted', text:x.e + ' boş'})
     ])));
 
+    renderHunt(pids, me, my);
     const groups = achievements(D, pids, me, my);
     let got = 0, total = 0;
     const bd = $('#badges'); bd.textContent = '';
@@ -869,6 +985,14 @@ const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
         {k:'bin', n:'Bin Dakika', d:'1000 dakika topla', ok:my >= 1000},
         {k:'peengo', n:'PEENGO!', d:'1440 dakikanın hepsi', ok:my >= 1440}
       ]},
+      {title:'Canavar avı', items:[
+        {k:'ilkkan', n:'İlk Kan', d:'İlk canavarını kes', ok:kills(me) >= 1},
+        {k:'kilic', n:'Çaylak Avcı', d:'10 canavar kes', ok:kills(me) >= 10},
+        {k:'kilic', n:'Kılıç Ustası', d:'20 canavar kes', ok:kills(me) >= 20},
+        {k:'ejder', n:'Ejder Avcısı', d:'30 canavar kes', ok:kills(me) >= 30},
+        {k:'efsane', n:'Efsane Avcı', d:'40 canavar kes', ok:kills(me) >= 40},
+        {k:'tac', n:'Canavar Avcısı', d:'Av tablosunda 1. ol. Geçilirsen taç gider', ok:hunterOrder(pids)[0] === me}
+      ]},
       {title:'Arkadaşlarla', items:[
         {k:'senkron', n:'Senkron', d:'Bir arkadaşınla aynı gün aynı dakika', ok:sync},
         {k:'uclu', n:'Üçlü Senkron', d:'Üç kişi aynı gün aynı dakikada', ok:sync3},
@@ -876,6 +1000,92 @@ const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
         {k:'zirve', n:'Zirve', d:'Sıralamada 1. ol. Geçilirsen rozet gider', ok:top}
       ]}
     ];
+  }
+
+  /* ---------- hunt ---------- */
+  function hunterOrder(pids){
+    return pids.filter(p => kills(p) > 0).sort((a, b) => kills(b) - kills(a) || (S.hunts[a].last - S.hunts[b].last));
+  }
+  function renderHunt(pids, me, my){
+    const order = hunterOrder(pids);
+    const crown = $('#crown');
+    if (order.length){
+      const top = order[0];
+      crown.hidden = false;
+      const w = $('#crownWho'); w.textContent = '';
+      w.append(el('span', {class:'dot', style:'background:' + colorOf(top)}), el('span', {text:nameOf(top) + (top === me ? ' (sen)' : '')}));
+      $('#crownCount').textContent = kills(top) + ' av';
+    } else crown.hidden = true;
+
+    const k = kills(me), n = k + 1, mob = mobFor(n);
+    $('#huntNo').textContent = k + ' av';
+    $('#mob').classList.toggle('boss', mob.boss);
+    const art = $('#mobArt'); art.textContent = mob.e;
+    if (mob.boss) art.append(el('span', {class:'mob-tag', text:'BOSS'}));
+    $('#mobKind').textContent = (mob.boss ? 'Boss' : 'Canavar') + ' #' + n;
+    $('#mobName').textContent = mob.n;
+    $('#mobBar').style.maxWidth = (mob.boss ? 220 : 110) + 'px';
+    $('#mobCost').textContent = mob.cost + ' dakika';
+    $('#mobNote').textContent = 'Kesmek için duvarından rastgele ' + mob.cost + ' dakika silinir. Hangilerinin gideceğini sistem seçer.';
+    const btn = $('#huntBtn');
+    const enough = my >= mob.cost;
+    btn.disabled = S.huntBusy || !enough;
+    btn.classList.toggle('armed', S.huntArmed);
+    btn.textContent = S.huntBusy ? 'Saldırılıyor…' : S.huntArmed ? 'Eminim, saldır! (−' + mob.cost + ' dakika)' : 'Saldır';
+    $('#huntCancel').hidden = !S.huntArmed;
+    if (!enough && !S.huntBusy) $('#huntMsg').textContent = 'Bu canavar için duvarında en az ' + mob.cost + ' dakika olmalı. Biraz daha işe!';
+    else if (S.huntArmed) $('#huntMsg').textContent = 'Rastgele ' + mob.cost + ' dakikan silinecek. Emin misin?';
+    else if ($('#huntMsg').dataset.keep !== '1') $('#huntMsg').textContent = '';
+
+    const next = TITLES.slice().reverse().find(([need]) => k < need);
+    $('#nextReward').textContent = next ? 'Sonraki ödül: ' + next[0] + ' avda “' + next[1] + '” unvanı (' + k + '/' + next[0] + ')' : 'Bütün unvanlar sende. Sıradaki hedef: Canavar Avcısı tacını korumak.';
+
+    const lb = $('#huntLb'); lb.textContent = '';
+    if (!order.length) lb.append(el('li', {class:'muted', style:'display:block', text:'Henüz kimse canavar kesmedi. İlk kanı sen dök.'}));
+    order.forEach((pid, i) => {
+      const t = titleOf(pid);
+      lb.append(el('li', null, [
+        el('span', {class:'rk', text:i === 0 ? '👑' : '#' + (i + 1)}),
+        el('span', {class:'nm'}, [el('span', {class:'dot', style:'background:' + colorOf(pid)}), el('span', {text:nameOf(pid) + (pid === me ? ' (sen)' : '')}), t ? el('span', {class:'title-chip', text:t}) : null]),
+        el('span', {class:'ct', text:kills(pid) + ' av'})
+      ]));
+    });
+  }
+
+  function armHunt(on){
+    S.huntArmed = on;
+    clearTimeout(S.huntTimer);
+    if (on) S.huntTimer = setTimeout(() => { S.huntArmed = false; render(); }, 8000);
+    $('#huntMsg').dataset.keep = '';
+    render();
+  }
+  async function attack(){
+    if (S.huntBusy || !S.me) return;
+    if (!S.huntArmed){ armHunt(true); return; }
+    S.huntArmed = false; clearTimeout(S.huntTimer);
+    S.huntBusy = true; render();
+    const mob = mobFor(kills(S.me) + 1);
+    try {
+      const r = await rpc('hunt', {p_token:S.token});
+      const removed = r.removed || [];
+      removed.forEach(t => { delete mine()[t]; });
+      const x = (S.hunts[S.me] ||= {count:0, last:0});
+      x.count = Math.max(x.count, r.mob_no); x.last = Date.now();
+      const m = $('#mob'); m.classList.remove('dead'); void m.offsetWidth; m.classList.add('dead');
+      setTimeout(() => m.classList.remove('dead'), 650);
+      if (navigator.vibrate) try { navigator.vibrate([20, 40, 60]); } catch(e){}
+      const msg = $('#huntMsg');
+      msg.textContent = mob.n + ' kesildi! Giden dakikalar: ' + removed.map(fmt).join(', ') + '.';
+      msg.dataset.keep = '1';
+      const t = TITLES.find(([need]) => need === r.mob_no);
+      toast(t ? 'Yeni unvan: ' + t[1] + '! ' + r.mob_no + ' canavar kestin.' : mob.n + ' kesildi!');
+    } catch(e){
+      $('#huntMsg').textContent = errText(e);
+      $('#huntMsg').dataset.keep = '1';
+      if (/Oturumun kapanmış/.test(e && e.message || '')) logoutLocal();
+    } finally {
+      S.huntBusy = false; render();
+    }
   }
 
   function updateButton(){
@@ -901,6 +1111,8 @@ const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
   $('#newForm').addEventListener('submit', doCreate);
   $('#flush').onclick = pee;
   $('#undoBtn').onclick = undo;
+  $('#huntBtn').onclick = attack;
+  $('#huntCancel').onclick = () => armHunt(false);
   $('#modeAll').onclick = () => { S.mode = 'all'; render(); };
   $('#modeMe').onclick = () => { S.mode = 'me'; render(); };
   $('#logout').onclick = () => { const tk = S.token; logoutLocal(); if (tk) rpc('logout', {p_token:tk}).catch(() => {}); };
@@ -920,7 +1132,7 @@ const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
     const slow = setTimeout(() => { if (!S.loaded) $('#bootMsg').textContent = 'Sunucuya ulaşılamadı. İnternet bağlantını kontrol et; açık kalırsa kendisi yüklenir.'; }, 10000);
     for (let i = 0; i < 3 && !S.loaded; i++){
       try {
-        const jobs = [loadPlayers(), loadMarks()];
+        const jobs = [loadPlayers(), loadMarks(), loadHunts()];
         if (S.token) jobs.push(rpc('me', {p_token:S.token}).then(r => {
           if (r && r.id) S.me = r.id; else { S.token = null; store.set('peengo.token', null); }
         }));
