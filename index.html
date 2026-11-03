@@ -6,7 +6,7 @@
 <title>Peengo</title>
 <meta name="description" content="Arkadaşlarınla günün 1440 dakikasını doldur.">
 <meta name="theme-color" content="#13262B">
-<meta name="peengo-version" content="2026-11-04.2">
+<meta name="peengo-version" content="2026-11-04.3">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Peengo">
@@ -163,6 +163,9 @@ button{cursor:pointer}
 .dg{display:grid;grid-template-columns:repeat(10,minmax(0,1fr));gap:5px;margin-top:12px}
 .dt{aspect-ratio:1;border-radius:7px;background:var(--tile);border:1px solid var(--grout);font-family:var(--f-mono);font-size:11px;display:grid;place-items:center;color:var(--muted);padding:0}
 .dt.f{border-color:transparent;font-weight:700}
+.dt.multi{box-shadow:0 0 10px 1px rgba(232,255,31,.7)}
+.dt.multi.sel{box-shadow:0 0 10px 1px rgba(232,255,31,.7),0 0 0 2px var(--surface),0 0 0 4px var(--ink)}
+.dot.neon{box-shadow:0 0 6px 1px rgba(232,255,31,.8)}
 .dt.sel{box-shadow:0 0 0 2px var(--surface),0 0 0 4px var(--ink)}
 .dt.now{outline:2px dashed var(--ink);outline-offset:1px}
 .info{margin-top:12px;min-height:1.5em;display:flex;flex-wrap:wrap;align-items:center;gap:6px 12px}
@@ -440,7 +443,7 @@ img{max-width:100%}
           <button type="button" id="modeMe" aria-pressed="false">Benim</button>
         </div>
       </div>
-      <p class="muted" style="margin:6px 0 0">Her satır bir saat, her kare bir dakika. Aynı dakikayı birden fazla kişi doldurduysa renkler karışır. Bir kareye dokun, o saati büyüt.</p>
+      <p class="muted" style="margin:6px 0 0">Her satır bir saat, her kare bir dakika. Aynı dakikayı birden fazla kişi doldurduysa o kare neon sarı yanar. Bir kareye dokun, o saati büyüt.</p>
       <div class="gridbox"><div class="grid" id="grid" role="grid" aria-label="24 saat 60 dakika duvarı"></div></div>
       <div class="legend" id="legend"></div>
     </section>
@@ -504,7 +507,7 @@ img{max-width:100%}
       <text x="20" y="29.6" text-anchor="middle" font-family="Lilita One, Arial Rounded MT Bold, sans-serif" font-size="12" fill="#13262B">P</text>
     </svg>
     <h2 class="h" id="introTitle">Peengo’ya hoş geldin!</h2>
-    <p>Amaç basit: günün <b>1440 dakikasının</b> hepsinde en az bir kez işemek. Her işediğinde büyük butona bas, o dakika senin renginle boyansın. Arkadaşlarınla aynı dakikayı doldurursanız renkleriniz karışır.</p>
+    <p>Amaç basit: günün <b>1440 dakikasının</b> hepsinde en az bir kez işemek. Her işediğinde büyük butona bas, o dakika senin renginle boyansın. Arkadaşlarınla aynı dakikayı doldurursanız o dakika neon sarı yanar.</p>
     <p class="muted">Canavar avında dakikalarından rastgele 2 tanesini feda edip canavar kesebilir, unvan toplayabilirsin.</p>
     <div class="intro-chat">
       <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5.5A2.5 2.5 0 0 1 6.5 3h11A2.5 2.5 0 0 1 20 5.5v8a2.5 2.5 0 0 1-2.5 2.5H10l-4.5 4v-4h0A1.5 1.5 0 0 1 4 14.5z" fill="currentColor"/></svg>
@@ -551,7 +554,22 @@ const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
     {k:'pembe', n:'Pembe', h:'#EC4F9F'},
     {k:'turkuaz', n:'Turkuaz', h:'#14B3AE'},
     {k:'lacivert', n:'Lacivert', h:'#243B8F'},
-    {k:'fistik', n:'Fıstık', h:'#93C91B'}
+    {k:'fistik', n:'Fıstık', h:'#93C91B'},
+    {k:'turuncu', n:'Turuncu', h:'#F57C1F'},
+    {k:'bordo', n:'Bordo', h:'#8E1B3A'},
+    {k:'kahve', n:'Kahve', h:'#8A5A35'},
+    {k:'gokmavi', n:'Gök Mavisi', h:'#4FB3F6'},
+    {k:'lila', n:'Lila', h:'#B79CF0'},
+    {k:'somon', n:'Somon', h:'#F98A7A'},
+    {k:'haki', n:'Haki', h:'#7A7F3A'},
+    {k:'zumrut', n:'Zümrüt', h:'#0F7A5A'},
+    {k:'fusya', n:'Fuşya', h:'#C2189B'},
+    {k:'petrol', n:'Petrol', h:'#1D5C73'},
+    {k:'hardal', n:'Hardal', h:'#B8860B'},
+    {k:'nane', n:'Nane', h:'#5EDDB0'},
+    {k:'indigo', n:'İndigo', h:'#4B3FBF'},
+    {k:'bej', n:'Bej', h:'#D8BF95'},
+    {k:'gul', n:'Gül', h:'#F4A7C9'}
   ];
   const CMAP = Object.fromEntries(COLORS.map(c => [c.k, c]));
   const pad = n => String(n).padStart(2, '0');
@@ -614,6 +632,9 @@ const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
     return e;
   }
   function rgb(h){ const n = parseInt(h.slice(1), 16); return [n >> 16 & 255, n >> 8 & 255, n & 255]; }
+  /* Bir dakikada birden fazla kişi varsa renk karışmaz, cırtlak neon sarı yanar */
+  const NEON = '#E8FF1F';
+  const paint = list => list.length > 1 ? NEON : colorOf(list[0]);
   function mix(hexes){
     let r = 0, g = 0, b = 0;
     hexes.forEach(h => { const c = rgb(h); r += c[0]; g += c[1]; b += c[2]; });
@@ -1129,7 +1150,7 @@ const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
       let list = D.owners[t];
       if (S.mode === 'me') list = list.filter(p => p === me);
       const c = cells[t];
-      c.style.background = list.length ? mix(list.map(colorOf)) : '';
+      c.style.background = list.length ? paint(list) : '';
       c.title = fmt(t) + ' · ' + (D.owners[t].length ? D.owners[t].map(nameOf).join(', ') : 'boş');
       c.classList.toggle('now', t === t0);
     }
@@ -1141,8 +1162,7 @@ const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
     const pids = Object.keys(S.profiles).sort((a, b) => S.profiles[a].createdAt - S.profiles[b].createdAt);
     pids.forEach(pid => lg.append(el('span', null, [el('span', {class:'dot', style:'background:' + colorOf(pid)}), document.createTextNode(nameOf(pid))])));
     if (pids.length > 1){
-      const two = pids.slice(0, 2);
-      lg.append(el('span', null, [el('span', {class:'dot', style:'background:' + mix(two.map(colorOf))}), document.createTextNode(two.map(nameOf).join(' + '))]));
+      lg.append(el('span', null, [el('span', {class:'dot neon', style:'background:' + NEON}), document.createTextNode('2+ kişi aynı dakikada')]));
     }
 
     $('#zoomTitle').textContent = pad(selH) + ':00 saati';
@@ -1152,8 +1172,9 @@ const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
       let list = D.owners[t];
       if (S.mode === 'me') list = list.filter(p => p === me);
       const b = tiles[m];
-      if (list.length){ filled++; const hx = mix(list.map(colorOf)); b.style.background = hx; b.style.color = onColor(hx); b.classList.add('f'); }
+      if (list.length){ filled++; const hx = paint(list); b.style.background = hx; b.style.color = onColor(hx); b.classList.add('f'); }
       else { b.style.background = ''; b.style.color = ''; b.classList.remove('f'); }
+      b.classList.toggle('multi', list.length > 1);
       b.classList.toggle('sel', S.selMin === m);
       b.classList.toggle('now', t === t0);
       b.setAttribute('aria-label', fmt(t) + ', ' + (D.owners[t].length ? D.owners[t].map(nameOf).join(', ') : 'boş'));
