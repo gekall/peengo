@@ -6,7 +6,7 @@
 <title>Peengo</title>
 <meta name="description" content="Arkadaşlarınla günün 1440 dakikasını doldur.">
 <meta name="theme-color" content="#13262B">
-<meta name="peengo-version" content="2026-11-03.5">
+<meta name="peengo-version" content="2026-11-03.6">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Peengo">
@@ -127,6 +127,8 @@ button{cursor:pointer}
 .flush .lbl{font-family:var(--f-display);font-size:clamp(26px,8vw,34px);line-height:1}
 .flush .clk{font-family:var(--f-mono);font-weight:700;font-size:16px;opacity:.85}
 .flush.done .core{filter:saturate(.55);opacity:.8}
+.flush.cool .core{filter:grayscale(.75);opacity:.7}
+.flush.cool .clk{font-size:20px}
 .flush.busy{pointer-events:none;opacity:.8}
 .ring{position:absolute;inset:0;border-radius:50%;pointer-events:none;border:6px solid var(--me);opacity:0}
 .flush.pop .ring{animation:ring .7s ease-out}
@@ -721,6 +723,7 @@ const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
     btn.disabled = true; err.textContent = '';
     try {
       signedIn(await rpc('login', {p_name:name, p_pass:pw}));
+      await refreshMe();
       if (!S.profiles[S.me]) await loadPlayers();
       $('#loginPw').value = '';
       route();
@@ -751,8 +754,21 @@ const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
   }
 
   /* ---------- the button ---------- */
+  const COOLDOWN = 15 * 60 * 1000;
+  const coolLeft = () => Math.max(0, (S.coolUntil || 0) - (Date.now() + (S.skew || 0)));
+  function applyMe(r){
+    if (!r) return;
+    if (r.now) S.skew = Date.parse(r.now) - Date.now();
+    S.coolUntil = r.last_pee_at ? Date.parse(r.last_pee_at) + COOLDOWN : 0;
+  }
+  async function refreshMe(){
+    try { applyMe(await rpc('me', {p_token:S.token})); updateButton(); } catch(e){}
+  }
+  const mmss = ms => { const s = Math.ceil(ms / 1000); return pad(Math.floor(s / 60)) + ':' + pad(s % 60); };
+
   async function pee(){
     if (!S.me || S.busy) return;
+    if (coolLeft() > 0){ toast('Dinlenme süresindesin. ' + mmss(coolLeft()) + ' sonra tekrar basabilirsin.'); return; }
     const tLocal = nowT();
     if (mine()[tLocal]){ toast(fmt(tLocal) + ' zaten senin. Bir sonraki dakikayı bekle.'); return; }
     S.busy = true; $('#flush').classList.add('busy');
@@ -761,6 +777,8 @@ const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
       const t = r.minute, at = Date.parse(r.at);
       (S.marks[S.me] ||= {})[t] = at;
       if (!r.new){ toast(fmt(t) + ' zaten senin. Bir sonraki dakikayı bekle.'); render(); return; }
+      if (r.now) S.skew = Date.parse(r.now) - Date.now();
+      S.coolUntil = r.cooldown_until ? Date.parse(r.cooldown_until) : at + COOLDOWN;
       S.lastMark = {t, at:Date.now()};
       const f = $('#flush'); f.classList.remove('pop'); void f.offsetWidth; f.classList.add('pop');
       if (navigator.vibrate) try { navigator.vibrate(30); } catch(e){}
@@ -772,8 +790,10 @@ const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
     } catch(e){
       toast(errText(e));
       if (/Oturumun kapanmış/.test(e && e.message || '')) logoutLocal();
+      else if (/Dinlenme/.test(e && e.message || '')) refreshMe();
     } finally {
       S.busy = false; $('#flush').classList.remove('busy');
+      updateButton();
     }
   }
 
@@ -783,7 +803,7 @@ const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
     S.lastMark = null; $('#undoBtn').hidden = true;
     try {
       const ok = await rpc('undo', {p_token:S.token, p_minute:lm.t});
-      if (ok){ delete mine()[lm.t]; toast(fmt(lm.t) + ' geri alındı.'); }
+      if (ok){ delete mine()[lm.t]; S.coolUntil = 0; toast(fmt(lm.t) + ' geri alındı.'); }
       else toast('Geri alma süresi doldu.');
       render();
     } catch(e){ toast(errText(e)); }
@@ -805,7 +825,7 @@ const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
   }
 
   function logoutLocal(){
-    S.token = null; S.me = null; store.set('peengo.token', null);
+    S.token = null; S.me = null; S.coolUntil = 0; store.set('peengo.token', null);
     S.authTab = 'login'; $('#profilePanel').hidden = true; route();
   }
 
@@ -1162,17 +1182,29 @@ const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
 
   function updateButton(){
     const t = nowT();
-    const done = !!mine()[t];
-    $('#flush').classList.toggle('done', done);
+    const left = coolLeft();
+    const cool = left > 0;
+    const done = !cool && !!mine()[t];
+    const f = $('#flush');
+    f.classList.toggle('done', done);
+    f.classList.toggle('cool', cool);
+    if (cool){
+      const d = new Date(Date.now() + left);
+      $('#flushLbl').textContent = 'Dinlen';
+      $('#clock').textContent = mmss(left);
+      $('#status').textContent = 'Dinlenme süresi. ' + pad(d.getHours()) + ':' + pad(d.getMinutes()) + '’den sonra tekrar basabilirsin.';
+      return;
+    }
+    const now = new Date();
+    $('#clock').textContent = pad(now.getHours()) + ':' + pad(now.getMinutes());
     $('#flushLbl').textContent = done ? 'Sende ✓' : 'İşedim';
     $('#status').textContent = done ? fmt(t) + ' senin. Bir sonraki dakikada tekrar basabilirsin.' : 'Bastığın an ' + fmt(t) + ' senin renginle boyanır.';
   }
 
   function tick(){
-    const d = new Date();
-    $('#clock').textContent = pad(d.getHours()) + ':' + pad(d.getMinutes());
     const t = nowT();
     if (t !== S.lastT){ S.lastT = t; if (!$('#game').hidden) render(); }
+    else if (!$('#game').hidden) updateButton();
     if (S.lastMark && Date.now() - S.lastMark.at > 60000){ S.lastMark = null; $('#undoBtn').hidden = true; }
   }
 
@@ -1225,7 +1257,7 @@ const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
       try {
         const jobs = [loadPlayers(), loadMarks(), loadHunts()];
         if (S.token) jobs.push(rpc('me', {p_token:S.token}).then(r => {
-          if (r && r.id) S.me = r.id; else { S.token = null; store.set('peengo.token', null); }
+          if (r && r.id){ S.me = r.id; applyMe(r); } else { S.token = null; store.set('peengo.token', null); }
         }));
         await Promise.all(jobs);
         S.loaded = true;
