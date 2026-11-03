@@ -6,7 +6,7 @@
 <title>Peengo</title>
 <meta name="description" content="Arkadaşlarınla günün 1440 dakikasını doldur.">
 <meta name="theme-color" content="#13262B">
-<meta name="peengo-version" content="2026-11-03.6">
+<meta name="peengo-version" content="2026-11-03.7">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Peengo">
@@ -225,7 +225,27 @@ button{cursor:pointer}
 .tips ol{margin:10px 0 0;padding-left:20px;display:flex;flex-direction:column;gap:8px;max-width:65ch}
 code{font-family:var(--f-mono);background:var(--tile);border-radius:6px;padding:1px 6px;font-size:13px}
 
-.toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(16px + env(safe-area-inset-bottom,0px));background:var(--ink);color:var(--bg);border-radius:14px;padding:10px 10px 10px 16px;display:flex;align-items:center;gap:12px;box-shadow:0 10px 24px var(--shadow);max-width:calc(100% - 32px);z-index:20;font-weight:600}
+/* chat */
+.chat-fab{position:fixed;right:calc(16px + env(safe-area-inset-right,0px));bottom:calc(16px + env(safe-area-inset-bottom,0px));width:58px;height:58px;border-radius:50%;border:0;background:var(--ink);color:var(--bg);display:grid;place-items:center;box-shadow:0 10px 24px var(--shadow);z-index:25}
+.chat-fab svg{width:26px;height:26px}
+.chat-badge{position:absolute;top:-4px;right:-4px;min-width:22px;height:22px;padding:0 6px;border-radius:999px;background:var(--warn);color:#FFFFFF;font-size:12px;font-weight:700;display:grid;place-items:center;box-shadow:0 0 0 2px var(--bg)}
+.chat-panel{position:fixed;top:0;right:0;bottom:0;width:min(420px,100%);background:var(--surface);border-left:1px solid var(--grout);z-index:30;display:flex;flex-direction:column;box-shadow:-12px 0 32px var(--shadow);padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);padding-right:env(safe-area-inset-right,0px)}
+.chat-head{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:14px 16px;border-bottom:1px solid var(--grout)}
+.chat-head .sub{font-size:12px;color:var(--muted);margin:2px 0 0}
+.chat-list{flex:1;overflow-y:auto;padding:14px 16px;display:flex;flex-direction:column;gap:8px;overscroll-behavior:contain}
+.msg{--c:var(--grout);max-width:85%;align-self:flex-start;background:var(--tile);border-radius:14px 14px 14px 4px;padding:8px 12px;border-left:4px solid var(--c);min-width:0}
+.msg.mine{align-self:flex-end;border-radius:14px 14px 4px 14px;border-left:0;border-right:4px solid var(--c);background:var(--accent-soft)}
+.msg .meta{display:flex;gap:8px;align-items:baseline;font-size:11px;color:var(--muted);font-family:var(--f-mono)}
+.msg .meta b{color:var(--ink);font-size:13px;font-family:var(--f-body)}
+.msg p{margin:2px 0 0;white-space:pre-wrap;overflow-wrap:anywhere}
+.day-sep{align-self:center;font-size:11px;font-weight:700;color:var(--muted);letter-spacing:.1em;text-transform:uppercase;margin:6px 0}
+.chat-empty{margin:auto;text-align:center;color:var(--muted);max-width:30ch}
+.chat-form{display:flex;gap:8px;padding:12px 16px;border-top:1px solid var(--grout)}
+.chat-form input{flex:1;min-width:0;border:1px solid var(--grout);background:var(--tile);border-radius:12px;padding:11px 12px;font-size:16px}
+.chat-form button{border:0;background:var(--accent);color:var(--surface);border-radius:12px;padding:0 16px;font-weight:700}
+.chat-form button:disabled{opacity:.5}
+.chat-err{color:var(--warn);font-size:13px;font-weight:600;margin:0;padding:0 16px 8px;min-height:0}
+.toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(88px + env(safe-area-inset-bottom,0px));background:var(--ink);color:var(--bg);border-radius:14px;padding:10px 10px 10px 16px;display:flex;align-items:center;gap:12px;box-shadow:0 10px 24px var(--shadow);max-width:calc(100% - 32px);z-index:20;font-weight:600}
 .toast button{border:0;background:var(--bg);color:var(--ink);border-radius:10px;padding:7px 12px;font-weight:700}
 
 @media (max-width:560px){
@@ -459,6 +479,27 @@ img{max-width:100%}
   </div>
 </div>
 
+<button class="chat-fab" type="button" id="chatFab" aria-label="Sohbeti aç" hidden>
+  <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5.5A2.5 2.5 0 0 1 6.5 3h11A2.5 2.5 0 0 1 20 5.5v8a2.5 2.5 0 0 1-2.5 2.5H10l-4.5 4v-4h0A1.5 1.5 0 0 1 4 14.5z" fill="currentColor"/></svg>
+  <span class="chat-badge" id="chatBadge" hidden></span>
+</button>
+
+<aside class="chat-panel" id="chatPanel" aria-label="Sohbet" hidden>
+  <div class="chat-head">
+    <div>
+      <h2 class="h">Sohbet</h2>
+      <p class="sub" id="chatSub">Herkes burada</p>
+    </div>
+    <button class="ghost" type="button" id="chatClose">Kapat</button>
+  </div>
+  <div class="chat-list" id="chatList"></div>
+  <p class="chat-err" id="chatErr"></p>
+  <form class="chat-form" id="chatForm">
+    <input id="chatInput" maxlength="300" autocomplete="off" placeholder="Bir şey yaz…" aria-label="Mesaj">
+    <button type="submit" id="chatSend">Gönder</button>
+  </form>
+</aside>
+
 <div class="toast" id="toast" role="status" aria-live="polite" hidden>
   <span id="toastText"></span>
   <button type="button" id="undoBtn" hidden>Geri al</button>
@@ -498,7 +539,8 @@ const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
     loaded:false, mode:'all', selHour:null, selMin:null,
     authTab:'login', newColor:null, lastMark:null, busy:false, hashDone:false,
     lastT:-1, toastTimer:null,
-    hunts:{}, huntArmed:false, huntBusy:false, huntTimer:null
+    hunts:{}, huntArmed:false, huntBusy:false, huntTimer:null,
+    msgs:[], chatOpen:false, chatSeen:+(store.get('peengo.chatSeen') || 0), chatBusy:false
   };
 
   const MOBS = [
@@ -624,6 +666,11 @@ const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
     }
     S.marks = m;
   }
+  async function loadMessages(){
+    const {data, error} = await S.sb.from('messages').select('id,player_id,body,at').order('id', {ascending:false}).limit(150);
+    if (error) return;
+    S.msgs = (data || []).reverse();
+  }
   async function loadHunts(){
     const h = {};
     for (let from = 0; ; from += 1000){
@@ -635,6 +682,11 @@ const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
     S.hunts = h;
   }
   function subscribe(){
+    S.sb.channel('peengo-chat')
+      .on('postgres_changes', {event:'INSERT', schema:'public', table:'messages'}, p => {
+        if (p.new) addMessage(p.new);
+      })
+      .subscribe();
     S.sb.channel('peengo-hunts')
       .on('postgres_changes', {event:'INSERT', schema:'public', table:'hunts'}, p => {
         if (!p.new || S.huntSeen === p.new.id) return;
@@ -656,7 +708,7 @@ const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
       .subscribe();
   }
   async function refreshAll(){
-    try { await Promise.all([loadPlayers(), loadMarks(), loadHunts()]); route(); } catch(e){}
+    try { await Promise.all([loadPlayers(), loadMarks(), loadHunts(), loadMessages()]); route(); renderChat(false); } catch(e){}
   }
 
   function derive(){
@@ -677,10 +729,85 @@ const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
   function show(id){ ['#boot', '#auth', '#game'].forEach(s => $(s).hidden = s !== id); }
   function route(){
     if (!S.loaded){ show('#boot'); return; }
-    if (S.me && S.profiles[S.me]){ show('#game'); $('#meChip').hidden = false; }
-    else { show('#auth'); $('#meChip').hidden = true; $('#leaders').hidden = true; }
+    if (S.me && S.profiles[S.me]){ show('#game'); $('#meChip').hidden = false; $('#chatFab').hidden = false; }
+    else { show('#auth'); $('#meChip').hidden = true; $('#leaders').hidden = true; $('#chatFab').hidden = true; openChat(false); }
     render();
+    renderChat(false);
     maybeHashPee();
+  }
+
+  /* ---------- chat ---------- */
+  function addMessage(m){
+    if (!m || S.msgs.some(x => x.id === m.id)) return;
+    S.msgs.push(m);
+    S.msgs.sort((a, b) => a.id - b.id);
+    if (S.msgs.length > 300) S.msgs = S.msgs.slice(-300);
+    if (!S.profiles[m.player_id]) loadPlayers().then(() => renderChat(false)).catch(() => {});
+    renderChat(m.player_id === S.me);
+  }
+  function chatDay(ms){
+    const d = new Date(ms), today = new Date();
+    const y = new Date(); y.setDate(today.getDate() - 1);
+    if (d.toDateString() === today.toDateString()) return 'Bugün';
+    if (d.toDateString() === y.toDateString()) return 'Dün';
+    return d.toLocaleDateString('tr-TR', {day:'numeric', month:'long'});
+  }
+  function markSeen(){
+    const last = S.msgs.length ? S.msgs[S.msgs.length - 1].id : 0;
+    if (last > S.chatSeen){ S.chatSeen = last; store.set('peengo.chatSeen', String(last)); }
+  }
+  function renderChat(forceBottom){
+    const unread = S.msgs.filter(m => m.id > S.chatSeen && m.player_id !== S.me).length;
+    const badge = $('#chatBadge');
+    badge.hidden = S.chatOpen || unread === 0;
+    badge.textContent = unread > 9 ? '9+' : String(unread);
+    $('#chatFab').setAttribute('aria-label', unread && !S.chatOpen ? 'Sohbeti aç, ' + unread + ' yeni mesaj' : 'Sohbeti aç');
+    if (!S.chatOpen) return;
+    const list = $('#chatList');
+    const nearBottom = list.scrollHeight - list.scrollTop - list.clientHeight < 80;
+    list.textContent = '';
+    $('#chatSub').textContent = Object.keys(S.profiles).length + ' kişi · son mesajlar';
+    if (!S.msgs.length){
+      list.append(el('p', {class:'chat-empty', text:'Henüz mesaj yok. İlk mesajı sen yaz, arkadaşlarını gaza getir.'}));
+    }
+    let lastDay = '';
+    S.msgs.forEach(m => {
+      const at = Date.parse(m.at), day = chatDay(at);
+      if (day !== lastDay){ list.append(el('div', {class:'day-sep', text:day})); lastDay = day; }
+      const d = new Date(at);
+      list.append(el('div', {class:'msg' + (m.player_id === S.me ? ' mine' : ''), style:'--c:' + colorOf(m.player_id)}, [
+        el('div', {class:'meta'}, [el('b', {text:nameOf(m.player_id)}), el('span', {text:pad(d.getHours()) + ':' + pad(d.getMinutes())})]),
+        el('p', {text:m.body})
+      ]));
+    });
+    if (forceBottom || nearBottom) list.scrollTop = list.scrollHeight;
+    markSeen();
+  }
+  function openChat(on){
+    S.chatOpen = on;
+    $('#chatPanel').hidden = !on;
+    if (on){
+      $('#chatErr').textContent = '';
+      renderChat(true);
+      setTimeout(() => $('#chatInput').focus(), 50);
+    } else renderChat(false);
+  }
+  async function sendChat(ev){
+    ev.preventDefault();
+    if (S.chatBusy || !S.me) return;
+    const input = $('#chatInput'), body = input.value.trim();
+    if (!body) return;
+    S.chatBusy = true; $('#chatSend').disabled = true; $('#chatErr').textContent = '';
+    try {
+      const r = await rpc('send_message', {p_token:S.token, p_body:body});
+      input.value = '';
+      addMessage(r);
+    } catch(e){
+      $('#chatErr').textContent = errText(e);
+      if (/Oturumun kapanmış/.test(e && e.message || '')) logoutLocal();
+    } finally {
+      S.chatBusy = false; $('#chatSend').disabled = false; input.focus();
+    }
   }
 
   /* ---------- auth ---------- */
@@ -1226,6 +1353,10 @@ const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
   $('#meEdit').onclick = openProfile;
   $('#profClose').onclick = () => { $('#profilePanel').hidden = true; };
   $('#renameForm').addEventListener('submit', doRename);
+  $('#chatFab').onclick = () => openChat(!S.chatOpen);
+  $('#chatClose').onclick = () => openChat(false);
+  $('#chatForm').addEventListener('submit', sendChat);
+  document.addEventListener('keydown', ev => { if (ev.key === 'Escape' && S.chatOpen) openChat(false); });
   setInterval(() => { if (S.loaded && document.visibilityState === 'visible') loadPlayers().then(() => render()).catch(() => {}); }, 60000);
 
   buildGrid(); buildZoom(); tick(); setInterval(tick, 1000);
@@ -1255,7 +1386,7 @@ const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
     const slow = setTimeout(() => { if (!S.loaded) $('#bootMsg').textContent = 'Sunucuya ulaşılamadı. İnternet bağlantını kontrol et; açık kalırsa kendisi yüklenir.'; }, 10000);
     for (let i = 0; i < 3 && !S.loaded; i++){
       try {
-        const jobs = [loadPlayers(), loadMarks(), loadHunts()];
+        const jobs = [loadPlayers(), loadMarks(), loadHunts(), loadMessages()];
         if (S.token) jobs.push(rpc('me', {p_token:S.token}).then(r => {
           if (r && r.id){ S.me = r.id; applyMe(r); } else { S.token = null; store.set('peengo.token', null); }
         }));
