@@ -188,11 +188,15 @@ button{cursor:pointer}
 .bcount b{color:var(--ink)}
 
 /* hunt */
-.crown{display:flex;align-items:center;gap:12px;background:var(--surface);border:1px solid var(--grout);border-radius:16px;padding:10px 14px}
-.crown .cr{font-size:26px;line-height:1}
-.crown .who{display:flex;align-items:center;gap:8px;font-weight:700;min-width:0}
+.leaders{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.crown{display:flex;align-items:center;gap:12px;background:var(--surface);border:1px solid var(--grout);border-radius:16px;padding:12px 14px;min-width:0}
+.crown .cr{font-size:28px;line-height:1;flex:none}
+.lead-body{display:flex;flex-direction:column;gap:2px;min-width:0}
+.crown .who{display:flex;align-items:center;gap:8px;font-weight:700;font-size:16px;min-width:0}
 .crown .who span:last-child{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.crown .kc{margin-left:auto;font-family:var(--f-mono);font-size:13px;color:var(--muted);white-space:nowrap}
+.crown .who.none{font-weight:500;color:var(--muted);font-size:14px}
+.crown .kc{font-family:var(--f-mono);font-size:13px;color:var(--muted);white-space:nowrap}
+@media (max-width:420px){.crown{flex-direction:column;align-items:flex-start;gap:6px;padding:10px 12px}.crown .cr{font-size:22px}}
 .mob{display:grid;grid-template-columns:auto 1fr;gap:16px;align-items:center;margin-top:14px}
 .mob-art{width:96px;height:96px;border-radius:20px;background:var(--tile);border:2px solid var(--grout);display:grid;place-items:center;font-size:54px;line-height:1;position:relative}
 .mob.boss .mob-art{border-color:var(--warn);box-shadow:0 0 0 4px var(--surface),0 0 0 6px var(--warn)}
@@ -253,13 +257,23 @@ img{max-width:100%}
     </div>
   </header>
 
-  <div class="crown" id="crown" hidden>
-    <span class="cr" aria-hidden="true">👑</span>
-    <div style="min-width:0">
-      <p class="eyebrow">Canavar Avcısı</p>
-      <div class="who" id="crownWho"></div>
+  <div class="leaders" id="leaders" hidden>
+    <div class="crown">
+      <span class="cr" aria-hidden="true">⚔️</span>
+      <div class="lead-body">
+        <p class="eyebrow">Canavar Avcısı</p>
+        <div class="who" id="huntLeader"></div>
+        <span class="kc" id="huntLeaderCount"></span>
+      </div>
     </div>
-    <span class="kc" id="crownCount"></span>
+    <div class="crown">
+      <span class="cr" aria-hidden="true">👑</span>
+      <div class="lead-body">
+        <p class="eyebrow">Dakika Kralı</p>
+        <div class="who" id="minLeader"></div>
+        <span class="kc" id="minLeaderCount"></span>
+      </div>
+    </div>
   </div>
 
   <section class="card boot" id="boot">
@@ -642,7 +656,7 @@ const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
   function route(){
     if (!S.loaded){ show('#boot'); return; }
     if (S.me && S.profiles[S.me]){ show('#game'); $('#meChip').hidden = false; }
-    else { show('#auth'); $('#meChip').hidden = true; }
+    else { show('#auth'); $('#meChip').hidden = true; $('#leaders').hidden = true; }
     render();
     maybeHashPee();
   }
@@ -893,6 +907,7 @@ const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
       el('span', {class:'mono muted', text:x.e + ' boş'})
     ])));
 
+    renderLeaders(D, pids, me);
     renderHunt(pids, me, my);
     const groups = achievements(D, pids, me, my);
     let got = 0, total = 0;
@@ -1008,14 +1023,6 @@ const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
   }
   function renderHunt(pids, me, my){
     const order = hunterOrder(pids);
-    const crown = $('#crown');
-    if (order.length){
-      const top = order[0];
-      crown.hidden = false;
-      const w = $('#crownWho'); w.textContent = '';
-      w.append(el('span', {class:'dot', style:'background:' + colorOf(top)}), el('span', {text:nameOf(top) + (top === me ? ' (sen)' : '')}));
-      $('#crownCount').textContent = kills(top) + ' av';
-    } else crown.hidden = true;
 
     const k = kills(me), n = k + 1, mob = mobFor(n);
     $('#huntNo').textContent = k + ' av';
@@ -1050,6 +1057,21 @@ const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
         el('span', {class:'ct', text:kills(pid) + ' av'})
       ]));
     });
+  }
+
+  function setLeader(whoId, countId, pid, me, text, empty){
+    const w = $(whoId); w.textContent = '';
+    w.classList.toggle('none', !pid);
+    if (pid) w.append(el('span', {class:'dot', style:'background:' + colorOf(pid)}), el('span', {text:nameOf(pid) + (pid === me ? ' (sen)' : '')}));
+    else w.append(el('span', {text:empty}));
+    $(countId).textContent = pid ? text : '';
+  }
+  function renderLeaders(D, pids, me){
+    $('#leaders').hidden = false;
+    const h = hunterOrder(pids)[0];
+    setLeader('#huntLeader', '#huntLeaderCount', h, me, h ? kills(h) + ' canavar' : '', 'Henüz kimse');
+    const m = pids.filter(p => (D.counts[p] || 0) > 0).sort((a, b) => (D.counts[b] || 0) - (D.counts[a] || 0) || S.profiles[a].createdAt - S.profiles[b].createdAt)[0];
+    setLeader('#minLeader', '#minLeaderCount', m, me, m ? D.counts[m] + ' dakika' : '', 'Henüz kimse');
   }
 
   function armHunt(on){
