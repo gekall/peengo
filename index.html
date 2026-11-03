@@ -6,7 +6,7 @@
 <title>Peengo</title>
 <meta name="description" content="Arkadaşlarınla günün 1440 dakikasını doldur.">
 <meta name="theme-color" content="#13262B">
-<meta name="peengo-version" content="2026-11-03.7">
+<meta name="peengo-version" content="2026-11-04.1">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Peengo">
@@ -225,6 +225,16 @@ button{cursor:pointer}
 .tips ol{margin:10px 0 0;padding-left:20px;display:flex;flex-direction:column;gap:8px;max-width:65ch}
 code{font-family:var(--f-mono);background:var(--tile);border-radius:6px;padding:1px 6px;font-size:13px}
 
+/* intro */
+.intro{position:fixed;inset:0;z-index:40;background:rgba(6,14,16,.62);display:grid;place-items:center;padding:max(16px,env(safe-area-inset-top,0px)) max(16px,env(safe-area-inset-right,0px)) max(16px,env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px))}
+.intro-card{background:var(--surface);border:1px solid var(--grout);border-radius:20px;padding:22px;max-width:440px;width:100%;display:flex;flex-direction:column;gap:12px;box-shadow:0 20px 50px rgba(0,0,0,.35);max-height:100%;overflow-y:auto}
+.intro-card svg.logo{width:56px;height:56px}
+.intro-card p{margin:0;line-height:1.5}
+.intro-chat{display:flex;gap:12px;align-items:flex-start;background:var(--accent-soft);border-radius:14px;padding:12px}
+.intro-chat svg{width:26px;height:26px;flex:none;color:var(--accent);margin-top:2px}
+.intro-card .primary{margin-top:4px}
+body.intro-open .chat-fab{z-index:45;animation:fabPulse 1.4s ease-in-out infinite}
+@keyframes fabPulse{50%{box-shadow:0 0 0 10px rgba(69,195,203,.35),0 10px 24px var(--shadow)}}
 /* chat */
 .chat-fab{position:fixed;right:calc(16px + env(safe-area-inset-right,0px));bottom:calc(16px + env(safe-area-inset-bottom,0px));width:58px;height:58px;border-radius:50%;border:0;background:var(--ink);color:var(--bg);display:grid;place-items:center;box-shadow:0 10px 24px var(--shadow);z-index:25}
 .chat-fab svg{width:26px;height:26px}
@@ -484,6 +494,24 @@ img{max-width:100%}
   <span class="chat-badge" id="chatBadge" hidden></span>
 </button>
 
+<div class="intro" id="intro" role="dialog" aria-modal="true" aria-labelledby="introTitle" hidden>
+  <div class="intro-card">
+    <svg class="logo" viewBox="0 0 40 40" aria-hidden="true">
+      <path d="M20 2.5C27.5 12 33.5 19 33.5 26a13.5 13.5 0 0 1-27 0C6.5 19 12.5 12 20 2.5Z" fill="#F5C400" stroke="#C99A00" stroke-width="1.2"/>
+      <circle cx="20" cy="25.5" r="8" fill="#FFFFFF"/>
+      <text x="20" y="29.6" text-anchor="middle" font-family="Lilita One, Arial Rounded MT Bold, sans-serif" font-size="12" fill="#13262B">P</text>
+    </svg>
+    <h2 class="h" id="introTitle">Peengo’ya hoş geldin!</h2>
+    <p>Amaç basit: günün <b>1440 dakikasının</b> hepsinde en az bir kez işemek. Her işediğinde büyük butona bas, o dakika senin renginle boyansın. Arkadaşlarınla aynı dakikayı doldurursanız renkleriniz karışır.</p>
+    <p class="muted">Canavar avında dakikalarından rastgele 2 tanesini feda edip canavar kesebilir, unvan toplayabilirsin.</p>
+    <div class="intro-chat">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5.5A2.5 2.5 0 0 1 6.5 3h11A2.5 2.5 0 0 1 20 5.5v8a2.5 2.5 0 0 1-2.5 2.5H10l-4.5 4v-4h0A1.5 1.5 0 0 1 4 14.5z" fill="currentColor"/></svg>
+      <p><b>Uygulamanın kendi sohbeti var.</b> Sağ alttaki yanıp sönen butondan arkadaşlarınla yazışabilirsin.</p>
+    </div>
+    <button class="primary" type="button" id="introOk">Anladım, başlayalım</button>
+  </div>
+</div>
+
 <aside class="chat-panel" id="chatPanel" aria-label="Sohbet" hidden>
   <div class="chat-head">
     <div>
@@ -733,6 +761,7 @@ const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
     else { show('#auth'); $('#meChip').hidden = true; $('#leaders').hidden = true; $('#chatFab').hidden = true; openChat(false); }
     render();
     renderChat(false);
+    maybeIntro();
     maybeHashPee();
   }
 
@@ -871,6 +900,7 @@ const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
     btn.disabled = true; err.textContent = '';
     try {
       signedIn(await rpc('register', {p_name:name, p_pass:pw, p_color:S.newColor}));
+      S.introSeen = 0;
       await loadPlayers();
       $('#newName').value = ''; $('#newPw').value = ''; S.newColor = null;
       route();
@@ -887,9 +917,30 @@ const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
     if (!r) return;
     if (r.now) S.skew = Date.parse(r.now) - Date.now();
     S.coolUntil = r.last_pee_at ? Date.parse(r.last_pee_at) + COOLDOWN : 0;
+    if (typeof r.intro_seen === 'number') S.introSeen = r.intro_seen;
   }
   async function refreshMe(){
-    try { applyMe(await rpc('me', {p_token:S.token})); updateButton(); } catch(e){}
+    try { applyMe(await rpc('me', {p_token:S.token})); updateButton(); maybeIntro(); } catch(e){}
+  }
+
+  /* ---------- tanıtım notu (hesap başına bir kez) ---------- */
+  const INTRO_V = 1;
+  const introKey = () => 'peengo.intro.' + S.me;
+  function maybeIntro(){
+    if (!S.me || $('#game').hidden || !$('#intro').hidden) return;
+    if ((S.introSeen || 0) >= INTRO_V || +(store.get(introKey()) || 0) >= INTRO_V) return;
+    openChat(false);
+    $('#intro').hidden = false;
+    document.body.classList.add('intro-open');
+    setTimeout(() => $('#introOk').focus(), 50);
+  }
+  function closeIntro(){
+    if ($('#intro').hidden) return;
+    $('#intro').hidden = true;
+    document.body.classList.remove('intro-open');
+    S.introSeen = INTRO_V;
+    store.set(introKey(), String(INTRO_V));
+    if (S.token) rpc('ack_intro', {p_token:S.token, p_version:INTRO_V}).catch(() => {});
   }
   const mmss = ms => { const s = Math.ceil(ms / 1000); return pad(Math.floor(s / 60)) + ':' + pad(s % 60); };
 
@@ -1356,6 +1407,8 @@ const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
   $('#chatFab').onclick = () => openChat(!S.chatOpen);
   $('#chatClose').onclick = () => openChat(false);
   $('#chatForm').addEventListener('submit', sendChat);
+  $('#introOk').onclick = closeIntro;
+  document.addEventListener('keydown', ev => { if (ev.key === 'Escape') closeIntro(); });
   document.addEventListener('keydown', ev => { if (ev.key === 'Escape' && S.chatOpen) openChat(false); });
   setInterval(() => { if (S.loaded && document.visibilityState === 'visible') loadPlayers().then(() => render()).catch(() => {}); }, 60000);
 
