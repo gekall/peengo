@@ -6,7 +6,7 @@
 <title>Peengo</title>
 <meta name="description" content="Arkadaşlarınla günün 1440 dakikasını doldur.">
 <meta name="theme-color" content="#13262B">
-<meta name="peengo-version" content="2026-11-04.4">
+<meta name="peengo-version" content="2026-11-04.5">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Peengo">
@@ -22,7 +22,7 @@
 :root{
   --bg:#E9F1F0; --wall:#DDE8E6; --surface:#FBFDFC; --tile:#EEF4F3; --grout:#C9D8D6;
   --ink:#13262B; --muted:#557075; --accent:#0B7A84; --accent-soft:#D5ECEC;
-  --chrome-hi:#FFFFFF; --chrome-lo:#A9BBBD; --shadow:rgba(19,38,43,.16); --warn:#B3261E;
+  --chrome-hi:#FFFFFF; --chrome-lo:#A9BBBD; --shadow:rgba(19,38,43,.16); --warn:#B3261E; --multi-ring:rgba(0,0,0,0);
   --f-display:"Lilita One","Arial Rounded MT Bold","Trebuchet MS",system-ui,sans-serif;
   --f-body:"Figtree",system-ui,-apple-system,"Segoe UI",sans-serif;
   --f-mono:"JetBrains Mono",ui-monospace,"SFMono-Regular",Menlo,monospace;
@@ -31,14 +31,14 @@
   :root:not([data-theme="light"]){
     --bg:#0B1518; --wall:#101E22; --surface:#13242A; --tile:#1A2E34; --grout:#0A1316;
     --ink:#E4EFEE; --muted:#8CA4A8; --accent:#45C3CB; --accent-soft:#133A3F;
-    --chrome-hi:#506A70; --chrome-lo:#142327; --shadow:rgba(0,0,0,.45); --warn:#FF8A80;
+    --chrome-hi:#506A70; --chrome-lo:#142327; --shadow:rgba(0,0,0,.45); --warn:#FF8A80; --multi-ring:rgba(255,255,255,.45);
     color-scheme:dark;
   }
 }
 :root[data-theme="dark"]{
   --bg:#0B1518; --wall:#101E22; --surface:#13242A; --tile:#1A2E34; --grout:#0A1316;
   --ink:#E4EFEE; --muted:#8CA4A8; --accent:#45C3CB; --accent-soft:#133A3F;
-  --chrome-hi:#506A70; --chrome-lo:#142327; --shadow:rgba(0,0,0,.45); --warn:#FF8A80;
+  --chrome-hi:#506A70; --chrome-lo:#142327; --shadow:rgba(0,0,0,.45); --warn:#FF8A80; --multi-ring:rgba(255,255,255,.45);
   color-scheme:dark;
 }
 *{box-sizing:border-box}
@@ -163,9 +163,10 @@ button{cursor:pointer}
 .dg{display:grid;grid-template-columns:repeat(10,minmax(0,1fr));gap:5px;margin-top:12px}
 .dt{aspect-ratio:1;border-radius:7px;background:var(--tile);border:1px solid var(--grout);font-family:var(--f-mono);font-size:11px;display:grid;place-items:center;color:var(--muted);padding:0}
 .dt.f{border-color:transparent;font-weight:700}
-.dt.multi{box-shadow:0 0 10px 1px rgba(232,255,31,.7)}
-.dt.multi.sel{box-shadow:0 0 10px 1px rgba(232,255,31,.7),0 0 0 2px var(--surface),0 0 0 4px var(--ink)}
-.dot.neon{box-shadow:0 0 6px 1px rgba(232,255,31,.8)}
+.grid .c.multi{box-shadow:inset 0 0 0 1px var(--multi-ring)}
+.dt.multi{box-shadow:inset 0 0 0 1px var(--multi-ring)}
+.dt.multi.sel{box-shadow:inset 0 0 0 1px var(--multi-ring),0 0 0 2px var(--surface),0 0 0 4px var(--ink)}
+.dot.multi{box-shadow:0 0 0 1px var(--multi-ring)}
 .dt.sel{box-shadow:0 0 0 2px var(--surface),0 0 0 4px var(--ink)}
 .dt.now{outline:2px dashed var(--ink);outline-offset:1px}
 .info{margin-top:12px;min-height:1.5em;display:flex;flex-wrap:wrap;align-items:center;gap:6px 12px}
@@ -454,7 +455,7 @@ img{max-width:100%}
           <button type="button" id="modeMe" aria-pressed="false">Benim</button>
         </div>
       </div>
-      <p class="muted" style="margin:6px 0 0">Her satır bir saat, her kare bir dakika. Aynı dakikayı birden fazla kişi doldurduysa o kare neon sarı yanar. Bir kareye dokun, o saati büyüt.</p>
+      <p class="muted" style="margin:6px 0 0">Her satır bir saat, her kare bir dakika. Aynı dakikayı birden fazla kişi doldurduysa o kare simsiyah olur. Bir kareye dokun, o saati büyüt.</p>
       <div class="gridbox"><div class="grid" id="grid" role="grid" aria-label="24 saat 60 dakika duvarı"></div></div>
       <div class="legend" id="legend"></div>
     </section>
@@ -518,7 +519,7 @@ img{max-width:100%}
       <text x="20" y="29.6" text-anchor="middle" font-family="Lilita One, Arial Rounded MT Bold, sans-serif" font-size="12" fill="#13262B">P</text>
     </svg>
     <h2 class="h" id="introTitle">Peengo’ya hoş geldin!</h2>
-    <p>Amaç basit: günün <b>1440 dakikasının</b> hepsinde en az bir kez işemek. Her işediğinde büyük butona bas, o dakika senin renginle boyansın. Arkadaşlarınla aynı dakikayı doldurursanız o dakika neon sarı yanar.</p>
+    <p>Amaç basit: günün <b>1440 dakikasının</b> hepsinde en az bir kez işemek. Her işediğinde büyük butona bas, o dakika senin renginle boyansın. Arkadaşlarınla aynı dakikayı doldurursanız o dakika simsiyah olur.</p>
     <p class="muted">Canavar avında dakikalarından rastgele 2 tanesini feda edip canavar kesebilir, unvan toplayabilirsin.</p>
     <div class="intro-chat">
       <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5.5A2.5 2.5 0 0 1 6.5 3h11A2.5 2.5 0 0 1 20 5.5v8a2.5 2.5 0 0 1-2.5 2.5H10l-4.5 4v-4h0A1.5 1.5 0 0 1 4 14.5z" fill="currentColor"/></svg>
@@ -654,9 +655,9 @@ const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
     return e;
   }
   function rgb(h){ const n = parseInt(h.slice(1), 16); return [n >> 16 & 255, n >> 8 & 255, n & 255]; }
-  /* Bir dakikada birden fazla kişi varsa renk karışmaz, cırtlak neon sarı yanar */
-  const NEON = '#E8FF1F';
-  const paint = list => list.length > 1 ? NEON : colorOf(list[0]);
+  /* Bir dakikada birden fazla kişi varsa renk karışmaz, tam siyah olur */
+  const MULTI = '#000000';
+  const paint = list => list.length > 1 ? MULTI : colorOf(list[0]);
   function mix(hexes){
     let r = 0, g = 0, b = 0;
     hexes.forEach(h => { const c = rgb(h); r += c[0]; g += c[1]; b += c[2]; });
@@ -1249,6 +1250,7 @@ const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
       c.style.background = list.length ? paint(list) : '';
       c.title = fmt(t) + ' · ' + (D.owners[t].length ? D.owners[t].map(nameOf).join(', ') : 'boş');
       c.classList.toggle('now', t === t0);
+      c.classList.toggle('multi', list.length > 1);
     }
     const selH = S.selHour ?? Math.floor(t0 / 60);
     hourLabels.forEach((hl, h) => hl.classList.toggle('sel', h === selH));
@@ -1258,7 +1260,7 @@ const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
     const pids = Object.keys(S.profiles).sort((a, b) => S.profiles[a].createdAt - S.profiles[b].createdAt);
     pids.forEach(pid => lg.append(el('span', null, [el('span', {class:'dot', style:'background:' + colorOf(pid)}), document.createTextNode(nameOf(pid))])));
     if (pids.length > 1){
-      lg.append(el('span', null, [el('span', {class:'dot neon', style:'background:' + NEON}), document.createTextNode('2+ kişi aynı dakikada')]));
+      lg.append(el('span', null, [el('span', {class:'dot multi', style:'background:' + MULTI}), document.createTextNode('2+ kişi aynı dakikada')]));
     }
 
     $('#zoomTitle').textContent = pad(selH) + ':00 saati';
