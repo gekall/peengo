@@ -6,7 +6,7 @@
 <title>Peengo</title>
 <meta name="description" content="Arkadaşlarınla günün 1440 dakikasını doldur.">
 <meta name="theme-color" content="#13262B">
-<meta name="peengo-version" content="2026-11-04.6">
+<meta name="peengo-version" content="2026-11-04.7">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Peengo">
@@ -543,6 +543,16 @@ img{max-width:100%}
   </div>
 </div>
 
+<div class="intro" id="pushAsk" role="dialog" aria-modal="true" aria-labelledby="pushAskTitle" hidden>
+  <div class="intro-card">
+    <h2 class="h" id="pushAskTitle">Hatırlatıcıları açalım mı? ⏰</h2>
+    <p id="pushAskText">Sabah 07:00'de günaydın ve günün boş saat hedefi, akşam 20:00'de "gece alarmları kuruldu mu?" hatırlatması gelir. İstemezsen sonra Hatırlatıcılar kartından tek dokunuşla kapatırsın.</p>
+    <p class="muted" id="pushAskHint" style="font-size:13px">Birazdan telefon izin soracak, <b>İzin ver</b>'e bas.</p>
+    <button class="primary" type="button" id="pushAskYes">Hatırlatıcıları aç</button>
+    <button class="ghost" type="button" id="pushAskNo" style="align-self:center">Şimdi değil</button>
+  </div>
+</div>
+
 <aside class="chat-panel" id="chatPanel" aria-label="Sohbet" hidden>
   <div class="chat-head">
     <div>
@@ -825,6 +835,7 @@ const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
     render();
     renderChat(false);
     maybeIntro();
+    setTimeout(() => maybePushAsk(), 1200);
     maybeHashPee();
   }
 
@@ -1049,6 +1060,7 @@ const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
     }
     try {
       const sub = Notification.permission === 'granted' ? await pushSub() : null;
+      if (!sub && Notification.permission === 'granted' && store.get('peengo.pushOff.' + S.me) !== '1'){ pushEnable(true); return; }
       if (sub && resync){
         const j = sub.toJSON();
         rpc('push_subscribe', {p_token:S.token, p_endpoint:j.endpoint, p_p256dh:j.keys.p256dh, p_auth:j.keys.auth}).catch(() => {});
@@ -1056,7 +1068,8 @@ const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
       pushUI(sub ? 'on' : 'off');
     } catch(e){ pushUI('off'); }
   }
-  async function pushEnable(){
+  async function pushEnable(silent){
+    silent = silent === true;
     const btn = $('#pushOn');
     if (!pushSupported()) return pushRefresh();
     btn.disabled = true; btn.textContent = 'Açılıyor…';
@@ -1071,8 +1084,11 @@ const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
       const j = sub.toJSON();
       await rpc('push_subscribe', {p_token:S.token, p_endpoint:j.endpoint, p_p256dh:j.keys.p256dh, p_auth:j.keys.auth});
       pushUI('on');
-      const r = await pushCall({kind:'test', token:S.token});
-      toast(r.sent ? 'Bildirimler açık. Deneme bildirimi yolda!' : 'Bildirimler açık.');
+      store.set('peengo.pushOff.' + S.me, null);
+      if (!silent){
+        const r = await pushCall({kind:'test', token:S.token});
+        toast(r.sent ? 'Hatırlatıcılar açık. Deneme bildirimi yolda!' : 'Hatırlatıcılar açık.');
+      }
     } catch(e){
       pushUI('off', (e && e.message && /[ğüşıöçİ]/i.test(e.message)) ? e.message : 'Bildirimler açılamadı. İnternetini kontrol edip tekrar dene.');
     } finally { btn.disabled = false; btn.textContent = 'Bildirimleri aç'; }
@@ -1095,6 +1111,7 @@ const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
   async function pushDisable(){
     const sub = await pushDetach(S.token);
     try { if (sub) await sub.unsubscribe(); } catch(e){}
+    store.set('peengo.pushOff.' + S.me, '1');
     pushUI('off');
     toast('Hatırlatıcılar kapatıldı.');
   }
@@ -1201,6 +1218,37 @@ const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
     S.introSeen = INTRO_V;
     store.set(introKey(), String(INTRO_V));
     if (S.token) rpc('ack_intro', {p_token:S.token, p_version:INTRO_V}).catch(() => {});
+    setTimeout(() => maybePushAsk(), 400);
+  }
+
+  /* ---------- hatırlatıcı daveti: açık gelsin, isteyen kapatsın ---------- */
+  const askKey = () => 'peengo.pushAsk.' + S.me;
+  function pushAskState(){
+    if (!S.me || $('#game').hidden || !$('#intro').hidden || !$('#pushAsk').hidden) return null;
+    if (store.get('peengo.pushOff.' + S.me) === '1') return null;
+    if (Date.now() < +(store.get(askKey()) || 0)) return null;
+    if (isIOS() && !isStandalone()) return 'ios';
+    if (!pushSupported() || Notification.permission !== 'default') return null;
+    return 'ask';
+  }
+  function maybePushAsk(){
+    const st = pushAskState();
+    if (!st) return;
+    const ios = st === 'ios';
+    $('#pushAskTitle').textContent = ios ? 'Hatırlatıcılar için bir adım ⏰' : 'Hatırlatıcıları açalım mı? ⏰';
+    $('#pushAskText').textContent = ios
+      ? 'iPhone bildirimleri sadece ana ekrandaki Peengo’ya izin veriyor. Safari’de Paylaş › Ana Ekrana Ekle de, sonra Peengo’yu o ikondan aç. Hatırlatıcılar orada açılacak.'
+      : 'Sabah 07:00’de günaydın ve günün boş saat hedefi, akşam 20:00’de "gece alarmları kuruldu mu?" hatırlatması gelir. İstemezsen sonra Hatırlatıcılar kartından tek dokunuşla kapatırsın.';
+    $('#pushAskHint').hidden = ios;
+    $('#pushAskYes').textContent = ios ? 'Tamam' : 'Hatırlatıcıları aç';
+    $('#pushAskNo').hidden = ios;
+    $('#pushAsk').dataset.mode = st;
+    $('#pushAsk').hidden = false;
+    setTimeout(() => $('#pushAskYes').focus(), 50);
+  }
+  function closePushAsk(snoozeDays){
+    $('#pushAsk').hidden = true;
+    store.set(askKey(), String(Date.now() + snoozeDays * 864e5));
   }
   const mmss = ms => { const s = Math.ceil(ms / 1000); return pad(Math.floor(s / 60)) + ':' + pad(s % 60); };
 
@@ -1676,6 +1724,12 @@ const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
   $('#lightbox').onclick = closeLightbox;
   document.addEventListener('keydown', ev => { if (ev.key === 'Escape' && !$('#lightbox').hidden) closeLightbox(); });
   $('#introOk').onclick = closeIntro;
+  $('#pushAskYes').onclick = () => {
+    const ios = $('#pushAsk').dataset.mode === 'ios';
+    closePushAsk(ios ? 3 : 1);
+    if (!ios) pushEnable();
+  };
+  $('#pushAskNo').onclick = () => closePushAsk(3);
   document.addEventListener('keydown', ev => { if (ev.key === 'Escape') closeIntro(); });
   document.addEventListener('keydown', ev => { if (ev.key === 'Escape' && S.chatOpen) openChat(false); });
   setInterval(() => { if (S.loaded && document.visibilityState === 'visible') loadPlayers().then(() => render()).catch(() => {}); }, 60000);
