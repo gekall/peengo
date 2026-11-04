@@ -6,7 +6,7 @@
 <title>Peengo</title>
 <meta name="description" content="Arkadaşlarınla günün 1440 dakikasını doldur.">
 <meta name="theme-color" content="#13262B">
-<meta name="peengo-version" content="2026-11-05.1">
+<meta name="peengo-version" content="2026-11-05.2">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Peengo">
@@ -197,6 +197,24 @@ button{cursor:pointer}
 .bcount{font-family:var(--f-mono);font-size:13px;color:var(--muted);font-variant-numeric:tabular-nums}
 .bcount b{color:var(--ink)}
 
+/* admin */
+.adm-list{list-style:none;margin:12px 0 0;padding:0;display:flex;flex-direction:column;gap:8px}
+.adm-row{border:1px solid var(--grout);border-radius:12px;padding:10px 12px;display:flex;flex-direction:column;gap:8px}
+.adm-head{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.adm-head .nm{font-weight:700;display:flex;align-items:center;gap:8px;min-width:0;flex:1}
+.adm-head .nm span:last-child{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.adm-edit{display:flex;gap:8px}
+.adm-edit input{flex:1;min-width:0;border:1px solid var(--grout);background:var(--tile);border-radius:10px;padding:8px 10px;font-size:16px}
+.adm-mins{display:flex;flex-wrap:wrap;gap:6px}
+.adm-chip{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--grout);background:var(--tile);border-radius:999px;padding:3px 4px 3px 10px;font-family:var(--f-mono);font-size:12px;font-variant-numeric:tabular-nums}
+.adm-chip small{color:var(--muted);font-family:var(--f-body)}
+.adm-chip button{border:0;background:transparent;color:var(--muted);font-weight:700;padding:2px 8px;border-radius:999px}
+.adm-chip button:hover,.adm-chip button[data-armed="1"]{color:var(--warn)}
+.adm-table-wrap{overflow-x:auto;margin-top:10px}
+.adm-table{width:100%;border-collapse:collapse;font-size:13px;font-variant-numeric:tabular-nums}
+.adm-table th{text-align:left;font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);padding:6px 8px;border-bottom:1px solid var(--grout);font-weight:700}
+.adm-table td{padding:7px 8px;border-bottom:1px solid var(--grout);white-space:nowrap}
+.adm-live{color:var(--accent);font-weight:700}
 /* hunt */
 .leaders{display:grid;grid-template-columns:1fr 1fr;gap:12px}
 .crown{display:flex;align-items:center;gap:12px;background:var(--surface);border:1px solid var(--grout);border-radius:16px;padding:12px 14px;min-width:0}
@@ -398,6 +416,30 @@ img{max-width:100%}
   </section>
 
   <div id="game" hidden style="display:contents">
+    <section class="card" id="adminCard" hidden>
+      <div class="row between">
+        <h2 class="h">🛡️ Yönetim</h2>
+        <div class="seg" role="group" aria-label="Yönetim bölümü">
+          <button type="button" id="admTabPlayers" aria-pressed="true">Oyuncular</button>
+          <button type="button" id="admTabVisits" aria-pressed="false">Giriş/Çıkış</button>
+        </div>
+      </div>
+      <p class="err" id="admErr" style="margin-top:8px"></p>
+      <div id="admPlayers"></div>
+      <div id="admVisits" hidden>
+        <div class="row between">
+          <span class="muted" style="font-size:13px">Son 30 gün. Uygulama açıkken dakikada bir güncellenir; çıkış = son görülme.</span>
+          <button class="ghost" type="button" id="admVisitsReload">Yenile</button>
+        </div>
+        <div class="adm-table-wrap">
+          <table class="adm-table">
+            <thead><tr><th>Oyuncu</th><th>Giriş</th><th>Çıkış</th><th>Süre</th></tr></thead>
+            <tbody id="admVisitsBody"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
     <section class="card hero">
       <button class="flush" id="flush" type="button" aria-describedby="status">
         <span class="ring"></span>
@@ -747,10 +789,10 @@ const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
 
   /* ---------- data ---------- */
   async function loadPlayers(){
-    const {data, error} = await S.sb.from('players_public').select('id,name,color,created_at');
+    const {data, error} = await S.sb.from('players_public').select('id,name,color,created_at,is_admin');
     if (error) throw error;
     const p = {};
-    (data || []).forEach(r => { p[r.id] = {name:r.name, color:r.color, createdAt:Date.parse(r.created_at)}; });
+    (data || []).forEach(r => { p[r.id] = {name:r.name, color:r.color, createdAt:Date.parse(r.created_at), admin:!!r.is_admin}; });
     S.profiles = p;
   }
   async function loadMarks(){
@@ -816,6 +858,7 @@ const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
     const owners = Array.from({length:1440}, () => []);
     const counts = {};
     for (const pid of Object.keys(S.profiles)){
+      if (S.profiles[pid].admin) continue;
       const m = S.marks[pid] || {};
       let c = 0;
       for (const k in m){ const t = +k; if (m[k] && t >= 0 && t < 1440){ owners[t].push(pid); c++; } }
@@ -860,7 +903,7 @@ const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
     return Date.UTC(t.getUTCFullYear(), t.getUTCMonth(), t.getUTCDate() - t.getUTCDay()) - TR;
   }
   const visibleMsgs = () => { const w = chatWeekStart(); return S.msgs.filter(m => Date.parse(m.at) >= w); };
-  async function deleteMsg(id, btn){
+  async function deleteMsg(id, btn, mine){
     if (btn.dataset.armed !== '1'){
       btn.dataset.armed = '1'; btn.textContent = 'Emin misin?';
       setTimeout(() => { if (btn.isConnected){ btn.dataset.armed = ''; btn.textContent = 'Sil'; } }, 4000);
@@ -868,7 +911,9 @@ const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
     }
     btn.disabled = true;
     try {
-      const ok = await rpc('delete_message', {p_token:S.token, p_id:id});
+      const ok = mine === false && S.isAdmin
+        ? await rpc('admin_delete_message', {p_token:S.token, p_id:id})
+        : await rpc('delete_message', {p_token:S.token, p_id:id});
       if (ok){ removeMessage(id); cleanupPhotos(true); }
     } catch(e){ $('#chatErr').textContent = errText(e); btn.disabled = false; }
   }
@@ -894,7 +939,7 @@ const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
     const list = $('#chatList');
     const nearBottom = list.scrollHeight - list.scrollTop - list.clientHeight < 80;
     list.textContent = '';
-    $('#chatSub').textContent = Object.keys(S.profiles).length + ' kişi · her pazar 00:00’da sıfırlanır';
+    $('#chatSub').textContent = Object.keys(S.profiles).filter(p => !S.profiles[p].admin).length + ' kişi · her pazar 00:00’da sıfırlanır';
     if (!msgs.length){
       list.append(el('p', {class:'chat-empty', text:'Henüz mesaj yok. İlk mesajı sen yaz, arkadaşlarını gaza getir.'}));
     }
@@ -904,10 +949,10 @@ const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
       if (day !== lastDay){ list.append(el('div', {class:'day-sep', text:day})); lastDay = day; }
       const d = new Date(at);
       const mine = m.player_id === S.me;
-      const meta = el('div', {class:'meta'}, [el('b', {text:nameOf(m.player_id)}), el('span', {text:pad(d.getHours()) + ':' + pad(d.getMinutes())})]);
-      if (mine){
+      const meta = el('div', {class:'meta'}, [el('b', {text:nameOf(m.player_id) + ((S.profiles[m.player_id] || {}).admin ? ' 🛡️' : '')}), el('span', {text:pad(d.getHours()) + ':' + pad(d.getMinutes())})]);
+      if (mine || S.isAdmin){
         const del = el('button', {type:'button', class:'msg-del', text:'Sil', 'aria-label':'Mesajını sil'});
-        del.onclick = () => deleteMsg(m.id, del);
+        del.onclick = () => deleteMsg(m.id, del, mine);
         meta.append(del);
       }
       const parts = [meta];
@@ -1195,9 +1240,118 @@ const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
     if (r.now) S.skew = Date.parse(r.now) - Date.now();
     S.coolUntil = r.last_pee_at ? Date.parse(r.last_pee_at) + COOLDOWN : 0;
     if (typeof r.intro_seen === 'number') S.introSeen = r.intro_seen;
+    if ('is_admin' in r) S.isAdmin = !!r.is_admin;
   }
   async function refreshMe(){
-    try { applyMe(await rpc('me', {p_token:S.token})); updateButton(); maybeIntro(); } catch(e){}
+    try { applyMe(await rpc('me', {p_token:S.token})); updateButton(); renderAdmin(); renderChat(false); maybeIntro(); } catch(e){}
+  }
+
+  /* ---------- yönetim (admin) ---------- */
+  S.admTab = 'players'; S.admOpen = {}; S.admFocus = null; S.lastBeat = 0;
+  const fmtDT = ms => { const d = new Date(ms); return pad(d.getDate()) + '.' + pad(d.getMonth() + 1) + ' ' + pad(d.getHours()) + ':' + pad(d.getMinutes()); };
+  const fmtHM = ms => { const d = new Date(ms); return pad(d.getHours()) + ':' + pad(d.getMinutes()); };
+  function heartbeat(force){
+    if (!S.token || !S.me || document.visibilityState !== 'visible') return;
+    if (!force && Date.now() - S.lastBeat < 50000) return;
+    S.lastBeat = Date.now();
+    rpc('heartbeat', {p_token:S.token}).catch(() => {});
+  }
+  function renderAdmin(){
+    const card = $('#adminCard');
+    card.hidden = !S.isAdmin || $('#game').hidden;
+    if (card.hidden) return;
+    $('#admTabPlayers').setAttribute('aria-pressed', S.admTab === 'players');
+    $('#admTabVisits').setAttribute('aria-pressed', S.admTab === 'visits');
+    $('#admPlayers').hidden = S.admTab !== 'players';
+    $('#admVisits').hidden = S.admTab !== 'visits';
+    if (S.admTab === 'players') renderAdmPlayers();
+  }
+  function renderAdmPlayers(){
+    const box = $('#admPlayers');
+    const act = document.activeElement;
+    if (box.contains(act) && act.tagName === 'INPUT') return;
+    if (box.querySelector('[data-armed="1"]')) return;
+    box.textContent = '';
+    const ids = Object.keys(S.profiles).sort((a, b) => (S.profiles[a].name || '').localeCompare(S.profiles[b].name || '', 'tr'));
+    const ul = el('ul', {class:'adm-list'});
+    ids.forEach(pid => {
+      const p = S.profiles[pid];
+      const m = S.marks[pid] || {};
+      const mins = Object.keys(m).filter(k => m[k]).map(Number).sort((a, b) => a - b);
+      const open = S.admOpen[pid];
+      const bRen = el('button', {type:'button', class:'ghost', text: open === 'name' ? 'Vazgeç' : 'İsim'});
+      const bMin = el('button', {type:'button', class:'ghost', text: open === 'mins' ? 'Gizle' : 'Dakikalar'});
+      bRen.onclick = () => { S.admOpen[pid] = open === 'name' ? null : 'name'; S.admFocus = S.admOpen[pid] ? pid : null; $('#admErr').textContent = ''; renderAdmPlayers(); };
+      bMin.onclick = () => { S.admOpen[pid] = open === 'mins' ? null : 'mins'; $('#admErr').textContent = ''; renderAdmPlayers(); };
+      const li = el('li', {class:'adm-row'}, [el('div', {class:'adm-head'}, [
+        el('span', {class:'nm'}, [el('span', {class:'dot', style:'background:' + colorOf(pid)}), el('span', {text: p.name + (p.admin ? ' 🛡️' : '')})]),
+        el('span', {class:'mono muted', style:'font-size:12px', text: mins.length + ' dk'}),
+        bRen, bMin
+      ])]);
+      if (open === 'name'){
+        const inp = el('input', {maxlength:'20', value:p.name, autocomplete:'off', 'aria-label': p.name + ' için yeni isim'});
+        const save = el('button', {type:'button', class:'primary', style:'padding:8px 14px;font-size:14px', text:'Kaydet'});
+        save.onclick = async () => {
+          save.disabled = true; $('#admErr').textContent = '';
+          try {
+            const r = await rpc('admin_rename', {p_token:S.token, p_player:pid, p_name:inp.value});
+            S.profiles[pid].name = r.name; S.admOpen[pid] = null; inp.blur();
+            toast('İsim değişti: ' + r.name);
+            render(); renderChat(false);
+          } catch(e){ $('#admErr').textContent = errText(e); save.disabled = false; }
+        };
+        inp.addEventListener('keydown', ev => { if (ev.key === 'Enter') save.click(); });
+        li.append(el('div', {class:'adm-edit'}, [inp, save]));
+        if (S.admFocus === pid){ S.admFocus = null; setTimeout(() => { inp.focus(); inp.select(); }, 0); }
+      }
+      if (open === 'mins'){
+        const wrap = el('div', {class:'adm-mins'});
+        if (!mins.length) wrap.append(el('span', {class:'muted', style:'font-size:13px', text:'Hiç dakikası yok.'}));
+        mins.forEach(t => {
+          const x = el('button', {type:'button', text:'×', 'aria-label': p.name + ', ' + fmt(t) + ' dakikasını sil'});
+          x.onclick = async () => {
+            if (x.dataset.armed !== '1'){
+              x.dataset.armed = '1'; x.textContent = 'Sil?';
+              setTimeout(() => { if (x.isConnected && !x.disabled){ x.dataset.armed = ''; x.textContent = '×'; } }, 4000);
+              return;
+            }
+            x.disabled = true;
+            try {
+              const ok = await rpc('admin_delete_mark', {p_token:S.token, p_player:pid, p_minute:t});
+              x.dataset.armed = '';
+              if (ok){ delete (S.marks[pid] || {})[t]; toast(p.name + ' · ' + fmt(t) + ' silindi.'); }
+              render();
+            } catch(e){ $('#admErr').textContent = errText(e); x.disabled = false; }
+          };
+          wrap.append(el('span', {class:'adm-chip'}, [document.createTextNode(fmt(t)), el('small', {text: dayStr(m[t])}), x]));
+        });
+        li.append(wrap);
+      }
+      ul.append(li);
+    });
+    box.append(ul);
+  }
+  async function loadVisits(){
+    const body = $('#admVisitsBody'); $('#admErr').textContent = '';
+    const btn = $('#admVisitsReload'); btn.disabled = true;
+    try {
+      const rows = await rpc('admin_visits', {p_token:S.token});
+      body.textContent = '';
+      if (!rows || !rows.length) body.append(el('tr', null, [el('td', {colspan:'4', class:'muted', text:'Henüz kayıt yok. Kayıtlar bu güncellemeden itibaren tutuluyor.'})]));
+      const now = Date.now() + (S.skew || 0);
+      (rows || []).forEach(v => {
+        const a = Date.parse(v.started_at), b = Date.parse(v.last_seen_at);
+        const live = now - b < 150000;
+        const mins = Math.max(1, Math.round((b - a) / 60000));
+        body.append(el('tr', null, [
+          el('td', null, [el('span', {style:'display:inline-flex;align-items:center;gap:6px;font-weight:600'}, [el('span', {class:'dot', style:'background:' + colorOf(v.player_id)}), el('span', {text:v.name})])]),
+          el('td', {text: fmtDT(a)}),
+          live ? el('td', {class:'adm-live', text:'şu an içeride'}) : el('td', {text: sameDay(a, b) ? fmtHM(b) : fmtDT(b)}),
+          el('td', {text: mins < 60 ? mins + ' dk' : Math.floor(mins / 60) + ' sa ' + (mins % 60) + ' dk'})
+        ]));
+      });
+    } catch(e){ $('#admErr').textContent = errText(e); }
+    finally { btn.disabled = false; }
   }
 
   /* ---------- tanıtım notu (hesap başına bir kez) ---------- */
@@ -1311,7 +1465,7 @@ const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
   }
 
   function logoutLocal(){
-    S.token = null; S.me = null; S.coolUntil = 0; store.set('peengo.token', null);
+    S.token = null; S.me = null; S.coolUntil = 0; S.isAdmin = false; store.set('peengo.token', null);
     S.authTab = 'login'; $('#profilePanel').hidden = true; route();
   }
 
@@ -1382,6 +1536,8 @@ const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
   function render(){
     if (!$('#auth').hidden) renderAuth();
     if ($('#game').hidden) return;
+    renderAdmin();
+    heartbeat();
     const D = derive();
     const me = S.me, myHex = colorOf(me), my = D.counts[me] || 0;
     $('#meDot').style.background = myHex;
@@ -1413,7 +1569,7 @@ const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
     $('#modeAll').setAttribute('aria-pressed', S.mode === 'all');
     $('#modeMe').setAttribute('aria-pressed', S.mode === 'me');
     const lg = $('#legend'); lg.textContent = '';
-    const pids = Object.keys(S.profiles).sort((a, b) => S.profiles[a].createdAt - S.profiles[b].createdAt);
+    const pids = Object.keys(S.profiles).filter(p => !S.profiles[p].admin).sort((a, b) => S.profiles[a].createdAt - S.profiles[b].createdAt);
     pids.forEach(pid => lg.append(el('span', null, [el('span', {class:'dot', style:'background:' + colorOf(pid)}), document.createTextNode(nameOf(pid))])));
     if (pids.length > 1){
       lg.append(el('span', null, [el('span', {class:'dot multi', style:'background:' + MULTI}), document.createTextNode('2+ kişi aynı dakikada')]));
@@ -1724,6 +1880,11 @@ const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
   $('#lightbox').onclick = closeLightbox;
   document.addEventListener('keydown', ev => { if (ev.key === 'Escape' && !$('#lightbox').hidden) closeLightbox(); });
   $('#introOk').onclick = closeIntro;
+  $('#admTabPlayers').onclick = () => { S.admTab = 'players'; renderAdmin(); };
+  $('#admTabVisits').onclick = () => { S.admTab = 'visits'; renderAdmin(); loadVisits(); };
+  $('#admVisitsReload').onclick = loadVisits;
+  setInterval(() => heartbeat(), 60000);
+  document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') heartbeat(true); });
   $('#pushAskYes').onclick = () => {
     const ios = $('#pushAsk').dataset.mode === 'ios';
     closePushAsk(ios ? 3 : 1);
