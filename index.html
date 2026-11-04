@@ -6,7 +6,7 @@
 <title>Peengo</title>
 <meta name="description" content="Arkadaşlarınla günün 1440 dakikasını doldur.">
 <meta name="theme-color" content="#13262B">
-<meta name="peengo-version" content="2026-11-04.7">
+<meta name="peengo-version" content="2026-11-05.1">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Peengo">
@@ -431,8 +431,8 @@ img{max-width:100%}
         <div class="mob-info">
           <p class="eyebrow" id="mobKind">Sıradaki canavar</p>
           <span class="mob-name" id="mobName">Kanalizasyon Faresi</span>
-          <div class="hp"><span class="hb" id="mobBar"></span><span class="mono" id="mobCost">2 dakika</span></div>
-          <p class="muted" style="margin:0;font-size:13px" id="mobNote">Kesmek için duvarından rastgele 2 dakika silinir. Hangilerinin gideceğini sistem seçer.</p>
+          <div class="hp"><span class="hb" id="mobBar"></span><span class="mono" id="mobCost">1 dakika</span></div>
+          <p class="muted" style="margin:0;font-size:13px" id="mobNote">Kesmek için duvarından rastgele 1 dakika silinir. Hangilerinin gideceğini sistem seçer.</p>
         </div>
       </div>
       <div class="hunt-actions">
@@ -534,7 +534,7 @@ img{max-width:100%}
     </svg>
     <h2 class="h" id="introTitle">Peengo’ya hoş geldin!</h2>
     <p>Amaç basit: günün <b>1440 dakikasının</b> hepsinde en az bir kez işemek. Her işediğinde büyük butona bas, o dakika senin renginle boyansın. Arkadaşlarınla aynı dakikayı doldurursanız o dakika simsiyah olur.</p>
-    <p class="muted">Canavar avında dakikalarından rastgele 2 tanesini feda edip canavar kesebilir, unvan toplayabilirsin.</p>
+    <p class="muted">Canavar avında dakikalarından rastgele birini feda edip canavar kesebilir, unvan toplayabilirsin.</p>
     <div class="intro-chat">
       <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5.5A2.5 2.5 0 0 1 6.5 3h11A2.5 2.5 0 0 1 20 5.5v8a2.5 2.5 0 0 1-2.5 2.5H10l-4.5 4v-4h0A1.5 1.5 0 0 1 4 14.5z" fill="currentColor"/></svg>
       <p><b>Uygulamanın kendi sohbeti var.</b> Sağ alttaki yanıp sönen butondan arkadaşlarınla yazışabilirsin.</p>
@@ -660,9 +660,9 @@ const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
     const boss = n % 10 === 0;
     const round = Math.floor((n - 1) / 40);
     const pre = round > 0 ? (round === 1 ? 'Öfkeli ' : 'Kadim ') : '';
-    if (boss){ const b = BOSSES[(n / 10 - 1) % 4]; return {e:b.e, n:pre + b.n, boss:true, cost:4}; }
+    if (boss){ const b = BOSSES[(n / 10 - 1) % 4]; return {e:b.e, n:pre + b.n, boss:true, cost:2}; }
     const m = MOBS[(n - 1) % 10 % 9];
-    return {e:m.e, n:pre + m.n, boss:false, cost:2};
+    return {e:m.e, n:pre + m.n, boss:false, cost:1};
   }
   const kills = pid => (S.hunts[pid] || {}).count || 0;
   const titleOf = pid => { const k = kills(pid); for (const [n, t] of TITLES) if (k >= n) return t; return ''; };
