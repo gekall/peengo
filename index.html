@@ -6,7 +6,7 @@
 <title>Peengo</title>
 <meta name="description" content="Arkadaşlarınla günün 1440 dakikasını doldur.">
 <meta name="theme-color" content="#13262B">
-<meta name="peengo-version" content="2026-11-04.5">
+<meta name="peengo-version" content="2026-11-04.6">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Peengo">
@@ -495,6 +495,20 @@ img{max-width:100%}
       <div class="bgroups" id="badges"></div>
     </section>
 
+    <section class="card" id="pushCard">
+      <div class="row between">
+        <h2 class="h">Hatırlatıcılar</h2>
+        <span class="bcount" id="pushState"></span>
+      </div>
+      <p class="muted" style="margin:6px 0 0;max-width:60ch">Sabah 07:00'de günaydın ve günün boş saat hedefi, akşam 20:00'de "gece alarmları kuruldu mu?" hatırlatması. Mesajlar senin duvarına göre değişir.</p>
+      <p class="ro" id="pushNote" style="margin-top:12px" hidden></p>
+      <div class="hunt-actions">
+        <button class="primary" type="button" id="pushOn">Bildirimleri aç</button>
+        <button class="ghost" type="button" id="pushTest" hidden>Deneme bildirimi gönder</button>
+        <button class="ghost" type="button" id="pushOff" hidden>Kapat</button>
+      </div>
+    </section>
+
     <section class="card tips">
       <h2 class="h">Telefona kur</h2>
       <ol>
@@ -806,7 +820,7 @@ const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
   function show(id){ ['#boot', '#auth', '#game'].forEach(s => $(s).hidden = s !== id); }
   function route(){
     if (!S.loaded){ show('#boot'); return; }
-    if (S.me && S.profiles[S.me]){ show('#game'); $('#meChip').hidden = false; $('#chatFab').hidden = false; }
+    if (S.me && S.profiles[S.me]){ show('#game'); $('#meChip').hidden = false; $('#chatFab').hidden = false; pushRefresh(false); }
     else { show('#auth'); $('#meChip').hidden = true; $('#leaders').hidden = true; $('#chatFab').hidden = true; openChat(false); }
     render();
     renderChat(false);
@@ -989,6 +1003,100 @@ const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
     } finally {
       S.chatBusy = false; $('#chatSend').disabled = false; $('#chatSend').textContent = 'Gönder'; input.focus();
     }
+  }
+
+  /* ---------- hatırlatıcı bildirimleri ---------- */
+  const PUSH_FN = SUPABASE_URL + '/functions/v1/peengo-push';
+  const pushSupported = () => 'serviceWorker' in navigator && 'PushManager' in window && 'Notification' in window;
+  const isIOS = () => /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+  const isStandalone = () => (window.matchMedia && matchMedia('(display-mode: standalone)').matches) || navigator.standalone === true;
+  function b64ToBytes(b64){
+    const s = (b64 + '='.repeat((4 - b64.length % 4) % 4)).replace(/-/g, '+').replace(/_/g, '/');
+    const raw = atob(s); const out = new Uint8Array(raw.length);
+    for (let i = 0; i < raw.length; i++) out[i] = raw.charCodeAt(i);
+    return out;
+  }
+  async function pushCall(body){
+    const r = await fetch(PUSH_FN, {method:'POST', headers:{'Content-Type':'application/json', apikey:SUPABASE_ANON_KEY, Authorization:'Bearer ' + SUPABASE_ANON_KEY}, body:JSON.stringify(body)});
+    const j = await r.json().catch(() => ({}));
+    if (!r.ok) throw new Error(j.error && /[ğüşıöçİ]/i.test(j.error) ? j.error : 'Bildirim sunucusuna ulaşılamadı. Biraz sonra tekrar dene.');
+    return j;
+  }
+  async function pushSub(){
+    if (!pushSupported()) return null;
+    const reg = await navigator.serviceWorker.getRegistration();
+    return reg ? reg.pushManager.getSubscription() : null;
+  }
+  function pushUI(state, note){
+    const on = state === 'on';
+    $('#pushState').textContent = on ? 'Açık ✓' : state === 'blocked' ? 'Engelli' : state === 'unsupported' ? '' : 'Kapalı';
+    $('#pushOn').hidden = on || state === 'unsupported' || state === 'blocked';
+    $('#pushOff').hidden = !on;
+    $('#pushTest').hidden = !on;
+    $('#pushNote').hidden = !note;
+    $('#pushNote').textContent = note || '';
+  }
+  async function pushRefresh(resync){
+    if (!S.me) return;
+    if (isIOS() && !isStandalone()){
+      pushUI('unsupported', 'iPhone’da bildirim için önce Safari’de Paylaş › Ana Ekrana Ekle de, sonra Peengo’yu ana ekrandaki ikondan açıp buraya tekrar gel.');
+      return;
+    }
+    if (!pushSupported()){ pushUI('unsupported', 'Bu tarayıcı bildirimleri desteklemiyor. Telefonda Chrome (Android) ya da ana ekrana eklenmiş Safari (iPhone) kullan.'); return; }
+    if (Notification.permission === 'denied'){
+      pushUI('blocked', 'Bildirimler engellenmiş. Telefonun Ayarlar › Bildirimler bölümünden (Android’de Chrome › Site ayarları › Bildirimler) Peengo’ya izin ver, sonra sayfayı yenile.');
+      return;
+    }
+    try {
+      const sub = Notification.permission === 'granted' ? await pushSub() : null;
+      if (sub && resync){
+        const j = sub.toJSON();
+        rpc('push_subscribe', {p_token:S.token, p_endpoint:j.endpoint, p_p256dh:j.keys.p256dh, p_auth:j.keys.auth}).catch(() => {});
+      }
+      pushUI(sub ? 'on' : 'off');
+    } catch(e){ pushUI('off'); }
+  }
+  async function pushEnable(){
+    const btn = $('#pushOn');
+    if (!pushSupported()) return pushRefresh();
+    btn.disabled = true; btn.textContent = 'Açılıyor…';
+    try {
+      const perm = await Notification.requestPermission();
+      if (perm !== 'granted'){ await pushRefresh(); if (perm === 'default') pushUI('off', 'İzin vermeden bildirim gönderemem. Tekrar dene ve çıkan pencerede İzin ver’e bas.'); return; }
+      const reg = await navigator.serviceWorker.register('sw.js');
+      await navigator.serviceWorker.ready;
+      const {publicKey} = await pushCall({kind:'key'});
+      let sub = await reg.pushManager.getSubscription();
+      if (!sub) sub = await reg.pushManager.subscribe({userVisibleOnly:true, applicationServerKey:b64ToBytes(publicKey)});
+      const j = sub.toJSON();
+      await rpc('push_subscribe', {p_token:S.token, p_endpoint:j.endpoint, p_p256dh:j.keys.p256dh, p_auth:j.keys.auth});
+      pushUI('on');
+      const r = await pushCall({kind:'test', token:S.token});
+      toast(r.sent ? 'Bildirimler açık. Deneme bildirimi yolda!' : 'Bildirimler açık.');
+    } catch(e){
+      pushUI('off', (e && e.message && /[ğüşıöçİ]/i.test(e.message)) ? e.message : 'Bildirimler açılamadı. İnternetini kontrol edip tekrar dene.');
+    } finally { btn.disabled = false; btn.textContent = 'Bildirimleri aç'; }
+  }
+  async function pushTest(){
+    const btn = $('#pushTest'); btn.disabled = true;
+    try {
+      const r = await pushCall({kind:'test', token:S.token});
+      toast(r.sent ? 'Deneme bildirimi gönderildi.' : 'Bu cihaz kayıtlı görünmüyor. Kapatıp tekrar aç.');
+    } catch(e){ toast(e.message || 'Gönderilemedi.'); }
+    finally { btn.disabled = false; }
+  }
+  async function pushDetach(token){
+    try {
+      const sub = await pushSub();
+      if (sub && token) await rpc('push_unsubscribe', {p_token:token, p_endpoint:sub.endpoint});
+      return sub;
+    } catch(e){ return null; }
+  }
+  async function pushDisable(){
+    const sub = await pushDetach(S.token);
+    try { if (sub) await sub.unsubscribe(); } catch(e){}
+    pushUI('off');
+    toast('Hatırlatıcılar kapatıldı.');
   }
 
   /* ---------- auth ---------- */
@@ -1550,7 +1658,10 @@ const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
   $('#huntCancel').onclick = () => armHunt(false);
   $('#modeAll').onclick = () => { S.mode = 'all'; render(); };
   $('#modeMe').onclick = () => { S.mode = 'me'; render(); };
-  $('#logout').onclick = () => { const tk = S.token; logoutLocal(); if (tk) rpc('logout', {p_token:tk}).catch(() => {}); };
+  $('#logout').onclick = async () => { const tk = S.token; await pushDetach(tk); logoutLocal(); if (tk) rpc('logout', {p_token:tk}).catch(() => {}); };
+  $('#pushOn').onclick = pushEnable;
+  $('#pushOff').onclick = pushDisable;
+  $('#pushTest').onclick = pushTest;
   window.addEventListener('hashchange', () => { S.hashDone = false; maybeHashPee(); });
   document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible' && S.loaded) refreshAll(); });
 
@@ -1612,6 +1723,7 @@ const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
     subscribe();
     route();
     setTimeout(() => cleanupPhotos(false), 5000);
+    pushRefresh(true);
   }
   start();
 })();
