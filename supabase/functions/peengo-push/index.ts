@@ -50,13 +50,27 @@ async function config(): Promise<Cfg> {
     ({ data, error } = await sb.from("push_config").select("*").eq("id", 1).single());
     if (error) throw error;
   }
-  // Zamanlayıcının bu fonksiyonu doğrulanmış çağırabilmesi için herkese açık (anon) anahtarı kilitli tabloya kaydet
-  const anon = Deno.env.get("SUPABASE_ANON_KEY");
-  if (anon && data.anon_key !== anon) {
-    await sb.from("push_config").update({ anon_key: anon }).eq("id", 1);
-  }
   webpush.setVapidDetails(SITE, data.vapid_public, data.vapid_private);
   return data as Cfg;
+}
+
+// Zamanlayıcının bu fonksiyonu doğrulanmış çağırabilmesi için herkese açık (anon) anahtarı kilitli tabloya kaydet.
+// Kaynak: ortam değişkeni, yoksa sitenin isteğiyle gelen ve Supabase'in imzasını zaten doğruladığı anon anahtar.
+async function rememberAnon(cfg: Cfg, req: Request) {
+  let anon = Deno.env.get("SUPABASE_ANON_KEY") || "";
+  if (!anon.startsWith("eyJ")) {
+    const m = /^Bearer\s+(eyJ[\w-]+\.[\w-]+\.[\w-]+)$/.exec(req.headers.get("authorization") || "");
+    if (m) {
+      try {
+        const p = JSON.parse(atob(m[1].split(".")[1].replace(/-/g, "+").replace(/_/g, "/")));
+        if (p.role === "anon") anon = m[1];
+      } catch { /* geçersiz */ }
+    }
+  }
+  if (anon.startsWith("eyJ") && cfg.anon_key !== anon) {
+    await sb.from("push_config").update({ anon_key: anon }).eq("id", 1);
+    cfg.anon_key = anon;
+  }
 }
 
 const MORNING_TITLES = [
@@ -155,6 +169,7 @@ Deno.serve(async (req) => {
   const kind = String(body.kind || "");
   try {
     const cfg = await config();
+    await rememberAnon(cfg, req);
     if (kind === "key") return json({ publicKey: cfg.vapid_public });
 
     if (kind === "selftest") {
