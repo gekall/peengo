@@ -6,7 +6,7 @@
 <title>Peengo</title>
 <meta name="description" content="Arkadaşlarınla günün 1440 dakikasını doldur.">
 <meta name="theme-color" content="#13262B">
-<meta name="peengo-version" content="2026-11-05.14">
+<meta name="peengo-version" content="2026-11-05.15">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Peengo">
@@ -331,6 +331,7 @@ body.intro-open .chat-fab{z-index:45;animation:fabPulse 1.4s ease-in-out infinit
 .ar-status{display:flex;flex-direction:column;border-left:4px solid var(--accent)}
 .ar-status.off{border-left-color:var(--grout)}
 .ar-status .st-line{font-family:var(--f-display);font-weight:400;font-size:20px}
+.ar-status .st-left{font-family:var(--f-mono);font-size:13px;color:var(--muted);font-weight:700}
 .motto{margin:2px 0 0;font-style:italic;font-size:13px;color:var(--ink);overflow-wrap:anywhere;line-height:1.35}
 .motto.bt{font-size:12px;color:var(--muted);margin:-2px 0 0;max-width:100%}
 .motto-edit{display:flex;gap:8px;margin-top:10px}
@@ -749,7 +750,7 @@ img{max-width:100%}
       <ul>
         <li>Kestiğin her canavar envanterine <b>pet</b> olarak gelir. Daha önce kestiklerin de pet oldu.</li>
         <li><b>Ordu</b> sekmesinde en fazla 5 petlik ordunu kur. Ordun sen yokken de savaşır.</li>
-        <li>Savaşmak istemiyorsan ordunu <b>inaktif</b> yap: kimse sana saldıramaz, sen de saldıramazsın. Saldırdıktan sonraki 1 saat içinde inaktife geçilemez.</li>
+        <li>Savaşmak istemiyorsan ordunu <b>6 saatliğine inaktif</b> yap: kimse sana saldıramaz, sen de saldıramazsın. Süre bitmeden “Süreyi uzat”a basarsan 6 saat baştan başlar. Saldırdıktan sonraki 1 saat içinde inaktife geçilemez.</li>
         <li><b>Savaş</b> sekmesinden istediğine saldır. Petler sırayla vuruşur; <b>kaybeden ordunun bütün petleri kazanana geçer.</b></li>
         <li>Av döngüsü 10 canavar: her turun <b>5. ve 10. avı boss</b>, sonra başa dönülür.</li>
         <li>Aynı petten 2 tane varsa <b>birleştir</b>: bir üst seviye pet çıkar. Şans Sv 1’de <b>%90</b>, her seviyede %1 azalır; tutmazsa ikisi de gider.</li>
@@ -1030,10 +1031,10 @@ const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
 
   /* ---------- data ---------- */
   async function loadPlayers(){
-    const {data, error} = await S.sb.from('players_public').select('id,name,color,created_at,is_admin,arena_off,arena_motto');
+    const {data, error} = await S.sb.from('players_public').select('id,name,color,created_at,is_admin,arena_off,arena_motto,arena_off_until');
     if (error) throw error;
     const p = {};
-    (data || []).forEach(r => { p[r.id] = {name:r.name, color:r.color, createdAt:Date.parse(r.created_at), admin:!!r.is_admin, off:!!r.arena_off, motto:r.arena_motto || ''}; });
+    (data || []).forEach(r => { p[r.id] = {name:r.name, color:r.color, createdAt:Date.parse(r.created_at), admin:!!r.is_admin, offUntil:r.arena_off_until ? Date.parse(r.arena_off_until) : 0, motto:r.arena_motto || ''}; });
     S.profiles = p;
   }
   async function loadMarks(){
@@ -2244,6 +2245,12 @@ const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
     if (t !== S.lastT){ S.lastT = t; if (!$('#game').hidden) render(); }
     else if (!$('#game').hidden) updateButton();
     if (S.lastMark && Date.now() - S.lastMark.at > 60000){ S.lastMark = null; $('#undoBtn').hidden = true; }
+    if (S.page === 'arena' && S.arTab === 'ordu'){
+      const off = arOff(), o = $('#offLeft');
+      if (o && off) o.textContent = ' · ' + durTxt(S.ar.offUntil - nowS()) + ' kaldı';
+      if (S.ar.offWas && !off) renderArena();
+      S.ar.offWas = off;
+    }
     if (S.page === 'arena' && S.arTab === 'savas'){
       const c = $('#arCd'), cooling = arCdLeft() > 0;
       if (c) c.textContent = cdText();
@@ -2299,9 +2306,9 @@ const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
     S.ar.admin = !!st.admin;
     S.ar.unseen = st.unseen || 0;
     S.ar.cdUntil = st.cooldown_until ? Date.parse(st.cooldown_until) : 0;
-    S.ar.off = !!st.off;
+    S.ar.offUntil = st.off && st.off_until ? Date.parse(st.off_until) : 0;
     S.ar.leaveUntil = st.leave_until ? Date.parse(st.leave_until) : 0;
-    if (S.profiles[S.me]) S.profiles[S.me].off = S.ar.off;
+    if (S.profiles[S.me]) S.profiles[S.me].offUntil = S.ar.offUntil;
     if (st.gift > 0) toast('Günlük ' + st.gift + ' 🪙 geldi! Arena’daki markette harcayabilirsin.', false, {label:'Market', fn:() => { setPage('arena'); setArTab('market'); }});
     renderNav();
   }
@@ -2462,25 +2469,35 @@ const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
     ]));
   }
 
-  /* Savaş durumu: aktif / inaktif */
+  /* Savaş durumu: aktif / inaktif. İnaktiflik 6 saat sürer, uzatılırsa 6 saat baştan başlar. */
+  const nowS = () => Date.now() + (S.skew || 0);
+  const arOff = () => (S.ar.offUntil || 0) > nowS();
+  const isOff = pid => ((S.profiles[pid] || {}).offUntil || 0) > nowS();
+  const hhmm = serverMs => { const d = new Date(serverMs - (S.skew || 0)); return pad(d.getHours()) + ':' + pad(d.getMinutes()); };
+  function durTxt(ms){ const m = Math.ceil(ms / 60000), h = Math.floor(m / 60); return h ? h + ' sa ' + (m % 60) + ' dk' : m + ' dk'; }
   function statusCard(){
-    const off = S.ar.off;
-    const leaveLeft = Math.max(0, (S.ar.leaveUntil || 0) - (Date.now() + (S.skew || 0)));
+    const off = arOff();
+    const leaveLeft = Math.max(0, (S.ar.leaveUntil || 0) - nowS());
     const lockedIn = !off && leaveLeft > 0;
-    const d = new Date(Date.now() + leaveLeft);
+    const busy = S.ar.busy === 'toggle';
+    const btns = off
+      ? [btn('ghost', busy ? 'Kaydediliyor…' : 'Süreyi uzat (6 sa)', () => toggleArena(true), !!S.ar.busy),
+         btn('primary', 'Aktif et', () => toggleArena(false), !!S.ar.busy)]
+      : [btn('ghost', busy ? 'Kaydediliyor…' : 'İnaktif yap (6 sa)', () => toggleArena(true), !!S.ar.busy || lockedIn)];
     return el('section', {class:'card ar-status' + (off ? ' off' : '')}, [
       el('div', {class:'row between'}, [
         el('div', {style:'min-width:0;display:flex;flex-direction:column;gap:2px'}, [
           el('p', {class:'eyebrow', text:'Savaş durumu'}),
-          el('b', {class:'st-line', text:off ? '⚪ İnaktif' : '🟢 Aktif'}),
+          el('b', {class:'st-line'}, [document.createTextNode(off ? '⚪ İnaktif' : '🟢 Aktif'),
+            off ? el('span', {class:'st-left', id:'offLeft', text:' · ' + durTxt(S.ar.offUntil - nowS()) + ' kaldı'}) : null])
         ]),
-        btn(off ? 'primary' : 'ghost', S.ar.busy === 'toggle' ? 'Kaydediliyor…' : off ? 'Aktif et' : 'İnaktif yap', () => toggleArena(!off), S.ar.busy || lockedIn)
+        el('div', {class:'sheet-actions'}, btns)
       ]),
       el('p', {class:'muted', style:'margin:8px 0 0;font-size:13px;max-width:62ch', text:off
-        ? 'Ordun savaşa kapalı: kimse sana saldıramaz, sen de kimseye saldıramazsın. Petlerini toplamaya, birleştirmeye ve eşya almaya devam edebilirsin.'
+        ? 'Ordun savaşa kapalı: kimse sana saldıramaz, sen de kimseye saldıramazsın. Bitiş saati ' + hhmm(S.ar.offUntil) + ', sonra kendiliğinden aktif olur. “Süreyi uzat”a basarsan 6 saat baştan başlar.'
         : lockedIn
-          ? 'Yakın zamanda saldırdığın için ' + pad(d.getHours()) + ':' + pad(d.getMinutes()) + '’e kadar savaştan çekilemezsin.'
-          : 'Ordun savaşa açık: herkes sana saldırabilir, sen de istediğine saldırabilirsin. İstemezsen inaktif yap.'})
+          ? 'Yakın zamanda saldırdığın için saat ' + hhmm(S.ar.leaveUntil) + ' olana kadar savaştan çekilemezsin.'
+          : 'Ordun savaşa açık: herkes sana saldırabilir, sen de istediğine saldırabilirsin. İstemezsen 6 saatliğine inaktif yap.'})
     ]);
   }
   /* Ordu sözü */
@@ -2515,12 +2532,14 @@ const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
 
   async function toggleArena(off){
     if (S.ar.busy) return;
+    const wasOff = arOff();
     S.ar.busy = 'toggle'; renderArena();
     try {
       const r = await arenaCall('arena_toggle', {p_off:off});
-      S.ar.off = !!r.off;
-      if (S.profiles[S.me]) S.profiles[S.me].off = S.ar.off;
-      toast(S.ar.off ? 'Ordun inaktif. Kimse sana saldıramaz.' : 'Ordun aktif. Savaşa hazırsın!');
+      S.ar.offUntil = r.off && r.off_until ? Date.parse(r.off_until) : 0;
+      if (S.profiles[S.me]) S.profiles[S.me].offUntil = S.ar.offUntil;
+      toast(!r.off ? 'Ordun aktif. Savaşa hazırsın!'
+        : wasOff ? 'Süre uzadı, yeni bitiş saati ' + hhmm(S.ar.offUntil) + '.' : 'Ordun 6 saat inaktif (bitiş ' + hhmm(S.ar.offUntil) + '). Bu sürede kimse sana saldıramaz.');
     } catch(e){}
     S.ar.busy = false;
     await loadArena();
@@ -2646,7 +2665,7 @@ const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
   /* Savaş */
   function cdText(){
     if (S.ar.admin) return 'Sadece izleyici';
-    if (S.ar.off) return 'Ordun inaktif';
+    if (arOff()) return 'Ordun inaktif';
     const l = arCdLeft();
     return l ? 'Sonraki saldırı ' + mmss(l) : 'Saldırmaya hazırsın';
   }
@@ -2667,8 +2686,8 @@ const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
     body.append(el('section', {class:'card'}, [
       el('div', {class:'row between'}, [el('h2', {class:'h', text:'Savaş aç'}), el('span', {class:'bcount', id:'arCd', text:cdText()})]),
       el('p', {class:'muted', style:'margin:6px 0 0;font-size:13px;max-width:62ch', text:'Rakibin çevrimdışı olsa da ordusu savaşır. Önce iki ordunun 1. petleri çarpışır, sırayla vururlar; ölenin yerine sıradaki çıkar. Kazanan, kaybeden ordunun bütün petlerini alır ve +5 🪙 kazanır. 10 dakikada bir saldırabilirsin.'}),
-      S.ar.admin || !S.ar.off ? null : el('p', {class:'ar-note', style:'margin-top:12px'}, [
-        el('span', {text:'Ordun inaktif, şu an saldıramazsın.'}),
+      S.ar.admin || !arOff() ? null : el('p', {class:'ar-note', style:'margin-top:12px'}, [
+        el('span', {text:'Ordun inaktif (bitiş ' + hhmm(S.ar.offUntil) + '), şu an saldıramazsın.'}),
         btn('ghost', 'Aktif et', () => toggleArena(false), S.ar.busy)
       ]),
       S.ar.admin ? null : el('div', {style:'margin-top:12px'}, [
@@ -2680,17 +2699,17 @@ const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
     const foes = Object.keys(S.profiles).filter(pid => pid !== me && !S.profiles[pid].admin).map(pid => {
       const d = deckOf(pid); let hp = 0, atk = 0;
       d.forEach(p => { const s = statOf(p, gm); hp += s.hp; atk += s.atk; });
-      return {pid, d, hp, atk, off:!!S.profiles[pid].off};
+      return {pid, d, hp, atk, off:isOff(pid), offUntil:S.profiles[pid].offUntil};
     }).sort((a, b) => (!b.off && b.d.length > 0) - (!a.off && a.d.length > 0) || (b.hp + b.atk * 4) - (a.hp + a.atk * 4) || nameOf(a.pid).localeCompare(nameOf(b.pid), 'tr'));
     const ul = el('ul', {class:'foes'});
     foes.forEach(f => {
       const armed = S.ar.armed === f.pid;
-      const can = !S.ar.admin && !S.ar.off && !f.off && myDeck.length > 0 && f.d.length > 0 && !cooling && !S.ar.busy;
+      const can = !S.ar.admin && !arOff() && !f.off && myDeck.length > 0 && f.d.length > 0 && !cooling && !S.ar.busy;
       ul.append(el('li', {class:'foe'}, [
         el('div', {style:'min-width:0;display:flex;flex-direction:column;gap:2px'}, [
           el('span', {class:'nm'}, [dotOf(f.pid), el('span', {text:nameOf(f.pid)})]),
           mottoEl(f.pid),
-          el('span', {class:'mono muted', style:'font-size:12px', text:f.off ? '⚪ Ordusu inaktif, saldırılamaz' : f.d.length ? f.d.length + ' pet · ❤ ' + f.hp + ' · ⚔ ' + f.atk : 'Ordusu yok, saldırılamaz'})
+          el('span', {class:'mono muted', style:'font-size:12px', text:f.off ? '⚪ İnaktif (bitiş ' + hhmm(f.offUntil) + '), saldırılamaz' : f.d.length ? f.d.length + ' pet · ❤ ' + f.hp + ' · ⚔ ' + f.atk : 'Ordusu yok, saldırılamaz'})
         ]),
         S.ar.admin ? el('span') : btn('attack' + (armed ? ' armed' : ''), S.ar.busy === f.pid ? 'Savaşılıyor…' : armed ? 'Eminim, saldır!' : f.off ? 'İnaktif' : 'Saldır', () => attackFoe(f.pid), !can),
         armed ? el('p', {class:'warnline', text:'Kaybedersen ordundaki ' + myDeck.length + ' pet ona geçer. Kazanırsan onun ' + f.d.length + ' peti senin olur.'}) : null,
