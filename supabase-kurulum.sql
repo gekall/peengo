@@ -1532,3 +1532,59 @@ grant execute on function public.arena_toggle(uuid, boolean) to anon, authentica
 select 'arena inaktif ayari hazir' as durum,
        (select count(*) from public.players where arena_off) as inaktif_oyuncu,
        position('arena_off' in pg_get_functiondef('public.arena_attack(uuid,uuid)'::regprocedure)) > 0 as saldiri_kontrolu;
+
+
+-- ===================== YUMRUKLA AV (supabase-av-yumruk.sql) =====================
+-- Peengo: canavarı dakika vermeden, butona vurarak kes (canavar 100 vuruş, boss 200 vuruş)
+-- Supabase > SQL Editor > New query: yapıştır ve Run'a bas. Tekrar çalıştırmak güvenlidir.
+-- Hile koruması: ilk vuruşta sunucu saati başlatır; canavar en az 8 sn, boss en az 16 sn sonra düşer
+-- (100 vuruşu bundan hızlı atmak insan eliyle zaten zor).
+
+alter table public.players add column if not exists tap_started_at timestamptz;
+alter table public.players add column if not exists tap_mob int;
+alter table public.hunts add column if not exists tapped boolean not null default false;
+
+-- İlk vuruş: sıradaki canavar için sayaç başlar
+create or replace function public.hunt_tap_start(p_token uuid)
+returns json language plpgsql security definer set search_path = public as $$
+declare v_pid uuid; v_no int;
+begin
+  select player_id into v_pid from sessions where token = p_token;
+  if v_pid is null then raise exception 'Oturumun kapanmış. Tekrar giriş yap.'; end if;
+  select count(*) + 1 into v_no from hunts where player_id = v_pid;
+  update players set tap_started_at = now(), tap_mob = v_no where id = v_pid;
+  return json_build_object('mob_no', v_no, 'need', case when v_no % 5 = 0 then 200 else 100 end, 'at', now());
+end $$;
+
+-- Son vuruş: canavar dakika almadan kesilir, pet olarak envantere gelir
+create or replace function public.hunt_tap(p_token uuid)
+returns json language plpgsql security definer set search_path = public as $$
+declare
+  v_pid uuid; v_no int; v_boss boolean; v_min int; v_started timestamptz; v_mob int; v_left numeric;
+begin
+  select player_id into v_pid from sessions where token = p_token;
+  if v_pid is null then raise exception 'Oturumun kapanmış. Tekrar giriş yap.'; end if;
+  perform pg_advisory_xact_lock(hashtext('hunt:' || v_pid::text));
+
+  select count(*) + 1 into v_no from hunts where player_id = v_pid;
+  v_boss := v_no % 5 = 0;
+  v_min := case when v_boss then 16 else 8 end;
+  select tap_started_at, tap_mob into v_started, v_mob from players where id = v_pid for update;
+  if v_started is null or v_mob is distinct from v_no then
+    raise exception 'Vuruşların sayılmadı, bu canavara baştan vur.';
+  end if;
+  v_left := v_min - extract(epoch from (now() - v_started));
+  if v_left > 0 then
+    raise exception 'Çok hızlı vurdun! % sn sonra canavar düşer.', ceil(v_left)::int;
+  end if;
+
+  insert into hunts(player_id, mob_no, boss, removed, tapped) values (v_pid, v_no, v_boss, '{}', true);
+  update players set tap_started_at = null, tap_mob = null where id = v_pid;
+  return json_build_object('mob_no', v_no, 'boss', v_boss, 'removed', '{}'::smallint[], 'kills', v_no, 'tapped', true);
+end $$;
+
+revoke execute on function public.hunt_tap_start(uuid), public.hunt_tap(uuid) from public;
+grant execute on function public.hunt_tap_start(uuid), public.hunt_tap(uuid) to anon, authenticated;
+
+select 'yumrukla av hazir' as durum,
+       (select count(*) from information_schema.columns where table_name = 'hunts' and column_name = 'tapped') as tapped_kolonu;

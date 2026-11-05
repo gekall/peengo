@@ -6,7 +6,7 @@
 <title>Peengo</title>
 <meta name="description" content="Arkadaşlarınla günün 1440 dakikasını doldur.">
 <meta name="theme-color" content="#13262B">
-<meta name="peengo-version" content="2026-11-05.11">
+<meta name="peengo-version" content="2026-11-05.12">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Peengo">
@@ -253,6 +253,12 @@ button{cursor:pointer}
 .attack{border:0;background:var(--warn);color:var(--surface);border-radius:12px;padding:12px 18px;font-weight:700;font-size:16px}
 .attack.armed{box-shadow:0 0 0 3px var(--surface),0 0 0 5px var(--warn)}
 .attack:disabled{opacity:.5;cursor:not-allowed}
+.tapbtn{border:2px solid var(--warn);background:var(--surface);color:var(--warn);border-radius:12px;padding:10px 16px;font-weight:700;font-size:16px;touch-action:manipulation;user-select:none;-webkit-user-select:none;-webkit-tap-highlight-color:transparent;font-variant-numeric:tabular-nums;min-width:150px;transition:transform .06s ease}
+.tapbtn:active{transform:scale(.94)}
+.tapbtn:disabled{opacity:.5;cursor:not-allowed}
+.mob.tap .mob-art{animation:tapHit .14s ease}
+@keyframes tapHit{50%{transform:scale(.9) rotate(-4deg)}}
+.hp .hb{transition:max-width .12s linear}
 .next-reward{margin:10px 0 0;font-size:14px}
 .hunt-lb{margin-top:16px}
 .title-chip{font-size:11px;font-weight:700;letter-spacing:.04em;color:var(--accent);margin-left:6px;white-space:nowrap}
@@ -626,6 +632,7 @@ img{max-width:100%}
       </div>
       <div class="hunt-actions">
         <button class="attack" type="button" id="huntBtn">Saldır</button>
+        <button class="tapbtn" type="button" id="tapBtn" aria-live="off">👊 Vur</button>
         <button class="ghost" type="button" id="huntCancel" hidden>Vazgeç</button>
       </div>
       <p class="status" id="huntMsg" style="text-align:left;margin-top:10px"></p>
@@ -2067,16 +2074,17 @@ const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
     if (mob.boss) art.append(el('span', {class:'mob-tag', text:'BOSS'}));
     $('#mobKind').textContent = (mob.boss ? 'Boss' : 'Canavar') + ' #' + n + ' · kesince Sv ' + (mob.tier + 1) + ' pet';
     $('#mobName').textContent = mob.n;
-    $('#mobBar').style.maxWidth = (mob.boss ? 220 : 110) + 'px';
-    $('#mobCost').textContent = mob.cost + ' dakika';
-    $('#mobNote').textContent = 'Kesmek için duvarından rastgele ' + mob.cost + ' dakika silinir. Hangilerinin gideceğini sistem seçer. Kestiğin canavar Arena’da petin olur.';
+    const need = tapNeed(n);
+    $('#mobCost').textContent = mob.cost + ' dk ya da ' + need + ' vuruş';
+    $('#mobNote').textContent = 'Kesmek için ya duvarından rastgele ' + mob.cost + ' dakika ver (Saldır) ya da 👊 butonuna ' + need + ' kere vur. Kestiğin canavar Arena’da petin olur.';
+    renderTap();
     const btn = $('#huntBtn');
     const enough = my >= mob.cost;
     btn.disabled = S.huntBusy || !enough;
     btn.classList.toggle('armed', S.huntArmed);
     btn.textContent = S.huntBusy ? 'Saldırılıyor…' : S.huntArmed ? 'Eminim, saldır! (−' + mob.cost + ' dakika)' : 'Saldır';
     $('#huntCancel').hidden = !S.huntArmed;
-    if (!enough && !S.huntBusy) $('#huntMsg').textContent = 'Bu canavar için duvarında en az ' + mob.cost + ' dakika olmalı. Biraz daha işe!';
+    if (!enough && !S.huntBusy && $('#huntMsg').dataset.keep !== '1') $('#huntMsg').textContent = 'Dakika vermek için duvarında en az ' + mob.cost + ' dakika olmalı. İstersen 👊 ile vurarak kes!';
     else if (S.huntArmed) $('#huntMsg').textContent = 'Rastgele ' + mob.cost + ' dakikan silinecek. Emin misin?';
     else if ($('#huntMsg').dataset.keep !== '1') $('#huntMsg').textContent = '';
 
@@ -2117,6 +2125,75 @@ const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
     $('#huntMsg').dataset.keep = '';
     render();
   }
+  /* Canavar kesildi (dakikayla ya da yumrukla) */
+  function onKilled(r, mob){
+    const removed = r.removed || [];
+    removed.forEach(t => { delete mine()[t]; });
+    const x = (S.hunts[S.me] ||= {count:0, last:0});
+    x.count = Math.max(x.count, r.mob_no); x.last = Date.now();
+    const m = $('#mob'); m.classList.remove('dead', 'tap'); void m.offsetWidth; m.classList.add('dead');
+    setTimeout(() => m.classList.remove('dead'), 650);
+    if (navigator.vibrate) try { navigator.vibrate([20, 40, 60]); } catch(e){}
+    const msg = $('#huntMsg');
+    const pet = PETS[mobTier(r.mob_no)];
+    msg.textContent = mob.n + ' kesildi! ' + (removed.length ? 'Giden dakikalar: ' + removed.map(fmt).join(', ') + '.' : 'Yumrukla kestin, dakikan gitmedi.') + ' Pet olarak envanterine eklendi.';
+    msg.dataset.keep = '1';
+    const t = TITLES.find(([need]) => need === r.mob_no);
+    S.ar.loaded = false;
+    toast((t ? 'Yeni unvan: ' + t[1] + '! ' : '') + pet.e + ' ' + pet.n + ' artık senin petin.', false, {label:'Arena', fn:() => setPage('arena')});
+  }
+
+  /* Yumrukla av: canavar 100, boss 200 vuruş. Süreyi sunucu da tutar (hile koruması). */
+  const tapNeed = n => n % 5 === 0 ? 200 : 100;
+  function renderTap(){
+    if (!S.me) return;
+    const n = kills(S.me) + 1, need = tapNeed(n), mob = mobFor(n);
+    const tp = S.tap && S.tap.mob === n ? S.tap : null;
+    const done = Math.min(tp ? tp.n : 0, need);
+    const tb = $('#tapBtn');
+    tb.disabled = S.huntBusy || !!(tp && tp.wait);
+    tb.textContent = tp && tp.wait ? '⏳ Düşüyor…' : '👊 Vur · ' + done + '/' + need;
+    $('#mobBar').style.maxWidth = Math.round((mob.boss ? 220 : 110) * (1 - done / need)) + 'px';
+  }
+  function tapHit(){
+    if (!S.me || S.huntBusy) return;
+    const n = kills(S.me) + 1;
+    if (!S.tap || S.tap.mob !== n) S.tap = {mob:n, n:0, need:tapNeed(n), started:false, done:false, wait:false};
+    const t = S.tap;
+    if (t.done) return;
+    t.n++;
+    if (!t.started){
+      t.started = true;
+      rpc('hunt_tap_start', {p_token:S.token}).catch(e => {
+        if (S.tap === t){ S.tap = null; $('#huntMsg').textContent = errText(e); $('#huntMsg').dataset.keep = '1'; renderTap(); }
+      });
+    }
+    const m = $('#mob'); m.classList.remove('tap'); void m.offsetWidth; m.classList.add('tap');
+    if (S.huntArmed) armHunt(false);
+    if (t.n >= t.need){ t.done = true; finishTap(t); }
+    renderTap();
+  }
+  async function finishTap(t){
+    if (S.tap !== t) return;
+    t.wait = true;
+    S.huntBusy = true; renderTap();
+    const mob = mobFor(t.mob);
+    let retry = 0;
+    try {
+      const r = await rpc('hunt_tap', {p_token:S.token});
+      S.tap = null;
+      onKilled(r, mob);
+    } catch(e){
+      const msg = errText(e), m = /Çok hızlı.*?(\d+) sn/.exec(msg);
+      $('#huntMsg').textContent = msg; $('#huntMsg').dataset.keep = '1';
+      if (m && S.tap === t) retry = (+m[1]) * 1000 + 300;
+      else { S.tap = null; if (/Oturumun kapanmış/.test(e && e.message || '')) logoutLocal(); }
+    }
+    S.huntBusy = false;
+    render();
+    if (retry) setTimeout(() => finishTap(t), retry);
+  }
+
   async function attack(){
     if (S.huntBusy || !S.me) return;
     if (!S.huntArmed){ armHunt(true); return; }
@@ -2125,20 +2202,8 @@ const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
     const mob = mobFor(kills(S.me) + 1);
     try {
       const r = await rpc('hunt', {p_token:S.token});
-      const removed = r.removed || [];
-      removed.forEach(t => { delete mine()[t]; });
-      const x = (S.hunts[S.me] ||= {count:0, last:0});
-      x.count = Math.max(x.count, r.mob_no); x.last = Date.now();
-      const m = $('#mob'); m.classList.remove('dead'); void m.offsetWidth; m.classList.add('dead');
-      setTimeout(() => m.classList.remove('dead'), 650);
-      if (navigator.vibrate) try { navigator.vibrate([20, 40, 60]); } catch(e){}
-      const msg = $('#huntMsg');
-      const pet = PETS[mobTier(r.mob_no)];
-      msg.textContent = mob.n + ' kesildi! Giden dakikalar: ' + removed.map(fmt).join(', ') + '. Pet olarak envanterine eklendi.';
-      msg.dataset.keep = '1';
-      const t = TITLES.find(([need]) => need === r.mob_no);
-      S.ar.loaded = false;
-      toast((t ? 'Yeni unvan: ' + t[1] + '! ' : '') + pet.e + ' ' + pet.n + ' artık senin petin.', false, {label:'Arena', fn:() => setPage('arena')});
+      S.tap = null;
+      onKilled(r, mob);
     } catch(e){
       $('#huntMsg').textContent = errText(e);
       $('#huntMsg').dataset.keep = '1';
@@ -2884,6 +2949,7 @@ const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
   $('#flush').onclick = pee;
   $('#undoBtn').onclick = undo;
   $('#huntBtn').onclick = attack;
+  $('#tapBtn').onclick = tapHit;
   $('#huntCancel').onclick = () => armHunt(false);
   $('#modeAll').onclick = () => { S.mode = 'all'; render(); };
   $('#modeMe').onclick = () => { S.mode = 'me'; render(); };
@@ -2948,7 +3014,7 @@ const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
     try {
       const html = await fetch(location.pathname + '?vc=' + Date.now(), {cache:'no-store'}).then(r => r.ok ? r.text() : '');
       const m = html.match(/name="peengo-version" content="([^"]+)"/);
-      if (m && MY_VERSION && m[1] !== MY_VERSION && !S.busy && !S.huntBusy && !S.bt && !S.ar.busy){
+      if (m && MY_VERSION && m[1] !== MY_VERSION && !S.busy && !S.huntBusy && !S.bt && !S.ar.busy && !(S.tap && S.tap.n > 0)){
         location.replace(location.pathname + '?v=' + encodeURIComponent(m[1]) + location.hash);
       }
     } catch(e){}
