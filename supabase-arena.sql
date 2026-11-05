@@ -19,7 +19,7 @@ create or replace function public.pet_hp(t int) returns int language sql immutab
   select (array[30,38,47,59,73,92,114,143,179,224,279,349,437])[t + 1] $$;
 create or replace function public.pet_atk(t int) returns int language sql immutable as $$
   select (array[8,10,12,15,18,23,28,36,45,56,70,87,109])[t + 1] $$;
--- Market eşyaları: k = kılıç (saldırı yüzdesi), z = zırh (can yüzdesi)
+-- Market eşyaları: k = kılıç (saldırı yüzdesi), z = zırh (can yüzdesi). İsimler index.html ITEMS içinde.
 create or replace function public.item_pct(c text) returns int language sql immutable as $$
   select case c when 'k1' then 20 when 'k2' then 40 when 'k3' then 70
                 when 'z1' then 20 when 'z2' then 40 when 'z3' then 70 else 0 end $$;

@@ -6,7 +6,7 @@
 <title>Peengo</title>
 <meta name="description" content="Arkadaşlarınla günün 1440 dakikasını doldur.">
 <meta name="theme-color" content="#13262B">
-<meta name="peengo-version" content="2026-11-05.6">
+<meta name="peengo-version" content="2026-11-05.7">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Peengo">
@@ -919,11 +919,11 @@ const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
   const PET_HP = [30, 38, 47, 59, 73, 92, 114, 143, 179, 224, 279, 349, 437];
   const PET_ATK = [8, 10, 12, 15, 18, 23, 28, 36, 45, 56, 70, 87, 109];
   const ITEMS = {
-    k1:{e:'🪠', n:'Pompa Sopası', k:'k', pct:20, price:10},
+    k1:{e:'🔧', n:'Musluk Anahtarı', k:'k', pct:20, price:10},
     k2:{e:'🧹', n:'Fırça Kılıcı', k:'k', pct:40, price:25},
     k3:{e:'🗡️', n:'Altın Musluk Kılıcı', k:'k', pct:70, price:60},
     z1:{e:'🧻', n:'Tuvalet Kağıdı Zırhı', k:'z', pct:20, price:10},
-    z2:{e:'🪣', n:'Kova Miğfer', k:'z', pct:40, price:25},
+    z2:{e:'⛑️', n:'Lavabo Kaskı', k:'z', pct:40, price:25},
     z3:{e:'🛡️', n:'Porselen Zırh', k:'z', pct:70, price:60}
   };
   const mobTier = (no, boss) => boss ? 9 + ((no / 10 - 1) % 4) : (no - 1) % 10;
@@ -2275,11 +2275,12 @@ const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
       if (p === 'main' && location.hash === '#arena') history.pushState(null, '', location.pathname + location.search);
     }
     renderNav();
+    render();
     if (p === 'arena'){
       renderArena();
       if (changed || !S.ar.loaded) loadArena();
       maybeMarkSeen();
-    } else render();
+    }
     if (changed) window.scrollTo(0, 0);
   }
   function syncPage(){ setPage(location.hash === '#arena' ? 'arena' : 'main', true); }
