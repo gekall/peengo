@@ -6,7 +6,7 @@
 <title>Peengo</title>
 <meta name="description" content="Arkadaşlarınla günün 1440 dakikasını doldur.">
 <meta name="theme-color" content="#13262B">
-<meta name="peengo-version" content="2026-11-05.22">
+<meta name="peengo-version" content="2026-11-05.23">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Peengo">
@@ -351,6 +351,11 @@ body.intro-open .chat-fab{z-index:45;animation:fabPulse 1.4s ease-in-out infinit
 .slot.efs,.tile.efs,.bt-art.efs{border-color:#D4A017;box-shadow:0 0 0 1px #D4A017,0 0 12px rgba(212,160,23,.35)}
 .pet-big.efs{border-color:#D4A017;box-shadow:0 0 0 3px var(--surface),0 0 0 5px #D4A017,0 0 18px rgba(212,160,23,.45)}
 .lv.efs{color:#B8860B}
+.slot.hero,.tile.hero,.bt-art.hero{border-color:#7B4DFF;box-shadow:0 0 0 1px #7B4DFF,0 0 14px rgba(123,77,255,.4)}
+.pet-big.hero{border-color:#7B4DFF;box-shadow:0 0 0 3px var(--surface),0 0 0 5px #7B4DFF,0 0 18px rgba(123,77,255,.5)}
+.lv.hero{color:#7B4DFF}
+.army i.hero{box-shadow:inset 0 0 0 1px #7B4DFF}
+.bt-dmg.heal{color:var(--accent);top:auto;bottom:6%;font-size:20px}
 .army i.efs{box-shadow:inset 0 0 0 1px #D4A017}
 .gear{position:absolute;top:3px;right:5px;font-size:12px;line-height:1;letter-spacing:-2px}
 .inv{display:grid;grid-template-columns:repeat(auto-fill,minmax(74px,1fr));gap:8px;margin-top:12px}
@@ -769,7 +774,8 @@ img{max-width:100%}
         <li>Av döngüsü 10 canavar: her turun <b>5. ve 10. avı boss</b>, sonra başa dönülür.</li>
         <li>Aynı petten 2 tane varsa <b>birleştir</b>: bir üst seviye pet çıkar. Şans Sv 1’de <b>%90</b>, her seviyede %1 azalır; efsanelere geçiş zor: Sv10→11 <b>%60</b>, Sv11→12 <b>%45</b>, Sv12→13 <b>%30</b>. Tutmazsa ikisi de gider.</li>
         <li><b>Sv 11–13 efsaneler</b> (🐉 Kanalizasyon Ejderi, 🦑 Rögar Krakeni, 👹 Sifonların Efendisi) avda çıkmaz, sadece birleştirmeyle elde edilir.</li>
-        <li>Her gün <b>10 🪙</b> gelir, savaş kazanınca <b>+5 🪙</b>. Fazla petlerini <b>satabilirsin</b> (Sv1–8 0,1 · Sv10 0,3 · Sv13 25 🪙). <b>Market</b>’ten kılıç ve zırh alıp petlerine giydir.</li>
+        <li>Her gün <b>10 🪙</b> gelir, savaş kazanınca <b>+5 🪙</b>. Fazla petlerini <b>satabilirsin</b> (Sv1 0,1 · Sv10 1 · Sv13 70 🪙). <b>Market</b>’ten süreli kılıç (kritik) ve zırh (can yenileme) alıp petlerine giydir.</li>
+        <li>İki Sv13 birleşince %25 ihtimalle <b>kahraman</b> (Sv14) doğar. Kahramanlar petleri yiyerek <b>Sv40</b>’a kadar büyür ve savaşta ele geçirilmez.</li>
       </ul>
     </section>
 
@@ -943,6 +949,10 @@ const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
     {e:'🦑', n:'Rögar Krakeni', legend:true},
     {e:'👹', n:'Sifonların Efendisi', legend:true}
   ];
+  /* Kahramanlar Sv14-40: iki Sv13 birleşince %25 ihtimalle doğar, pet yedirerek seviye atlar. */
+  [[14, 18, '🦸', 'Pisuvar Muhafızı'], [19, 23, '🧙', 'Sifon Büyücüsü'], [24, 28, '🦹', 'Gider Haydudu'],
+   [29, 33, '🧛', 'Rögar Kontu'], [34, 38, '🧞', 'Lavabo Cini'], [39, 40, '👑', 'Tuvaletlerin Tanrısı']]
+    .forEach(([a, b, e, n]) => { for (let L = a; L <= b; L++) PETS.push({e, n, hero:true}); });
   const TITLES = [[40, 'Efsane Avcı'], [30, 'Ejder Avcısı'], [20, 'Kılıç Ustası'], [10, 'Çaylak Avcı']];
   function mobFor(n){
     const t = (n - 1) % 10, m = PETS[t], boss = !!m.boss;
@@ -952,19 +962,22 @@ const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
   }
   /* Arena: seviye başına can/saldırı. Değerler supabase-arena.sql ile aynı. */
   /* Dengeleme (5 Kasım): her seviye +2 can, ~+0.75 saldırı. Eski üstel eğri Sv13'ü ~200 kat güçlü yapıyordu. */
-  const PET_HP = [34, 36, 38, 40, 42, 44, 46, 48, 50, 52, 54, 56, 58];
-  const PET_ATK = [14, 15, 16, 16, 17, 18, 18, 19, 20, 21, 22, 22, 23];
+  const PET_HP = [34, 36, 38, 40, 42, 44, 46, 48, 50, 52, 54, 56, 58, 59, 61, 62, 64, 65, 67, 68, 70, 71, 73, 74, 76, 77, 79, 80, 82, 83, 85, 86, 88, 89, 91, 92, 94, 95, 97, 98];
+  const PET_ATK = [14, 15, 16, 16, 17, 18, 18, 19, 20, 21, 22, 22, 23, 23, 24, 24, 25, 25, 26, 26, 27, 27, 28, 28, 29, 29, 30, 30, 31, 31, 32, 32, 33, 33, 34, 34, 35, 35, 36, 36];
+  /* Eşyalar süreli: kılıç kritik ihtimali, zırh her turda can yenileme verir. supabase-kahraman.sql ile aynı. */
   const ITEMS = {
-    k1:{e:'🔧', n:'Musluk Anahtarı', k:'k', pct:20, price:10},
-    k2:{e:'🧹', n:'Fırça Kılıcı', k:'k', pct:40, price:25},
-    k3:{e:'🗡️', n:'Altın Musluk Kılıcı', k:'k', pct:70, price:60},
-    z1:{e:'🧻', n:'Tuvalet Kağıdı Zırhı', k:'z', pct:20, price:10},
-    z2:{e:'⛑️', n:'Lavabo Kaskı', k:'z', pct:40, price:25},
-    z3:{e:'🛡️', n:'Porselen Zırh', k:'z', pct:70, price:60}
+    k1:{e:'🔧', n:'Musluk Anahtarı', k:'k', crit:8, price:10, days:1},
+    k2:{e:'🧹', n:'Fırça Kılıcı', k:'k', crit:15, price:25, days:2},
+    k3:{e:'🗡️', n:'Altın Musluk Kılıcı', k:'k', crit:25, price:60, days:3},
+    z1:{e:'🧻', n:'Tuvalet Kağıdı Zırhı', k:'z', regen:2, price:10, days:1},
+    z2:{e:'⛑️', n:'Lavabo Kaskı', k:'z', regen:3, price:25, days:2},
+    z3:{e:'🛡️', n:'Porselen Zırh', k:'z', regen:5, price:60, days:3}
   };
+  const BASE_CRIT = 18;
+  const itemFx = code => ITEMS[code].k === 'k' ? 'kritik +%' + ITEMS[code].crit : 'her tur +' + ITEMS[code].regen + ' can';
   const mobTier = no => (no - 1) % 10;
   /* Pet satış fiyatı (coin). supabase-pet-sat.sql ile aynı. */
-  const PET_PRICE = [0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.2, 0.3, 1, 4, 25];
+  const PET_PRICE = [0.1, 0.1, 0.2, 0.2, 0.4, 0.3, 0.3, 0.4, 0.5, 1.0, 3, 12, 70, 80, 85, 90, 95, 100, 105, 110, 115, 120, 125, 130, 135, 140, 145, 150, 155, 160, 165, 170, 175, 180, 185, 190, 195, 200, 205, 210];
   const fmtCoin = c => (Math.round((+c || 0) * 10) / 10).toLocaleString('tr-TR', {maximumFractionDigits:1});
   const kills = pid => (S.hunts[pid] || {}).count || 0;
   const titleOf = pid => { const k = kills(pid); for (const [n, t] of TITLES) if (k >= n) return t; return ''; };
@@ -2327,23 +2340,31 @@ const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
   /* ---------- arena ---------- */
   const isBoss = t => !!PETS[t].boss;
   const isLegend = t => !!PETS[t].legend;
-  const rankCls = t => isLegend(t) ? ' efs' : isBoss(t) ? ' boss' : '';
-  const mergeChance = t => t === 9 ? 60 : t === 10 ? 45 : t === 11 ? 30 : 90 - t;
+  const isHero = t => !!PETS[t].hero;
+  const rankCls = t => isHero(t) ? ' hero' : isLegend(t) ? ' efs' : isBoss(t) ? ' boss' : '';
+  const heroNeed = t => 40 * (t - 12);
+  const mergeChance = t => t === 9 ? 60 : t === 10 ? 45 : t === 11 ? 30 : t === 12 ? 25 : 90 - t;
   const lvTxt = t => 'Sv ' + (t + 1);
   const petName = t => PETS[t].n;
-  const boost = (base, code) => Math.round(base * (100 + (code ? ITEMS[code].pct : 0)) / 100);
+  const itemLive = i => !!i.expires_at && Date.parse(i.expires_at) > Date.now() + (S.skew || 0);
+  function leftTxt(i){
+    const ms = Date.parse(i.expires_at) - (Date.now() + (S.skew || 0));
+    if (ms <= 0) return 'süresi doldu';
+    const h = Math.floor(ms / 3600000), m = Math.floor(ms / 60000) % 60;
+    return h >= 24 ? Math.floor(h / 24) + ' gün ' + (h % 24) + ' sa' : h ? h + ' sa ' + m + ' dk' : m + ' dk';
+  }
   const arCdLeft = () => Math.max(0, (S.ar.cdUntil || 0) - (Date.now() + (S.skew || 0)));
   const petsOf = pid => S.ar.pets.filter(p => p.owner === pid);
   const deckOf = pid => petsOf(pid).filter(p => p.slot != null).sort((a, b) => a.slot - b.slot);
   function gearMap(){
     const g = {};
-    S.ar.items.forEach(i => { if (i.pet_id != null) (g[i.pet_id] ||= {})[i.code[0]] = i; });
+    S.ar.items.forEach(i => { if (i.pet_id != null && itemLive(i)) (g[i.pet_id] ||= {})[i.code[0]] = i; });
     return g;
   }
   function statOf(p, gm){
     const g = gm[p.id] || {};
     const k = g.k ? g.k.code : null, z = g.z ? g.z.code : null;
-    return {hp:boost(PET_HP[p.tier], z), atk:boost(PET_ATK[p.tier], k), k, z};
+    return {hp:PET_HP[p.tier], atk:PET_ATK[p.tier], crit:BASE_CRIT + (k ? ITEMS[k].crit : 0), regen:z ? ITEMS[z].regen : 0, k, z};
   }
   function btn(cls, text, fn, dis){
     const b = el('button', {type:'button', class:cls, text});
@@ -2386,8 +2407,8 @@ const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
     const seq = ++S.ar.seq;
     try {
       const [pets, items, battles, st] = await Promise.all([
-        fetchAll('pets', 'id,owner,tier,slot,src,at'),
-        fetchAll('items', 'id,owner,code,pet_id'),
+        fetchAll('pets', 'id,owner,tier,slot,src,at,xp'),
+        fetchAll('items', 'id,owner,code,pet_id,expires_at'),
         S.sb.from('battles').select('id,attacker,defender,attacker_won,captured,coins,seen,at,a_team,d_team')
           .order('id', {ascending:false}).limit(60).then(({data, error}) => { if (error) throw error; return data || []; }),
         rpc('arena_state', {p_token:S.token})
@@ -2641,24 +2662,27 @@ const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
     card.append(el('div', {class:'pet-top'}, [
       el('div', {class:'pet-big' + rankCls(p.tier), text:PETS[p.tier].e}),
       el('div', {style:'min-width:0;display:flex;flex-direction:column;gap:2px'}, [
-        el('p', {class:'eyebrow', text:(isLegend(p.tier) ? 'Efsane · ' : isBoss(p.tier) ? 'Boss · ' : '') + 'Seviye ' + (p.tier + 1) + ' / 13'}),
+        el('p', {class:'eyebrow', text:(isHero(p.tier) ? 'Kahraman · ' : isLegend(p.tier) ? 'Efsane · ' : isBoss(p.tier) ? 'Boss · ' : '') + 'Seviye ' + (p.tier + 1) + ' / 40'}),
         el('h2', {class:'h', text:petName(p.tier)}),
-        el('p', {class:'muted', style:'margin:0;font-size:13px', text:src + (p.slot != null ? ' · Orduda ' + p.slot + '. sırada' : '') + (isLegend(p.tier) ? ' · Avda çıkmaz, sadece birleştirmeyle' : '')})
+        el('p', {class:'muted', style:'margin:0;font-size:13px', text:src + (p.slot != null ? ' · Orduda ' + p.slot + '. sırada' : '') + (isLegend(p.tier) ? ' · Avda çıkmaz, sadece birleştirmeyle' : isHero(p.tier) ? ' · Pet yedirerek seviye atlar, savaşta ele geçirilmez' : '')})
       ])
     ]));
     card.append(el('div', {class:'pet-stats'}, [
-      el('div', null, [el('span', {class:'eyebrow', text:'Can'}), el('b', {text:'❤ ' + s.hp}), s.z ? el('small', {class:'muted', text:'+%' + ITEMS[s.z].pct + ' zırhtan'}) : null]),
-      el('div', null, [el('span', {class:'eyebrow', text:'Saldırı'}), el('b', {text:'⚔ ' + s.atk}), s.k ? el('small', {class:'muted', text:'+%' + ITEMS[s.k].pct + ' kılıçtan'}) : null])
+      el('div', null, [el('span', {class:'eyebrow', text:'Can'}), el('b', {text:'❤ ' + s.hp})]),
+      el('div', null, [el('span', {class:'eyebrow', text:'Saldırı'}), el('b', {text:'⚔ ' + s.atk})]),
+      el('div', null, [el('span', {class:'eyebrow', text:'Kritik'}), el('b', {text:'🎯 %' + s.crit}), s.k ? el('small', {class:'muted', text:'+%' + ITEMS[s.k].crit + ' kılıçtan'}) : null]),
+      el('div', null, [el('span', {class:'eyebrow', text:'Yenileme'}), el('b', {text:'♥ +' + s.regen + '/tur'}), s.z ? el('small', {class:'muted', text:'zırhtan'}) : null])
     ]));
+    if (isHero(p.tier)) card.append(heroBox(p, sh));
     ['k', 'z'].forEach(kind => {
       const cur = (gm[p.id] || {})[kind];
       const byCode = {};
-      S.ar.items.filter(i => i.owner === S.me && i.pet_id == null && i.code[0] === kind).forEach(i => { (byCode[i.code] ||= []).push(i); });
+      S.ar.items.filter(i => i.owner === S.me && i.pet_id == null && i.code[0] === kind && itemLive(i)).forEach(i => { (byCode[i.code] ||= []).push(i); });
       const chips = el('div', {class:'chips'});
-      if (cur) chips.append(btn('chip on', ITEMS[cur.code].e + ' ' + ITEMS[cur.code].n + ' · Çıkar', () => equip(cur.id, null), S.ar.busy));
+      if (cur) chips.append(btn('chip on', ITEMS[cur.code].e + ' ' + ITEMS[cur.code].n + ' · ' + leftTxt(cur) + ' · Çıkar', () => equip(cur.id, null), S.ar.busy));
       Object.keys(byCode).sort().forEach(code => {
-        const it = ITEMS[code], n = byCode[code].length;
-        chips.append(btn('chip', it.e + ' ' + it.n + ' +%' + it.pct + (n > 1 ? ' ×' + n : '') + ' · Giydir', () => equip(byCode[code][0].id, p.id), S.ar.busy));
+        const it = ITEMS[code], list = byCode[code].sort((a, b) => Date.parse(a.expires_at) - Date.parse(b.expires_at)), n = list.length;
+        chips.append(btn('chip', it.e + ' ' + it.n + ' (' + itemFx(code) + ', ' + leftTxt(list[0]) + ')' + (n > 1 ? ' ×' + n : '') + ' · Giydir', () => equip(list[0].id, p.id), S.ar.busy));
       });
       if (!chips.children.length) chips.append(el('span', {class:'muted', style:'font-size:13px', text:'Çantanda ' + (kind === 'k' ? 'kılıç' : 'zırh') + ' yok. Market’ten alabilirsin.'}));
       card.append(el('div', {class:'gear-row'}, [el('p', {class:'eyebrow', text:kind === 'k' ? 'Kılıç' : 'Zırh'}), chips]));
@@ -2671,14 +2695,15 @@ const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
     card.append(acts);
 
     const mates = S.ar.pets.filter(x => x.owner === S.me && x.tier === p.tier && x.id !== p.id);
-    if (p.tier >= 12) card.append(el('p', {class:'muted', style:'margin:0;font-size:13px', text:'En üst seviye pet. Daha fazla birleşmez.'}));
+    if (isHero(p.tier)) {}
+    else if (p.tier >= 39) card.append(el('p', {class:'muted', style:'margin:0;font-size:13px', text:'En üst seviye.'}));
     else if (!mates.length) card.append(el('p', {class:'muted', style:'margin:0;font-size:13px', text:'Birleştirmek için 1 tane daha ' + petName(p.tier) + ' lazım.'}));
     else {
       const armed = sh.armed === 'merge', up = p.tier + 1;
       const fromDeck = mates.every(x => x.slot != null);
       card.append(el('div', {class:'gear-row'}, [
         el('p', {class:'eyebrow', text:'Birleştir'}),
-        el('p', {style:'margin:0;font-size:14px', text:'2 × ' + PETS[p.tier].e + ' ' + petName(p.tier) + ' → %' + mergeChance(p.tier) + ' ihtimalle ' + PETS[up].e + ' ' + petName(up) + ' (' + lvTxt(up) + (isLegend(up) ? ', efsane' : '') + '). %' + (100 - mergeChance(p.tier)) + ' ihtimalle ikisi de gider.' + (fromDeck ? ' Eşi ordundan alınır.' : '')}),
+        el('p', {style:'margin:0;font-size:14px', text:'2 × ' + PETS[p.tier].e + ' ' + petName(p.tier) + ' → %' + mergeChance(p.tier) + ' ihtimalle ' + PETS[up].e + ' ' + petName(up) + ' (' + lvTxt(up) + (isHero(up) ? ', kahraman' : isLegend(up) ? ', efsane' : '') + '). %' + (100 - mergeChance(p.tier)) + ' ihtimalle ikisi de gider.' + (fromDeck ? ' Eşi ordundan alınır.' : '')}),
         btn('attack' + (armed ? ' armed' : ''), sh.busy ? 'Birleştiriliyor…' : armed ? 'Eminim, birleştir!' : 'Birleştir', () => mergePet(p.id), sh.busy || S.ar.busy)
       ]));
     }
@@ -2697,6 +2722,45 @@ const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
     card.append(sellBox);
     card.append(btn('ghost', 'Kapat', closePet));
     card.lastChild.style.alignSelf = 'center';
+  }
+  /* Kahraman: XP ve besleme */
+  function heroBox(p, sh){
+    const max = p.tier >= 39, need = heroNeed(p.tier), xp = p.xp || 0;
+    const gm = gearMap();
+    const food = maxLv => S.ar.pets.filter(x => x.owner === S.me && x.id !== p.id && x.tier < 13 && x.tier + 1 <= maxLv && x.slot == null && !(gm[x.id] && (gm[x.id].k || gm[x.id].z)));
+    const opts = el('div', {class:'sheet-actions'});
+    if (!max) [[4, 'Sv1–4'], [9, 'Sv1–9'], [13, 'Sv1–13']].forEach(([mx, label]) => {
+      const list = food(mx); if (!list.length) return;
+      const gain = list.reduce((a, x) => a + x.tier + 1, 0), key = 'feed' + mx, armed = sh.armed === key;
+      opts.append(btn('ghost' + (armed ? ' armed' : ''), armed ? 'Eminim, ' + list.length + ' peti yedir' : label + ' yedir · ' + list.length + ' pet · +' + gain + ' XP', () => feedHero(p.id, list.map(x => x.id), key), S.ar.busy));
+    });
+    return el('div', {class:'gear-row'}, [
+      el('p', {class:'eyebrow', text:'Kahraman XP'}),
+      max ? el('p', {style:'margin:0;font-size:14px', text:'En üst seviyede (Sv40). Tebrikler!'}) : el('div', {class:'bar', style:'height:10px'}, [el('i', {style:'width:' + Math.min(100, xp / need * 100) + '%;background:#7B4DFF'})]),
+      max ? null : el('p', {class:'mono muted', style:'margin:0;font-size:12px', text:xp + ' / ' + need + ' XP → ' + lvTxt(p.tier + 1) + ' · her pet seviyesi kadar XP verir'}),
+      max ? null : (opts.children.length ? opts : el('p', {class:'muted', style:'margin:0;font-size:13px', text:'Yedirecek pet yok. Ordu dışındaki eşyasız petler yedirilebilir.'}))
+    ]);
+  }
+  async function feedHero(heroId, ids, kind){
+    const sh = S.ar.sheet;
+    if (!sh || S.ar.busy || !ids.length) return;
+    if (sh.armed !== kind){
+      sh.armed = kind; renderSheet();
+      clearTimeout(sh.t); sh.t = setTimeout(() => { if (S.ar.sheet === sh && sh.armed === kind){ sh.armed = ''; renderSheet(); } }, 6000);
+      return;
+    }
+    sh.armed = ''; S.ar.busy = 'feed'; renderSheet();
+    try {
+      const r = await arenaCall('arena_feed', {p_hero:heroId, p_pets:ids});
+      const gone = new Set(ids);
+      S.ar.pets = S.ar.pets.filter(x => !gone.has(x.id));
+      const h = S.ar.pets.find(x => x.id === heroId); if (h){ h.tier = r.tier; h.xp = r.xp; }
+      toast(r.tier > r.from ? PETS[r.tier].e + ' Seviye atladı: ' + lvTxt(r.from) + ' → ' + lvTxt(r.tier) + '! (+' + r.gained + ' XP)' : '+' + r.gained + ' XP. ' + r.xp + ' / ' + r.need + ' XP');
+      if (navigator.vibrate && r.tier > r.from) try { navigator.vibrate([30, 40, 90]); } catch(e){}
+    } catch(e){}
+    S.ar.busy = false;
+    renderSheet(); renderArena();
+    await loadArena();
   }
   async function sellPets(ids, kind){
     const sh = S.ar.sheet;
@@ -2849,29 +2913,24 @@ const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
       shop.append(el('div', {class:'ware'}, [
         el('span', {class:'em', text:it.e}),
         el('b', {text:it.n}),
-        el('span', {class:'fx', text:'+%' + it.pct + (it.k === 'k' ? ' saldırı' : ' can')}),
+        el('span', {class:'fx', text:itemFx(code)}),
+        el('span', {class:'mono muted', style:'font-size:12px', text:it.days + ' gün geçerli'}),
         btn('buy', S.ar.busy === code ? 'Alınıyor…' : 'Satın al · ' + it.price + ' 🪙', () => buyItem(code), S.ar.admin || !!S.ar.busy || S.ar.coins < it.price)
       ]));
     });
     body.append(el('section', {class:'card'}, [
       el('div', {class:'row between'}, [el('h2', {class:'h', text:'Market'}), el('span', {class:'coin'}, [el('span', {'aria-hidden':'true', text:'🪙'}), el('b', {text:fmtCoin(S.ar.coins)})])]),
-      el('p', {class:'muted', style:'margin:6px 0 0;font-size:13px;max-width:62ch', text:'Her gün ilk girişinde 10 🪙 gelir, savaş kazanınca +5 🪙. Petlerini de satabilirsin: Ordu sekmesinde pete dokun. Kılıç petin saldırısını, zırh canını yüzde olarak artırır. Bir pet aynı anda 1 kılıç + 1 zırh giyer.'}),
-      el('p', {class:'mono muted', style:'margin:6px 0 0;font-size:12px', text:'Pet satış fiyatı: Sv1–8 0,1 · Sv9 0,2 · Sv10 0,3 · Sv11 1 · Sv12 4 · Sv13 25 🪙'}),
+      el('p', {class:'muted', style:'margin:6px 0 0;font-size:13px;max-width:62ch', text:'Her gün ilk girişinde 10 🪙 gelir, savaş kazanınca +5 🪙. Petlerini de satabilirsin: Ordu sekmesinde pete dokun. Kılıç kritik vuruş ihtimalini artırır (kritik ×1.75 hasar), zırh petin her turunda can yeniler. Eşyalar süreli: süre satın aldığın an başlar. Bir pet aynı anda 1 kılıç + 1 zırh giyer.'}),
+      el('p', {class:'mono muted', style:'margin:6px 0 0;font-size:12px', text:'Pet satış fiyatı: Sv1–2 0,1 · Sv3–4 0,2 · Sv5 0,4 · Sv6–7 0,3 · Sv8 0,4 · Sv9 0,5 · Sv10 1 · Sv11 3 · Sv12 12 · Sv13 70 · Kahraman 80+ 🪙'}),
       shop
     ]));
-    const mine = S.ar.items.filter(i => i.owner === S.me);
+    const mine = S.ar.items.filter(i => i.owner === S.me && itemLive(i));
     const ul = el('ul', {class:'bag'});
-    const free = {};
-    mine.filter(i => i.pet_id == null).forEach(i => { free[i.code] = (free[i.code] || 0) + 1; });
-    Object.keys(free).sort().forEach(code => ul.append(el('li', null, [
-      el('span', {text:ITEMS[code].e + ' ' + ITEMS[code].n + (free[code] > 1 ? ' ×' + free[code] : '')}),
-      el('span', {class:'muted', text:'· boşta'})
-    ])));
-    mine.filter(i => i.pet_id != null).forEach(i => {
-      const p = S.ar.pets.find(x => x.id === i.pet_id);
+    mine.slice().sort((a, b) => Date.parse(a.expires_at) - Date.parse(b.expires_at)).forEach(i => {
+      const p = i.pet_id != null ? S.ar.pets.find(x => x.id === i.pet_id) : null;
       ul.append(el('li', null, [
         el('span', {text:ITEMS[i.code].e + ' ' + ITEMS[i.code].n}),
-        el('span', {class:'muted', text:'→ ' + (p ? PETS[p.tier].e + ' ' + petName(p.tier) + ' (' + lvTxt(p.tier) + ')' : 'bir pette')})
+        el('span', {class:'muted', text:(p ? '→ ' + PETS[p.tier].e + ' ' + lvTxt(p.tier) : '· boşta') + ' · ' + leftTxt(i) + ' kaldı'})
       ]));
     });
     body.append(el('section', {class:'card'}, [
@@ -3005,7 +3064,7 @@ const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
     c.art.className = 'bt-art' + rankCls(p.t);
     c.art.textContent = PETS[p.t].e;
     c.pname.textContent = petName(p.t);
-    c.gear.textContent = lvTxt(p.t) + ' · ⚔ ' + p.atk + (p.k ? ' ' + ITEMS[p.k].e : '') + (p.z ? ' ' + ITEMS[p.z].e : '');
+    c.gear.textContent = lvTxt(p.t) + ' · ⚔ ' + p.atk + (p.crit && p.crit > BASE_CRIT ? ' · 🎯%' + p.crit : '') + (p.regen ? ' · ♥+' + p.regen : '') + (p.k ? ' ' + ITEMS[p.k].e : '') + (p.z ? ' ' + ITEMS[p.z].e : '');
     setHp(side, idx);
     c.chips.forEach((ch, j) => { ch.classList.toggle('cur', j === idx); ch.classList.toggle('dead', bt.hp[side][j] <= 0); });
   }
@@ -3023,11 +3082,11 @@ const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
       const art = el('div', {class:'bt-art'}), pname = el('div', {class:'bt-pname'}), bar = el('i'), hpTxt = el('span');
       const gear = el('div', {class:'bt-gear'}), bench = el('div', {class:'bt-bench'});
       const chips = teamOf(side).map(p => { const ch = el('i', {title:petName(p.t), text:PETS[p.t].e}); bench.append(ch); return ch; });
-      col.append(
+      col.append(...[
         el('div', {class:'bt-who'}, [dotOf(bt.owners[side]), el('span', {class:'n', text:btWho(side)}), el('span', {class:'bt-role', text:side === 0 ? 'Saldıran' : 'Savunan'})]),
         mottoEl(bt.owners[side], 'bt'),
         art, pname, el('div', {class:'bt-hp'}, [el('div', {class:'bar'}, [bar]), hpTxt]), gear, bench
-      );
+      ].filter(Boolean));
       bt.cols[side] = {art, pname, bar, hpTxt, gear, chips, left};
       showFighter(side, 0);
     });
@@ -3044,12 +3103,17 @@ const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
     if (!bt || bt.done) return;
     const log = bt.b.log;
     if (bt.i >= log.length){ finishBattle(); return; }
-    const [s, ai, ti, dmg, flag, hpAfter] = log[bt.i++];
+    const [s, ai, ti, dmg, flag, hpAfter, heal, selfHp] = log[bt.i++];
     const t = 1 - s;
     if (bt.cur[s] !== ai) showFighter(s, ai);
     if (bt.cur[t] !== ti) showFighter(t, ti);
     bt.hp[t][ti] = hpAfter;
     const A = bt.cols[s], T = bt.cols[t], ap = teamOf(s)[ai], tp = teamOf(t)[ti];
+    if (heal > 0){
+      bt.hp[s][ai] = selfHp; setHp(s, ai);
+      const hd = el('span', {class:'bt-dmg heal', text:'+' + heal}); A.art.append(hd);
+      setTimeout(() => hd.remove(), 1000 / bt.speed + 150);
+    }
     anim(A.art, A.left ? 'lungeR' : 'lungeL');
     btLater(() => {
       if (flag !== 2) anim(T.art, 'hit');
@@ -3075,7 +3139,7 @@ const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
     bt.done = true;
     clearTimeout(bt.timer); bt.timers.forEach(clearTimeout);
     const log = bt.b.log;
-    for (; bt.i < log.length; bt.i++){ const e = log[bt.i]; bt.hp[1 - e[0]][e[2]] = e[5]; }
+    for (; bt.i < log.length; bt.i++){ const e = log[bt.i]; if (e[7] != null) bt.hp[e[0]][e[1]] = e[7]; bt.hp[1 - e[0]][e[2]] = e[5]; }
     [0, 1].forEach(side => {
       const hp = bt.hp[side];
       let idx = hp.findIndex(v => v > 0);
@@ -3090,7 +3154,7 @@ const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
     logLine([el('b', {text:'Savaş ' + log.length + ' vuruşta bitti.'})]);
     let title, sub, cls = 'win';
     if (winner === me){ title = '🏆 Kazandın!'; sub = 'Rakibin ' + b.captured + ' peti artık senin. +' + (b.coins || 5) + ' 🪙'; }
-    else if (loser === me){ title = '💀 Kaybettin'; sub = 'Ordundaki ' + b.captured + ' pet gitti. Yeni sahibi: ' + nameOf(winner) + '.'; cls = 'lose'; }
+    else if (loser === me){ title = '💀 Kaybettin'; sub = 'Ordundaki ' + b.captured + ' pet gitti. Yeni sahibi: ' + nameOf(winner) + '.' + (((b.attacker_won ? b.d_team : b.a_team) || []).some(x => x.t >= 13) ? ' Kahramanların sende kaldı.' : ''); cls = 'lose'; }
     else { title = '🏆 ' + nameOf(winner) + ' kazandı'; sub = b.captured + ' pet el değiştirdi.'; }
     const r = $('#btResult');
     r.textContent = ''; r.className = 'bt-result ' + cls; r.hidden = false;
