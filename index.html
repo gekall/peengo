@@ -6,7 +6,7 @@
 <title>Peengo</title>
 <meta name="description" content="Arkadaşlarınla günün 1440 dakikasını doldur.">
 <meta name="theme-color" content="#13262B">
-<meta name="peengo-version" content="2026-11-05.7">
+<meta name="peengo-version" content="2026-11-05.8">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Peengo">
@@ -332,6 +332,10 @@ body.intro-open .chat-fab{z-index:45;animation:fabPulse 1.4s ease-in-out infinit
 .st{font-family:var(--f-mono);font-size:10.5px;line-height:1.35;white-space:nowrap;color:var(--muted)}
 .lv{font-family:var(--f-mono);font-size:11px;font-weight:700;color:var(--muted)}
 .lv.boss{color:var(--warn)}
+.slot.efs,.tile.efs,.bt-art.efs{border-color:#D4A017;box-shadow:0 0 0 1px #D4A017,0 0 12px rgba(212,160,23,.35)}
+.pet-big.efs{border-color:#D4A017;box-shadow:0 0 0 3px var(--surface),0 0 0 5px #D4A017,0 0 18px rgba(212,160,23,.45)}
+.lv.efs{color:#B8860B}
+.army i.efs{box-shadow:inset 0 0 0 1px #D4A017}
 .gear{position:absolute;top:3px;right:5px;font-size:12px;line-height:1;letter-spacing:-2px}
 .inv{display:grid;grid-template-columns:repeat(auto-fill,minmax(74px,1fr));gap:8px;margin-top:12px}
 .tile{position:relative;border:1px solid var(--grout);background:var(--tile);border-radius:14px;padding:14px 4px 8px;display:flex;flex-direction:column;align-items:center;gap:1px;min-width:0;color:var(--ink)}
@@ -730,7 +734,9 @@ img{max-width:100%}
         <li>Kestiğin her canavar envanterine <b>pet</b> olarak gelir. Daha önce kestiklerin de pet oldu.</li>
         <li><b>Ordu</b> sekmesinde en fazla 5 petlik ordunu kur. Ordun sen yokken de savaşır.</li>
         <li><b>Savaş</b> sekmesinden istediğine saldır. Petler sırayla vuruşur; <b>kaybeden ordunun bütün petleri kazanana geçer.</b></li>
-        <li>Aynı petten 2 tane varsa <b>birleştir</b>: %70 ihtimalle bir üst seviye pet çıkar, %30 ihtimalle ikisi de gider.</li>
+        <li>Av döngüsü 10 canavar: her turun <b>5. ve 10. avı boss</b>, sonra başa dönülür.</li>
+        <li>Aynı petten 2 tane varsa <b>birleştir</b>: bir üst seviye pet çıkar. Şans Sv 1’de <b>%90</b>, her seviyede %1 azalır; tutmazsa ikisi de gider.</li>
+        <li><b>Sv 11–13 efsaneler</b> (🐉 Kanalizasyon Ejderi, 🦑 Rögar Krakeni, 👹 Sifonların Efendisi) avda çıkmaz, sadece birleştirmeyle elde edilir.</li>
         <li>Her gün <b>10 🪙</b> gelir, savaş kazanınca <b>+5 🪙</b>. <b>Market</b>’ten kılıç ve zırh alıp petlerine giydir.</li>
       </ul>
     </section>
@@ -888,34 +894,31 @@ const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
             busy:false, seq:0, armed:null, armT:null, newIds:new Set(), histAll:false, sheet:null, seenBusy:false, cdWas:false};
   }
 
-  const MOBS = [
+  /* Pet/canavar seviyeleri (Sv = sıra + 1). Av döngüsü ilk 10'dur: turun 5. ve 10. avı boss.
+     Sv 11-13 efsanedir, avda çıkmaz, sadece birleştirmeyle elde edilir. supabase-arena-v2.sql ile aynı. */
+  const PETS = [
     {e:'🐀', n:'Kanalizasyon Faresi'},
     {e:'🕷️', n:'Tuvalet Örümceği'},
     {e:'🦠', n:'Lavabo Mikrobu'},
     {e:'🐍', n:'Gider Yılanı'},
+    {e:'🐸', n:'Rögar Kurbağası', boss:true},
     {e:'🦇', n:'Sifon Yarasası'},
     {e:'🦀', n:'Klozet Yengeci'},
     {e:'🪳', n:'Fayans Hamamböceği'},
     {e:'👻', n:'Tıkanık Hortlak'},
-    {e:'🐸', n:'Rögar Kurbağası'}
-  ];
-  const BOSSES = [
-    {e:'🗿', n:'Kireç Golemi'},
-    {e:'🐉', n:'Kanalizasyon Ejderi'},
-    {e:'🦑', n:'Rögar Krakeni'},
-    {e:'👹', n:'Sifonların Efendisi'}
+    {e:'🗿', n:'Kireç Golemi', boss:true},
+    {e:'🐉', n:'Kanalizasyon Ejderi', legend:true},
+    {e:'🦑', n:'Rögar Krakeni', legend:true},
+    {e:'👹', n:'Sifonların Efendisi', legend:true}
   ];
   const TITLES = [[40, 'Efsane Avcı'], [30, 'Ejder Avcısı'], [20, 'Kılıç Ustası'], [10, 'Çaylak Avcı']];
   function mobFor(n){
-    const boss = n % 10 === 0;
+    const t = (n - 1) % 10, m = PETS[t], boss = !!m.boss;
     const round = Math.floor((n - 1) / 40);
     const pre = round > 0 ? (round === 1 ? 'Öfkeli ' : 'Kadim ') : '';
-    if (boss){ const b = BOSSES[(n / 10 - 1) % 4]; return {e:b.e, n:pre + b.n, boss:true, cost:2}; }
-    const m = MOBS[(n - 1) % 10 % 9];
-    return {e:m.e, n:pre + m.n, boss:false, cost:1};
+    return {e:m.e, n:pre + m.n, boss, cost:boss ? 2 : 1, tier:t};
   }
-  /* Arena: pet seviyeleri = canavarlar (Sv 1-9) + bosslar (Sv 10-13). Değerler supabase-arena.sql ile aynı. */
-  const PETS = MOBS.concat(BOSSES);
+  /* Arena: seviye başına can/saldırı. Değerler supabase-arena.sql ile aynı. */
   const PET_HP = [30, 38, 47, 59, 73, 92, 114, 143, 179, 224, 279, 349, 437];
   const PET_ATK = [8, 10, 12, 15, 18, 23, 28, 36, 45, 56, 70, 87, 109];
   const ITEMS = {
@@ -926,7 +929,7 @@ const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
     z2:{e:'⛑️', n:'Lavabo Kaskı', k:'z', pct:40, price:25},
     z3:{e:'🛡️', n:'Porselen Zırh', k:'z', pct:70, price:60}
   };
-  const mobTier = (no, boss) => boss ? 9 + ((no / 10 - 1) % 4) : (no - 1) % 10;
+  const mobTier = no => (no - 1) % 10;
   const kills = pid => (S.hunts[pid] || {}).count || 0;
   const titleOf = pid => { const k = kills(pid); for (const [n, t] of TITLES) if (k >= n) return t; return ''; };
 
@@ -2056,7 +2059,7 @@ const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
     $('#mob').classList.toggle('boss', mob.boss);
     const art = $('#mobArt'); art.textContent = mob.e;
     if (mob.boss) art.append(el('span', {class:'mob-tag', text:'BOSS'}));
-    $('#mobKind').textContent = (mob.boss ? 'Boss' : 'Canavar') + ' #' + n;
+    $('#mobKind').textContent = (mob.boss ? 'Boss' : 'Canavar') + ' #' + n + ' · kesince Sv ' + (mob.tier + 1) + ' pet';
     $('#mobName').textContent = mob.n;
     $('#mobBar').style.maxWidth = (mob.boss ? 220 : 110) + 'px';
     $('#mobCost').textContent = mob.cost + ' dakika';
@@ -2124,7 +2127,7 @@ const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
       setTimeout(() => m.classList.remove('dead'), 650);
       if (navigator.vibrate) try { navigator.vibrate([20, 40, 60]); } catch(e){}
       const msg = $('#huntMsg');
-      const pet = PETS[mobTier(r.mob_no, r.boss)];
+      const pet = PETS[mobTier(r.mob_no)];
       msg.textContent = mob.n + ' kesildi! Giden dakikalar: ' + removed.map(fmt).join(', ') + '. Pet olarak envanterine eklendi.';
       msg.dataset.keep = '1';
       const t = TITLES.find(([need]) => need === r.mob_no);
@@ -2174,7 +2177,10 @@ const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
   }
 
   /* ---------- arena ---------- */
-  const isBoss = t => t >= 9;
+  const isBoss = t => !!PETS[t].boss;
+  const isLegend = t => !!PETS[t].legend;
+  const rankCls = t => isLegend(t) ? ' efs' : isBoss(t) ? ' boss' : '';
+  const mergeChance = t => 90 - t;
   const lvTxt = t => 'Sv ' + (t + 1);
   const petName = t => PETS[t].n;
   const boost = (base, code) => Math.round(base * (100 + (code ? ITEMS[code].pct : 0)) / 100);
@@ -2334,10 +2340,10 @@ const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
       const p = deck[i];
       if (!p){ slots.append(el('div', {class:'slot empty'}, [el('span', {class:'no', text:String(i + 1)}), document.createTextNode('Boş')])); continue; }
       const s = statOf(p, gm); thp += s.hp; tatk += s.atk;
-      slots.append(el('button', {type:'button', class:'slot' + (isBoss(p.tier) ? ' boss' : ''), title:petName(p.tier), onclick:() => openPet(p.id)}, [
+      slots.append(el('button', {type:'button', class:'slot' + rankCls(p.tier), title:petName(p.tier), onclick:() => openPet(p.id)}, [
         el('span', {class:'no', text:String(i + 1)}), gearIcons(s),
         el('span', {class:'em', text:PETS[p.tier].e}),
-        el('span', {class:'lv' + (isBoss(p.tier) ? ' boss' : ''), text:lvTxt(p.tier)}),
+        el('span', {class:'lv' + rankCls(p.tier), text:lvTxt(p.tier)}),
         el('span', {class:'st', text:'❤ ' + s.hp}),
         el('span', {class:'st', text:'⚔ ' + s.atk})
       ]));
@@ -2357,11 +2363,11 @@ const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
     const inv = el('div', {class:'inv'});
     mine.slice().sort((a, b) => b.tier - a.tier || (a.slot == null) - (b.slot == null) || a.id - b.id).forEach(p => {
       const s = statOf(p, gm);
-      inv.append(el('button', {type:'button', class:'tile' + (isBoss(p.tier) ? ' boss' : '') + (p.slot != null ? ' on' : ''), title:petName(p.tier) + (p.slot != null ? ' (orduda)' : ''), onclick:() => openPet(p.id)}, [
+      inv.append(el('button', {type:'button', class:'tile' + rankCls(p.tier) + (p.slot != null ? ' on' : ''), title:petName(p.tier) + (p.slot != null ? ' (orduda)' : ''), onclick:() => openPet(p.id)}, [
         p.slot != null ? el('span', {class:'flag', text:'#' + p.slot}) : null,
         gearIcons(s),
         el('span', {class:'em', text:PETS[p.tier].e}),
-        el('span', {class:'lv' + (isBoss(p.tier) ? ' boss' : ''), text:lvTxt(p.tier)}),
+        el('span', {class:'lv' + rankCls(p.tier), text:lvTxt(p.tier)}),
         el('span', {class:'nm2', text:petName(p.tier)})
       ]));
     });
@@ -2387,7 +2393,7 @@ const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
         el('h2', {class:'h', text:r.ok ? 'Birleşti! ' + petName(up) + ' geldi' : 'Olmadı… iki ' + petName(r.tier) + ' de gitti'}),
         el('p', {class:'muted', text:r.ok
           ? lvTxt(up) + ' · ❤ ' + PET_HP[up] + ' · ⚔ ' + PET_ATK[up] + (r.items_back ? '. Üstlerindeki eşyalar çantana döndü.' : '')
-          : '%30 ihtimal tuttu.' + (r.items_back ? ' Üstlerindeki eşyalar çantana döndü.' : ' Bir dahaki sefere.')})
+          : '%' + (100 - (r.chance || mergeChance(r.tier))) + ' ihtimal tuttu.' + (r.items_back ? ' Üstlerindeki eşyalar çantana döndü.' : ' Bir dahaki sefere.')})
       ]));
       card.append(el('div', {class:'sheet-actions', style:'justify-content:center'}, [
         r.ok && r.pet ? btn('primary', 'Yeni pete bak', () => openPet(r.pet)) : null,
@@ -2400,14 +2406,14 @@ const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
       card.append(el('p', {style:'margin:0', text:'Bu pet artık sende değil.'}), btn('ghost', 'Kapat', closePet));
       return;
     }
-    const gm = gearMap(), s = statOf(p, gm), boss = isBoss(p.tier);
+    const gm = gearMap(), s = statOf(p, gm);
     const src = {av:'Avdan geldi', birlesim:'Birleşimden doğdu', savas:'Savaşta ele geçirildi'}[p.src] || '';
     card.append(el('div', {class:'pet-top'}, [
-      el('div', {class:'pet-big' + (boss ? ' boss' : ''), text:PETS[p.tier].e}),
+      el('div', {class:'pet-big' + rankCls(p.tier), text:PETS[p.tier].e}),
       el('div', {style:'min-width:0;display:flex;flex-direction:column;gap:2px'}, [
-        el('p', {class:'eyebrow', text:(boss ? 'Boss · ' : '') + 'Seviye ' + (p.tier + 1) + ' / 13'}),
+        el('p', {class:'eyebrow', text:(isLegend(p.tier) ? 'Efsane · ' : isBoss(p.tier) ? 'Boss · ' : '') + 'Seviye ' + (p.tier + 1) + ' / 13'}),
         el('h2', {class:'h', text:petName(p.tier)}),
-        el('p', {class:'muted', style:'margin:0;font-size:13px', text:src + (p.slot != null ? ' · Orduda ' + p.slot + '. sırada' : '')})
+        el('p', {class:'muted', style:'margin:0;font-size:13px', text:src + (p.slot != null ? ' · Orduda ' + p.slot + '. sırada' : '') + (isLegend(p.tier) ? ' · Avda çıkmaz, sadece birleştirmeyle' : '')})
       ])
     ]));
     card.append(el('div', {class:'pet-stats'}, [
@@ -2442,7 +2448,7 @@ const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
       const fromDeck = mates.every(x => x.slot != null);
       card.append(el('div', {class:'gear-row'}, [
         el('p', {class:'eyebrow', text:'Birleştir'}),
-        el('p', {style:'margin:0;font-size:14px', text:'2 × ' + PETS[p.tier].e + ' ' + petName(p.tier) + ' → %70 ihtimalle ' + PETS[up].e + ' ' + petName(up) + ' (' + lvTxt(up) + '). %30 ihtimalle ikisi de gider.' + (fromDeck ? ' Eşi ordundan alınır.' : '')}),
+        el('p', {style:'margin:0;font-size:14px', text:'2 × ' + PETS[p.tier].e + ' ' + petName(p.tier) + ' → %' + mergeChance(p.tier) + ' ihtimalle ' + PETS[up].e + ' ' + petName(up) + ' (' + lvTxt(up) + (isLegend(up) ? ', efsane' : '') + '). %' + (100 - mergeChance(p.tier)) + ' ihtimalle ikisi de gider.' + (fromDeck ? ' Eşi ordundan alınır.' : '')}),
         btn('attack' + (armed ? ' armed' : ''), sh.busy ? 'Birleştiriliyor…' : armed ? 'Eminim, birleştir!' : 'Birleştir', () => mergePet(p.id), sh.busy || S.ar.busy)
       ]));
     }
@@ -2500,7 +2506,7 @@ const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
   function armyRow(deck, gm){
     return el('div', {class:'army'}, deck.map(p => {
       const s = statOf(p, gm);
-      return el('i', {class:isBoss(p.tier) ? 'boss' : '', title:petName(p.tier) + ' · ❤ ' + s.hp + ' · ⚔ ' + s.atk}, [
+      return el('i', {class:rankCls(p.tier).trim(), title:petName(p.tier) + ' · ❤ ' + s.hp + ' · ⚔ ' + s.atk}, [
         document.createTextNode(PETS[p.tier].e), el('small', {text:lvTxt(p.tier)}),
         (s.k || s.z) ? el('span', {class:'g', text:(s.k ? ITEMS[s.k].e : '') + (s.z ? ITEMS[s.z].e : '')}) : null
       ]);
@@ -2703,7 +2709,7 @@ const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
     const bt = S.bt, c = bt.cols[side], p = teamOf(side)[idx];
     if (!p) return;
     bt.cur[side] = idx;
-    c.art.className = 'bt-art' + (isBoss(p.t) ? ' boss' : '');
+    c.art.className = 'bt-art' + rankCls(p.t);
     c.art.textContent = PETS[p.t].e;
     c.pname.textContent = petName(p.t);
     c.gear.textContent = lvTxt(p.t) + ' · ⚔ ' + p.atk + (p.k ? ' ' + ITEMS[p.k].e : '') + (p.z ? ' ' + ITEMS[p.z].e : '');
