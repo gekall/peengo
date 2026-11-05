@@ -6,7 +6,7 @@
 <title>Peengo</title>
 <meta name="description" content="Arkadaşlarınla günün 1440 dakikasını doldur.">
 <meta name="theme-color" content="#13262B">
-<meta name="peengo-version" content="2026-11-05.3">
+<meta name="peengo-version" content="2026-11-05.4">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Peengo">
@@ -681,7 +681,7 @@ const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
     loaded:false, mode:'all', selHour:null, selMin:null,
     authTab:'login', newColor:null, lastMark:null, busy:false, hashDone:false,
     lastT:-1, toastTimer:null,
-    hunts:{}, huntArmed:false, huntBusy:false, huntTimer:null,
+    hunts:{}, huntArmed:false, huntBusy:false, huntTimer:null, daily:{}, dailyOk:false,
     msgs:[], chatOpen:false, chatSeen:+(store.get('peengo.chatSeen') || 0), chatBusy:false
   };
 
@@ -816,6 +816,18 @@ const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
     if (error) return;
     S.msgs = (data || []).reverse();
   }
+  async function loadDaily(){
+    const {data, error} = await S.sb.from('pee_counts').select('player_id,last24');
+    if (error){ S.dailyOk = false; return; }
+    const d = {};
+    (data || []).forEach(r => { d[r.player_id] = r.last24; });
+    S.daily = d; S.dailyOk = true;
+  }
+  const daily = pid => S.daily[pid] || 0;
+  const dailyTag = (pid, me) => {
+    if (!S.dailyOk) return pid === me ? ' (sen)' : '';
+    return pid === me ? ' (sen, günlük ' + daily(pid) + ')' : ' (günlük ' + daily(pid) + ')';
+  };
   async function loadHunts(){
     const h = {};
     for (let from = 0; ; from += 1000){
@@ -847,6 +859,7 @@ const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
       .on('postgres_changes', {event:'*', schema:'public', table:'marks'}, p => {
         if (p.eventType === 'INSERT' && p.new){
           (S.marks[p.new.player_id] ||= {})[p.new.minute] = Date.parse(p.new.at);
+          if (p.new.player_id !== S.me && S.dailyOk) S.daily[p.new.player_id] = daily(p.new.player_id) + 1;
           if (!S.profiles[p.new.player_id]) loadPlayers().then(route).catch(() => {});
         } else if (p.eventType === 'DELETE' && p.old && S.marks[p.old.player_id]){
           delete S.marks[p.old.player_id][p.old.minute];
@@ -856,7 +869,7 @@ const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
       .subscribe();
   }
   async function refreshAll(){
-    try { await Promise.all([loadPlayers(), loadMarks(), loadHunts(), loadMessages()]); route(); renderChat(false); } catch(e){}
+    try { await Promise.all([loadPlayers(), loadMarks(), loadHunts(), loadMessages(), loadDaily()]); route(); renderChat(false); } catch(e){}
   }
 
   function derive(){
@@ -1292,7 +1305,7 @@ const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
       const bDel = canDelete ? el('button', {type:'button', class:'ghost adm-del', text: open === 'del' ? 'Vazgeç' : 'Hesabı sil'}) : null;
       if (bDel) bDel.onclick = () => { S.admOpen[pid] = open === 'del' ? null : 'del'; $('#admErr').textContent = ''; renderAdmPlayers(); };
       const li = el('li', {class:'adm-row'}, [el('div', {class:'adm-head'}, [
-        el('span', {class:'nm'}, [el('span', {class:'dot', style:'background:' + colorOf(pid)}), el('span', {text: p.name + (p.admin ? ' 🛡️' : '')})]),
+        el('span', {class:'nm'}, [el('span', {class:'dot', style:'background:' + colorOf(pid)}), el('span', {text: p.name + (p.admin ? ' 🛡️' : dailyTag(pid))})]),
         el('span', {class:'mono muted', style:'font-size:12px', text: mins.length + ' dk'}),
         bRen, bMin, bDel
       ])]);
@@ -1437,16 +1450,17 @@ const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
     if (!S.me || S.busy) return;
     if (coolLeft() > 0){ toast('Dinlenme süresindesin. ' + mmss(coolLeft()) + ' sonra tekrar basabilirsin.'); return; }
     const tLocal = nowT();
-    if (mine()[tLocal]){ toast(fmt(tLocal) + ' zaten senin. Bir sonraki dakikayı bekle.'); return; }
     S.busy = true; $('#flush').classList.add('busy');
     try {
       const r = await rpc('pee', {p_token:S.token});
       const t = r.minute, at = Date.parse(r.at);
       (S.marks[S.me] ||= {})[t] = at;
-      if (!r.new){ toast(fmt(t) + ' zaten senin. Bir sonraki dakikayı bekle.'); render(); return; }
       if (r.now) S.skew = Date.parse(r.now) - Date.now();
-      S.coolUntil = r.cooldown_until ? Date.parse(r.cooldown_until) : at + COOLDOWN;
-      S.lastMark = {t, at:Date.now()};
+      if (!r.new && !r.counted){ toast(fmt(t) + ' zaten senin. Bir sonraki dakikayı bekle.'); render(); return; }
+      S.coolUntil = r.cooldown_until ? Date.parse(r.cooldown_until) : Date.now() + (S.skew || 0) + COOLDOWN;
+      S.daily[S.me] = daily(S.me) + 1;
+      S.lastMark = {t, at:Date.now(), isNew:!!r.new};
+      if (!r.new){ toast(fmt(t) + ' zaten seninydi. İşeme sayıldı ✓', true); render(); return; }
       const f = $('#flush'); f.classList.remove('pop'); void f.offsetWidth; f.classList.add('pop');
       if (navigator.vibrate) try { navigator.vibrate(30); } catch(e){}
       const h = Math.floor(t / 60);
@@ -1470,7 +1484,7 @@ const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
     S.lastMark = null; $('#undoBtn').hidden = true;
     try {
       const ok = await rpc('undo', {p_token:S.token, p_minute:lm.t});
-      if (ok){ delete mine()[lm.t]; S.coolUntil = 0; toast(fmt(lm.t) + ' geri alındı.'); }
+      if (ok){ if (lm.isNew !== false) delete mine()[lm.t]; S.coolUntil = 0; S.daily[S.me] = Math.max(0, daily(S.me) - 1); toast(fmt(lm.t) + ' geri alındı.'); }
       else toast('Geri alma süresi doldu.');
       render();
     } catch(e){ toast(errText(e)); }
@@ -1597,7 +1611,7 @@ const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
     $('#modeMe').setAttribute('aria-pressed', S.mode === 'me');
     const lg = $('#legend'); lg.textContent = '';
     const pids = Object.keys(S.profiles).filter(p => !S.profiles[p].admin).sort((a, b) => S.profiles[a].createdAt - S.profiles[b].createdAt);
-    pids.forEach(pid => lg.append(el('span', null, [el('span', {class:'dot', style:'background:' + colorOf(pid)}), document.createTextNode(nameOf(pid))])));
+    pids.forEach(pid => lg.append(el('span', null, [el('span', {class:'dot', style:'background:' + colorOf(pid)}), document.createTextNode(nameOf(pid) + dailyTag(pid))])));
     if (pids.length > 1){
       lg.append(el('span', null, [el('span', {class:'dot multi', style:'background:' + MULTI}), document.createTextNode('2+ kişi aynı dakikada')]));
     }
@@ -1631,7 +1645,7 @@ const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
       const c = D.counts[pid] || 0;
       lb.append(el('li', null, [
         el('span', {class:'rk', text:'#' + (i + 1)}),
-        el('span', {class:'nm'}, [el('span', {class:'dot', style:'background:' + colorOf(pid)}), el('span', {text:nameOf(pid) + (pid === me ? ' (sen)' : '')})]),
+        el('span', {class:'nm'}, [el('span', {class:'dot', style:'background:' + colorOf(pid)}), el('span', {text:nameOf(pid) + dailyTag(pid, me)})]),
         el('span', {class:'ct', text:c + ' · %' + (c / 14.4).toFixed(1).replace('.', ',')}),
         el('div', {class:'bar'}, [el('i', {style:'width:' + (c / 14.4) + '%;background:' + colorOf(pid)})])
       ]));
@@ -1793,7 +1807,7 @@ const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
       const t = titleOf(pid);
       lb.append(el('li', null, [
         el('span', {class:'rk', text:i === 0 ? '👑' : '#' + (i + 1)}),
-        el('span', {class:'nm'}, [el('span', {class:'dot', style:'background:' + colorOf(pid)}), el('span', {text:nameOf(pid) + (pid === me ? ' (sen)' : '')}), t ? el('span', {class:'title-chip', text:t}) : null]),
+        el('span', {class:'nm'}, [el('span', {class:'dot', style:'background:' + colorOf(pid)}), el('span', {text:nameOf(pid) + dailyTag(pid, me)}), t ? el('span', {class:'title-chip', text:t}) : null]),
         el('span', {class:'ct', text:kills(pid) + ' av'})
       ]));
     });
@@ -1802,7 +1816,7 @@ const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
   function setLeader(whoId, countId, pid, me, text, empty){
     const w = $(whoId); w.textContent = '';
     w.classList.toggle('none', !pid);
-    if (pid) w.append(el('span', {class:'dot', style:'background:' + colorOf(pid)}), el('span', {text:nameOf(pid) + (pid === me ? ' (sen)' : '')}));
+    if (pid) w.append(el('span', {class:'dot', style:'background:' + colorOf(pid)}), el('span', {text:nameOf(pid) + dailyTag(pid, me)}));
     else w.append(el('span', {text:empty}));
     $(countId).textContent = pid ? text : '';
   }
@@ -1868,7 +1882,7 @@ const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
     const now = new Date();
     $('#clock').textContent = pad(now.getHours()) + ':' + pad(now.getMinutes());
     $('#flushLbl').textContent = done ? 'Sende ✓' : 'İşedim';
-    $('#status').textContent = done ? fmt(t) + ' senin. Bir sonraki dakikada tekrar basabilirsin.' : 'Bastığın an ' + fmt(t) + ' senin renginle boyanır.';
+    $('#status').textContent = done ? fmt(t) + ' zaten senin. Basarsan işeme sayılır ama yeni dakika kazanmazsın.' : 'Bastığın an ' + fmt(t) + ' senin renginle boyanır.';
   }
 
   function tick(){
@@ -1920,7 +1934,7 @@ const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
   $('#pushAskNo').onclick = () => closePushAsk(3);
   document.addEventListener('keydown', ev => { if (ev.key === 'Escape') closeIntro(); });
   document.addEventListener('keydown', ev => { if (ev.key === 'Escape' && S.chatOpen) openChat(false); });
-  setInterval(() => { if (S.loaded && document.visibilityState === 'visible') loadPlayers().then(() => render()).catch(() => {}); }, 60000);
+  setInterval(() => { if (S.loaded && document.visibilityState === 'visible') Promise.all([loadPlayers(), loadDaily()]).then(() => render()).catch(() => {}); }, 60000);
 
   buildGrid(); buildZoom(); tick(); setInterval(tick, 1000);
 
@@ -1949,7 +1963,7 @@ const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
     const slow = setTimeout(() => { if (!S.loaded) $('#bootMsg').textContent = 'Sunucuya ulaşılamadı. İnternet bağlantını kontrol et; açık kalırsa kendisi yüklenir.'; }, 10000);
     for (let i = 0; i < 3 && !S.loaded; i++){
       try {
-        const jobs = [loadPlayers(), loadMarks(), loadHunts(), loadMessages()];
+        const jobs = [loadPlayers(), loadMarks(), loadHunts(), loadMessages(), loadDaily()];
         if (S.token) jobs.push(rpc('me', {p_token:S.token}).then(r => {
           if (r && r.id){ S.me = r.id; applyMe(r); } else { S.token = null; store.set('peengo.token', null); }
         }));
