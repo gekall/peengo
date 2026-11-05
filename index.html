@@ -6,7 +6,7 @@
 <title>Peengo</title>
 <meta name="description" content="Arkadaşlarınla günün 1440 dakikasını doldur.">
 <meta name="theme-color" content="#13262B">
-<meta name="peengo-version" content="2026-11-05.8">
+<meta name="peengo-version" content="2026-11-05.9">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Peengo">
@@ -284,6 +284,7 @@ body.intro-open .chat-fab{z-index:45;animation:fabPulse 1.4s ease-in-out infinit
 .msg p{margin:2px 0 0;white-space:pre-wrap;overflow-wrap:anywhere}
 .msg-del{border:0;background:transparent;color:var(--muted);font-size:11px;font-weight:700;padding:0 0 0 4px;margin-left:auto;font-family:var(--f-body)}
 .msg-del:hover,.msg-del[data-armed="1"]{color:var(--warn)}
+.msg-watch{border:0;background:var(--ink);color:var(--bg);border-radius:999px;padding:6px 12px;font-weight:700;font-size:13px;margin-top:6px}
 .day-sep{align-self:center;font-size:11px;font-weight:700;color:var(--muted);letter-spacing:.1em;text-transform:uppercase;margin:6px 0}
 .chat-empty{margin:auto;text-align:center;color:var(--muted);max-width:30ch}
 .chat-form{display:flex;gap:8px;padding:12px 16px;border-top:1px solid var(--grout)}
@@ -1031,7 +1032,7 @@ const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
     S.marks = m;
   }
   async function loadMessages(){
-    const {data, error} = await S.sb.from('messages').select('id,player_id,body,at,image_path').order('id', {ascending:false}).limit(150);
+    const {data, error} = await S.sb.from('messages').select('id,player_id,body,at,image_path,battle_id').order('id', {ascending:false}).limit(150);
     if (error) return;
     S.msgs = (data || []).reverse();
   }
@@ -1216,6 +1217,7 @@ const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
         parts.push(img);
       }
       if (m.body) parts.push(el('p', {text:m.body}));
+      if (m.battle_id) parts.push(btn('msg-watch', '▶ Maçı izle', () => watchBattle(m.battle_id)));
       list.append(el('div', {class:'msg' + (mine ? ' mine' : ''), style:'--c:' + colorOf(m.player_id)}, parts));
     });
     if (forceBottom || nearBottom) list.scrollTop = list.scrollHeight;
@@ -2644,7 +2646,10 @@ const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
           el('span', {class:'res ' + (mineB ? (iWon ? 'win' : 'lose') : ''), text:res}),
           el('span', {class:'when', text:whenTxt(b.at) + ' · ' + (b.a_team || []).length + ' vs ' + (b.d_team || []).length + ' pet'})
         ]),
-        btn('ghost', 'İzle', () => watchBattle(b.id))
+        el('div', {style:'display:flex;flex-direction:column;gap:6px;align-items:stretch'}, [
+          btn('ghost', 'İzle', () => watchBattle(b.id)),
+          shareBtn(b.id, 'ghost')
+        ])
       ]));
     });
     body.append(el('section', {class:'card'}, [
@@ -2657,6 +2662,24 @@ const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
       ]),
       list.length ? ul : el('p', {class:'muted', style:'margin:10px 0 0', text:S.ar.histAll ? 'Henüz hiç savaş olmadı.' : 'Henüz savaşa girmedin. Savaş sekmesinden birine saldır.'})
     ]));
+  }
+  function shareBtn(id, cls){
+    const done = S.ar.shared && S.ar.shared.has(id);
+    return btn(cls, done ? 'Sohbete atıldı ✓' : '💬 Sohbete at', ev => shareBattle(id, ev.currentTarget), done);
+  }
+  async function shareBattle(id, b){
+    if (!S.token) return;
+    if (b){ b.disabled = true; b.textContent = 'Atılıyor…'; }
+    try {
+      const r = await rpc('share_battle', {p_token:S.token, p_battle:id});
+      (S.ar.shared ||= new Set()).add(id);
+      addMessage(r);
+      if (b) b.textContent = 'Sohbete atıldı ✓';
+      toast('Maç sohbete atıldı, millet izleyebilir.', false, {label:'Sohbet', fn:() => { closeBattle(); openChat(true); }});
+    } catch(e){
+      if (b){ b.disabled = false; b.textContent = '💬 Sohbete at'; }
+      toast(errText(e));
+    }
   }
   async function watchBattle(id){
     const cached = S.ar.battles.find(b => b.id === id && b.log);
@@ -2801,7 +2824,7 @@ const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
     const r = $('#btResult');
     r.textContent = ''; r.className = 'bt-result ' + cls; r.hidden = false;
     r.append(el('b', {class:'bt-title', text:title}), el('span', {text:sub}),
-      el('div', {class:'sheet-actions', style:'justify-content:center;margin-top:4px'}, [btn('ghost', 'Tekrar izle', () => playBattle(b)), btn('primary', 'Tamam', closeBattle)]));
+      el('div', {class:'sheet-actions', style:'justify-content:center;margin-top:4px'}, [btn('ghost', 'Tekrar izle', () => playBattle(b)), b.id ? shareBtn(b.id, 'ghost') : null, btn('primary', 'Tamam', closeBattle)]));
     $('#btSkip').hidden = true;
     if (navigator.vibrate && (winner === me || loser === me)) try { navigator.vibrate(winner === me ? [40, 60, 120] : [220]); } catch(e){}
   }
