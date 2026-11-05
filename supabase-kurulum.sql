@@ -788,3 +788,22 @@ revoke execute on function public.heartbeat(uuid), public.admin_pid(uuid), publi
 grant execute on function public.heartbeat(uuid), public.admin_rename(uuid, uuid, text),
   public.admin_delete_mark(uuid, uuid, int), public.admin_delete_message(uuid, bigint), public.admin_visits(uuid)
   to anon, authenticated;
+
+
+create or replace function public.admin_delete_player(p_token uuid, p_player uuid)
+returns json language plpgsql security definer set search_path = public as $$
+declare v_admin uuid; v_name text; v_is_admin boolean; v_marks int; v_msgs int;
+begin
+  v_admin := admin_pid(p_token);
+  if p_player = v_admin then raise exception 'Kendi admin hesabını buradan silemezsin.'; end if;
+  select name, is_admin into v_name, v_is_admin from players where id = p_player;
+  if v_name is null then raise exception 'Oyuncu bulunamadı.'; end if;
+  if v_is_admin then raise exception 'Başka bir yönetici hesabı silinemez.'; end if;
+  select count(*) into v_marks from marks where player_id = p_player;
+  select count(*) into v_msgs from messages where player_id = p_player;
+  delete from players where id = p_player;
+  return json_build_object('id', p_player, 'name', v_name, 'marks', v_marks, 'messages', v_msgs);
+end $$;
+
+revoke execute on function public.admin_delete_player(uuid, uuid) from public;
+grant execute on function public.admin_delete_player(uuid, uuid) to anon, authenticated;

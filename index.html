@@ -6,7 +6,7 @@
 <title>Peengo</title>
 <meta name="description" content="Arkadaşlarınla günün 1440 dakikasını doldur.">
 <meta name="theme-color" content="#13262B">
-<meta name="peengo-version" content="2026-11-05.2">
+<meta name="peengo-version" content="2026-11-05.3">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Peengo">
@@ -215,6 +215,11 @@ button{cursor:pointer}
 .adm-table th{text-align:left;font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);padding:6px 8px;border-bottom:1px solid var(--grout);font-weight:700}
 .adm-table td{padding:7px 8px;border-bottom:1px solid var(--grout);white-space:nowrap}
 .adm-live{color:var(--accent);font-weight:700}
+.adm-del{color:var(--warn)}
+.adm-confirm{display:flex;flex-direction:column;gap:10px;border:1px solid var(--warn);border-radius:10px;padding:10px 12px}
+.adm-confirm p{margin:0;font-size:13px;max-width:60ch}
+.adm-danger{border:0;background:var(--warn);color:var(--surface);border-radius:10px;padding:10px 14px;font-weight:700;align-self:flex-start}
+.adm-danger:disabled{opacity:.5}
 /* hunt */
 .leaders{display:grid;grid-template-columns:1fr 1fr;gap:12px}
 .crown{display:flex;align-items:center;gap:12px;background:var(--surface);border:1px solid var(--grout);border-radius:16px;padding:12px 14px;min-width:0}
@@ -1283,11 +1288,33 @@ const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
       const bMin = el('button', {type:'button', class:'ghost', text: open === 'mins' ? 'Gizle' : 'Dakikalar'});
       bRen.onclick = () => { S.admOpen[pid] = open === 'name' ? null : 'name'; S.admFocus = S.admOpen[pid] ? pid : null; $('#admErr').textContent = ''; renderAdmPlayers(); };
       bMin.onclick = () => { S.admOpen[pid] = open === 'mins' ? null : 'mins'; $('#admErr').textContent = ''; renderAdmPlayers(); };
+      const canDelete = !p.admin && pid !== S.me;
+      const bDel = canDelete ? el('button', {type:'button', class:'ghost adm-del', text: open === 'del' ? 'Vazgeç' : 'Hesabı sil'}) : null;
+      if (bDel) bDel.onclick = () => { S.admOpen[pid] = open === 'del' ? null : 'del'; $('#admErr').textContent = ''; renderAdmPlayers(); };
       const li = el('li', {class:'adm-row'}, [el('div', {class:'adm-head'}, [
         el('span', {class:'nm'}, [el('span', {class:'dot', style:'background:' + colorOf(pid)}), el('span', {text: p.name + (p.admin ? ' 🛡️' : '')})]),
         el('span', {class:'mono muted', style:'font-size:12px', text: mins.length + ' dk'}),
-        bRen, bMin
+        bRen, bMin, bDel
       ])]);
+      if (open === 'del' && canDelete){
+        const msgCount = S.msgs.filter(x => x.player_id === pid).length;
+        const kills0 = kills(pid);
+        const yes = el('button', {type:'button', class:'adm-danger', text: p.name + ' hesabını kalıcı olarak sil'});
+        yes.onclick = async () => {
+          yes.disabled = true; $('#admErr').textContent = '';
+          try {
+            const r = await rpc('admin_delete_player', {p_token:S.token, p_player:pid});
+            delete S.profiles[pid]; delete S.marks[pid]; delete S.hunts[pid]; delete S.admOpen[pid];
+            S.msgs = S.msgs.filter(x => x.player_id !== pid);
+            toast(r.name + ' silindi (' + r.marks + ' dakika, ' + r.messages + ' mesaj).');
+            render(); renderChat(false); cleanupPhotos(true);
+          } catch(e){ $('#admErr').textContent = errText(e); yes.disabled = false; }
+        };
+        li.append(el('div', {class:'adm-confirm'}, [
+          el('p', {text: 'Bu geri alınamaz. ' + p.name + ' için ' + mins.length + ' dakika, ' + kills0 + ' av ve ' + msgCount + ' sohbet mesajı da silinir. Rengi ve kullanıcı adı boşa çıkar.'}),
+          yes
+        ]));
+      }
       if (open === 'name'){
         const inp = el('input', {maxlength:'20', value:p.name, autocomplete:'off', 'aria-label': p.name + ' için yeni isim'});
         const save = el('button', {type:'button', class:'primary', style:'padding:8px 14px;font-size:14px', text:'Kaydet'});
