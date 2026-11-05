@@ -6,7 +6,7 @@
 <title>Peengo</title>
 <meta name="description" content="Arkadaşlarınla günün 1440 dakikasını doldur.">
 <meta name="theme-color" content="#13262B">
-<meta name="peengo-version" content="2026-11-05.16">
+<meta name="peengo-version" content="2026-11-05.17">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Peengo">
@@ -2114,7 +2114,7 @@ const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
     $('#mobName').textContent = mob.n;
     const need = tapNeed(n);
     $('#mobCost').textContent = mob.cost + ' dk ya da ' + need + ' vuruş';
-    $('#mobNote').textContent = 'Kesmek için ya duvarından rastgele ' + mob.cost + ' dakika ver (Saldır) ya da 👊 butonuna ' + need + ' kere vur. Kestiğin canavar Arena’da petin olur.';
+    $('#mobNote').textContent = 'Kesmek için ya duvarından rastgele ' + mob.cost + ' dakika ver (Saldır) ya da 👊 butonuna ' + need + ' kere vur. Uygulama açıkken saniyede 2 kez kendiliğinden vurulur. Kestiğin canavar Arena’da petin olur.';
     renderTap();
     const btn = $('#huntBtn');
     const enough = my >= mob.cost;
@@ -2164,21 +2164,22 @@ const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
     render();
   }
   /* Canavar kesildi (dakikayla ya da yumrukla) */
-  function onKilled(r, mob){
+  function onKilled(r, mob, quiet){
     const removed = r.removed || [];
     removed.forEach(t => { delete mine()[t]; });
     const x = (S.hunts[S.me] ||= {count:0, last:0});
     x.count = Math.max(x.count, r.mob_no); x.last = Date.now();
     const m = $('#mob'); m.classList.remove('dead', 'tap'); void m.offsetWidth; m.classList.add('dead');
     setTimeout(() => m.classList.remove('dead'), 650);
-    if (navigator.vibrate) try { navigator.vibrate([20, 40, 60]); } catch(e){}
+    if (!quiet && navigator.vibrate) try { navigator.vibrate([20, 40, 60]); } catch(e){}
     const msg = $('#huntMsg');
     const pet = PETS[mobTier(r.mob_no)];
-    msg.textContent = mob.n + ' kesildi! ' + (removed.length ? 'Giden dakikalar: ' + removed.map(fmt).join(', ') + '.' : 'Yumrukla kestin, dakikan gitmedi.') + ' Pet olarak envanterine eklendi.';
+    msg.textContent = mob.n + ' kesildi! ' + (removed.length ? 'Giden dakikalar: ' + removed.map(fmt).join(', ') + '.' : quiet ? 'Otomatik vuruşlarla düştü, dakikan gitmedi.' : 'Yumrukla kestin, dakikan gitmedi.') + ' Pet olarak envanterine eklendi.';
     msg.dataset.keep = '1';
     const t = TITLES.find(([need]) => need === r.mob_no);
     S.ar.loaded = false;
-    toast((t ? 'Yeni unvan: ' + t[1] + '! ' : '') + pet.e + ' ' + pet.n + ' artık senin petin.', false, {label:'Arena', fn:() => setPage('arena')});
+    if (S.page === 'arena') loadArena();
+    if (!quiet || t || r.boss) toast((t ? 'Yeni unvan: ' + t[1] + '! ' : '') + pet.e + ' ' + pet.n + ' artık senin petin.', false, {label:'Arena', fn:() => setPage('arena')});
   }
 
   /* Yumrukla av: canavar 40, boss 80 vuruş. Süreyi sunucu da tutar (hile koruması). */
@@ -2193,23 +2194,31 @@ const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
     tb.textContent = tp && tp.wait ? '⏳ Düşüyor…' : '👊 Vur · ' + done + '/' + need;
     $('#mobBar').style.maxWidth = Math.round((mob.boss ? 220 : 110) * (1 - done / need)) + 'px';
   }
-  function tapHit(){
+  function tapHit(auto){
     if (!S.me || S.huntBusy) return;
+    auto = auto === true;
     const n = kills(S.me) + 1;
-    if (!S.tap || S.tap.mob !== n) S.tap = {mob:n, n:0, need:tapNeed(n), started:false, done:false, wait:false};
+    if (!S.tap || S.tap.mob !== n) S.tap = {mob:n, n:0, need:tapNeed(n), started:false, done:false, wait:false, manual:false};
     const t = S.tap;
     if (t.done) return;
     t.n++;
+    if (!auto) t.manual = true;
     if (!t.started){
       t.started = true;
       rpc('hunt_tap_start', {p_token:S.token}).catch(e => {
         if (S.tap === t){ S.tap = null; $('#huntMsg').textContent = errText(e); $('#huntMsg').dataset.keep = '1'; renderTap(); }
       });
     }
-    const m = $('#mob'); m.classList.remove('tap'); void m.offsetWidth; m.classList.add('tap');
-    if (S.huntArmed) armHunt(false);
+    if (!$('#pageMain').hidden){ const m = $('#mob'); m.classList.remove('tap'); void m.offsetWidth; m.classList.add('tap'); }
+    if (S.huntArmed && !auto) armHunt(false);
     if (t.n >= t.need){ t.done = true; finishTap(t); }
     renderTap();
+  }
+  /* Uygulama açık ve ekrandayken saniyede 2 otomatik vuruş */
+  function autoTap(){
+    if (!S.loaded || !S.me || !S.token || S.huntBusy || document.visibilityState !== 'visible') return;
+    if ($('#game').hidden || (S.profiles[S.me] || {}).admin) return;
+    tapHit(true);
   }
   async function finishTap(t){
     if (S.tap !== t) return;
@@ -2220,7 +2229,7 @@ const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
     try {
       const r = await rpc('hunt_tap', {p_token:S.token});
       S.tap = null;
-      onKilled(r, mob);
+      onKilled(r, mob, !t.manual);
     } catch(e){
       const msg = errText(e), m = /Çok hızlı.*?(\d+) sn/.exec(msg);
       $('#huntMsg').textContent = msg; $('#huntMsg').dataset.keep = '1';
@@ -3040,7 +3049,8 @@ const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
   $('#flush').onclick = pee;
   $('#undoBtn').onclick = undo;
   $('#huntBtn').onclick = attack;
-  $('#tapBtn').onclick = tapHit;
+  $('#tapBtn').onclick = () => tapHit(false);
+  setInterval(autoTap, 500);
   $('#huntCancel').onclick = () => armHunt(false);
   $('#modeAll').onclick = () => { S.mode = 'all'; render(); };
   $('#modeMe').onclick = () => { S.mode = 'me'; render(); };
@@ -3119,7 +3129,7 @@ const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
     try {
       const html = await fetch(location.pathname + '?vc=' + Date.now(), {cache:'no-store'}).then(r => r.ok ? r.text() : '');
       const m = html.match(/name="peengo-version" content="([^"]+)"/);
-      if (m && MY_VERSION && m[1] !== MY_VERSION && !S.busy && !S.huntBusy && !S.bt && !S.ar.busy && !(S.tap && S.tap.n > 0)){
+      if (m && MY_VERSION && m[1] !== MY_VERSION && !S.busy && !S.huntBusy && !S.bt && !S.ar.busy && !(S.tap && S.tap.manual)){
         location.replace(location.pathname + '?v=' + encodeURIComponent(m[1]) + location.hash);
       }
     } catch(e){}
