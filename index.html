@@ -6,7 +6,7 @@
 <title>Peengo</title>
 <meta name="description" content="Arkadaşlarınla günün 1440 dakikasını doldur.">
 <meta name="theme-color" content="#13262B">
-<meta name="peengo-version" content="2026-11-05.13">
+<meta name="peengo-version" content="2026-11-05.14">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Peengo">
@@ -2148,8 +2148,8 @@ const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
     toast((t ? 'Yeni unvan: ' + t[1] + '! ' : '') + pet.e + ' ' + pet.n + ' artık senin petin.', false, {label:'Arena', fn:() => setPage('arena')});
   }
 
-  /* Yumrukla av: canavar 100, boss 200 vuruş. Süreyi sunucu da tutar (hile koruması). */
-  const tapNeed = n => n % 5 === 0 ? 200 : 100;
+  /* Yumrukla av: canavar 40, boss 80 vuruş. Süreyi sunucu da tutar (hile koruması). */
+  const tapNeed = n => n % 5 === 0 ? 80 : 40;
   function renderTap(){
     if (!S.me) return;
     const n = kills(S.me) + 1, need = tapNeed(n), mob = mobFor(n);

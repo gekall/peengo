@@ -1535,10 +1535,10 @@ select 'arena inaktif ayari hazir' as durum,
 
 
 -- ===================== YUMRUKLA AV (supabase-av-yumruk.sql) =====================
--- Peengo: canavarı dakika vermeden, butona vurarak kes (canavar 100 vuruş, boss 200 vuruş)
+-- Peengo: canavarı dakika vermeden, butona vurarak kes (canavar 40 vuruş, boss 80 vuruş)
 -- Supabase > SQL Editor > New query: yapıştır ve Run'a bas. Tekrar çalıştırmak güvenlidir.
--- Hile koruması: ilk vuruşta sunucu saati başlatır; canavar en az 8 sn, boss en az 16 sn sonra düşer
--- (100 vuruşu bundan hızlı atmak insan eliyle zaten zor).
+-- Hile koruması: ilk vuruşta sunucu saati başlatır; canavar en az 3 sn, boss en az 6 sn sonra düşer
+-- (40 vuruşu bundan hızlı atmak insan eliyle zaten zor).
 
 alter table public.players add column if not exists tap_started_at timestamptz;
 alter table public.players add column if not exists tap_mob int;
@@ -1553,7 +1553,7 @@ begin
   if v_pid is null then raise exception 'Oturumun kapanmış. Tekrar giriş yap.'; end if;
   select count(*) + 1 into v_no from hunts where player_id = v_pid;
   update players set tap_started_at = now(), tap_mob = v_no where id = v_pid;
-  return json_build_object('mob_no', v_no, 'need', case when v_no % 5 = 0 then 200 else 100 end, 'at', now());
+  return json_build_object('mob_no', v_no, 'need', case when v_no % 5 = 0 then 80 else 40 end, 'at', now());
 end $$;
 
 -- Son vuruş: canavar dakika almadan kesilir, pet olarak envantere gelir
@@ -1568,7 +1568,7 @@ begin
 
   select count(*) + 1 into v_no from hunts where player_id = v_pid;
   v_boss := v_no % 5 = 0;
-  v_min := case when v_boss then 16 else 8 end;
+  v_min := case when v_boss then 6 else 3 end;
   select tap_started_at, tap_mob into v_started, v_mob from players where id = v_pid for update;
   if v_started is null or v_mob is distinct from v_no then
     raise exception 'Vuruşların sayılmadı, bu canavara baştan vur.';
