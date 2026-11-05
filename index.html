@@ -6,7 +6,7 @@
 <title>Peengo</title>
 <meta name="description" content="Arkadaşlarınla günün 1440 dakikasını doldur.">
 <meta name="theme-color" content="#13262B">
-<meta name="peengo-version" content="2026-11-05.10">
+<meta name="peengo-version" content="2026-11-05.11">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Peengo">
@@ -322,6 +322,9 @@ body.intro-open .chat-fab{z-index:45;animation:fabPulse 1.4s ease-in-out infinit
 .ar-tabs button .ic{font-size:19px;line-height:1.2}
 .ar-tabs button[aria-pressed="true"]{background:var(--surface);color:var(--ink);box-shadow:0 1px 3px var(--shadow)}
 .ar-tabs .pg-badge{position:absolute;top:2px;right:4px;min-width:18px;height:18px;font-size:11px}
+.ar-status{display:flex;flex-direction:column;border-left:4px solid var(--accent)}
+.ar-status.off{border-left-color:var(--grout)}
+.ar-status .st-line{font-family:var(--f-display);font-weight:400;font-size:20px}
 .ar-note{display:flex;gap:10px;align-items:center;justify-content:space-between;flex-wrap:wrap;background:var(--accent-soft);border-radius:14px;padding:10px 12px;font-weight:600;margin:0}
 .ar-help ul{margin:10px 0 0;padding-left:20px;display:flex;flex-direction:column;gap:7px;max-width:66ch}
 .deck{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:8px;margin-top:12px}
@@ -734,6 +737,7 @@ img{max-width:100%}
       <ul>
         <li>Kestiğin her canavar envanterine <b>pet</b> olarak gelir. Daha önce kestiklerin de pet oldu.</li>
         <li><b>Ordu</b> sekmesinde en fazla 5 petlik ordunu kur. Ordun sen yokken de savaşır.</li>
+        <li>Savaşmak istemiyorsan ordunu <b>inaktif</b> yap: kimse sana saldıramaz, sen de saldıramazsın. Saldırdıktan sonraki 1 saat içinde inaktife geçilemez.</li>
         <li><b>Savaş</b> sekmesinden istediğine saldır. Petler sırayla vuruşur; <b>kaybeden ordunun bütün petleri kazanana geçer.</b></li>
         <li>Av döngüsü 10 canavar: her turun <b>5. ve 10. avı boss</b>, sonra başa dönülür.</li>
         <li>Aynı petten 2 tane varsa <b>birleştir</b>: bir üst seviye pet çıkar. Şans Sv 1’de <b>%90</b>, her seviyede %1 azalır; tutmazsa ikisi de gider.</li>
@@ -1014,10 +1018,10 @@ const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
 
   /* ---------- data ---------- */
   async function loadPlayers(){
-    const {data, error} = await S.sb.from('players_public').select('id,name,color,created_at,is_admin');
+    const {data, error} = await S.sb.from('players_public').select('id,name,color,created_at,is_admin,arena_off');
     if (error) throw error;
     const p = {};
-    (data || []).forEach(r => { p[r.id] = {name:r.name, color:r.color, createdAt:Date.parse(r.created_at), admin:!!r.is_admin}; });
+    (data || []).forEach(r => { p[r.id] = {name:r.name, color:r.color, createdAt:Date.parse(r.created_at), admin:!!r.is_admin, off:!!r.arena_off}; });
     S.profiles = p;
   }
   async function loadMarks(){
@@ -2225,6 +2229,9 @@ const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
     S.ar.admin = !!st.admin;
     S.ar.unseen = st.unseen || 0;
     S.ar.cdUntil = st.cooldown_until ? Date.parse(st.cooldown_until) : 0;
+    S.ar.off = !!st.off;
+    S.ar.leaveUntil = st.leave_until ? Date.parse(st.leave_until) : 0;
+    if (S.profiles[S.me]) S.profiles[S.me].off = S.ar.off;
     if (st.gift > 0) toast('Günlük ' + st.gift + ' 🪙 geldi! Arena’daki markette harcayabilirsin.', false, {label:'Market', fn:() => { setPage('arena'); setArTab('market'); }});
     renderNav();
   }
@@ -2336,6 +2343,7 @@ const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
       return;
     }
     const mine = petsOf(me), deck = deckOf(me);
+    body.append(statusCard());
     const slots = el('div', {class:'deck'});
     let thp = 0, tatk = 0;
     for (let i = 0; i < 5; i++){
@@ -2380,6 +2388,40 @@ const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
         : 'Henüz petin yok. İşeme sayfasında canavar kes, kestiğin canavar buraya pet olarak gelir.'}),
       mine.length ? inv : null
     ]));
+  }
+
+  /* Savaş durumu: aktif / inaktif */
+  function statusCard(){
+    const off = S.ar.off;
+    const leaveLeft = Math.max(0, (S.ar.leaveUntil || 0) - (Date.now() + (S.skew || 0)));
+    const lockedIn = !off && leaveLeft > 0;
+    const d = new Date(Date.now() + leaveLeft);
+    return el('section', {class:'card ar-status' + (off ? ' off' : '')}, [
+      el('div', {class:'row between'}, [
+        el('div', {style:'min-width:0;display:flex;flex-direction:column;gap:2px'}, [
+          el('p', {class:'eyebrow', text:'Savaş durumu'}),
+          el('b', {class:'st-line', text:off ? '⚪ İnaktif' : '🟢 Aktif'}),
+        ]),
+        btn(off ? 'primary' : 'ghost', S.ar.busy === 'toggle' ? 'Kaydediliyor…' : off ? 'Aktif et' : 'İnaktif yap', () => toggleArena(!off), S.ar.busy || lockedIn)
+      ]),
+      el('p', {class:'muted', style:'margin:8px 0 0;font-size:13px;max-width:62ch', text:off
+        ? 'Ordun savaşa kapalı: kimse sana saldıramaz, sen de kimseye saldıramazsın. Petlerini toplamaya, birleştirmeye ve eşya almaya devam edebilirsin.'
+        : lockedIn
+          ? 'Yakın zamanda saldırdığın için ' + pad(d.getHours()) + ':' + pad(d.getMinutes()) + '’e kadar savaştan çekilemezsin.'
+          : 'Ordun savaşa açık: herkes sana saldırabilir, sen de istediğine saldırabilirsin. İstemezsen inaktif yap.'})
+    ]);
+  }
+  async function toggleArena(off){
+    if (S.ar.busy) return;
+    S.ar.busy = 'toggle'; renderArena();
+    try {
+      const r = await arenaCall('arena_toggle', {p_off:off});
+      S.ar.off = !!r.off;
+      if (S.profiles[S.me]) S.profiles[S.me].off = S.ar.off;
+      toast(S.ar.off ? 'Ordun inaktif. Kimse sana saldıramaz.' : 'Ordun aktif. Savaşa hazırsın!');
+    } catch(e){}
+    S.ar.busy = false;
+    await loadArena();
   }
 
   /* Pet kartı */
@@ -2502,6 +2544,7 @@ const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
   /* Savaş */
   function cdText(){
     if (S.ar.admin) return 'Sadece izleyici';
+    if (S.ar.off) return 'Ordun inaktif';
     const l = arCdLeft();
     return l ? 'Sonraki saldırı ' + mmss(l) : 'Saldırmaya hazırsın';
   }
@@ -2522,6 +2565,10 @@ const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
     body.append(el('section', {class:'card'}, [
       el('div', {class:'row between'}, [el('h2', {class:'h', text:'Savaş aç'}), el('span', {class:'bcount', id:'arCd', text:cdText()})]),
       el('p', {class:'muted', style:'margin:6px 0 0;font-size:13px;max-width:62ch', text:'Rakibin çevrimdışı olsa da ordusu savaşır. Önce iki ordunun 1. petleri çarpışır, sırayla vururlar; ölenin yerine sıradaki çıkar. Kazanan, kaybeden ordunun bütün petlerini alır ve +5 🪙 kazanır. 10 dakikada bir saldırabilirsin.'}),
+      S.ar.admin || !S.ar.off ? null : el('p', {class:'ar-note', style:'margin-top:12px'}, [
+        el('span', {text:'Ordun inaktif, şu an saldıramazsın.'}),
+        btn('ghost', 'Aktif et', () => toggleArena(false), S.ar.busy)
+      ]),
       S.ar.admin ? null : el('div', {style:'margin-top:12px'}, [
         el('p', {class:'eyebrow', text:'Senin ordun'}),
         myDeck.length ? armyRow(myDeck, gm) : el('p', {class:'ro', style:'margin-top:6px', text:'Ordun boş. Önce Ordu sekmesinden en az 1 pet seç.'})
@@ -2530,18 +2577,18 @@ const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
     const foes = Object.keys(S.profiles).filter(pid => pid !== me && !S.profiles[pid].admin).map(pid => {
       const d = deckOf(pid); let hp = 0, atk = 0;
       d.forEach(p => { const s = statOf(p, gm); hp += s.hp; atk += s.atk; });
-      return {pid, d, hp, atk};
-    }).sort((a, b) => (b.d.length > 0) - (a.d.length > 0) || (b.hp + b.atk * 4) - (a.hp + a.atk * 4) || nameOf(a.pid).localeCompare(nameOf(b.pid), 'tr'));
+      return {pid, d, hp, atk, off:!!S.profiles[pid].off};
+    }).sort((a, b) => (!b.off && b.d.length > 0) - (!a.off && a.d.length > 0) || (b.hp + b.atk * 4) - (a.hp + a.atk * 4) || nameOf(a.pid).localeCompare(nameOf(b.pid), 'tr'));
     const ul = el('ul', {class:'foes'});
     foes.forEach(f => {
       const armed = S.ar.armed === f.pid;
-      const can = !S.ar.admin && myDeck.length > 0 && f.d.length > 0 && !cooling && !S.ar.busy;
+      const can = !S.ar.admin && !S.ar.off && !f.off && myDeck.length > 0 && f.d.length > 0 && !cooling && !S.ar.busy;
       ul.append(el('li', {class:'foe'}, [
         el('div', {style:'min-width:0;display:flex;flex-direction:column;gap:2px'}, [
           el('span', {class:'nm'}, [dotOf(f.pid), el('span', {text:nameOf(f.pid)})]),
-          el('span', {class:'mono muted', style:'font-size:12px', text:f.d.length ? f.d.length + ' pet · ❤ ' + f.hp + ' · ⚔ ' + f.atk : 'Ordusu yok, saldırılamaz'})
+          el('span', {class:'mono muted', style:'font-size:12px', text:f.off ? '⚪ Ordusu inaktif, saldırılamaz' : f.d.length ? f.d.length + ' pet · ❤ ' + f.hp + ' · ⚔ ' + f.atk : 'Ordusu yok, saldırılamaz'})
         ]),
-        S.ar.admin ? el('span') : btn('attack' + (armed ? ' armed' : ''), S.ar.busy === f.pid ? 'Savaşılıyor…' : armed ? 'Eminim, saldır!' : 'Saldır', () => attackFoe(f.pid), !can),
+        S.ar.admin ? el('span') : btn('attack' + (armed ? ' armed' : ''), S.ar.busy === f.pid ? 'Savaşılıyor…' : armed ? 'Eminim, saldır!' : f.off ? 'İnaktif' : 'Saldır', () => attackFoe(f.pid), !can),
         armed ? el('p', {class:'warnline', text:'Kaybedersen ordundaki ' + myDeck.length + ' pet ona geçer. Kazanırsan onun ' + f.d.length + ' peti senin olur.'}) : null,
         f.d.length ? armyRow(f.d, gm) : null
       ]));
