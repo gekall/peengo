@@ -6,7 +6,7 @@
 <title>Peengo</title>
 <meta name="description" content="Arkadaşlarınla günün 1440 dakikasını doldur.">
 <meta name="theme-color" content="#13262B">
-<meta name="peengo-version" content="2026-11-05.5">
+<meta name="peengo-version" content="2026-11-05.6">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Peengo">
@@ -304,6 +304,127 @@ body.intro-open .chat-fab{z-index:45;animation:fabPulse 1.4s ease-in-out infinit
 .chat-err{color:var(--warn);font-size:13px;font-weight:600;margin:0;padding:0 16px 8px;min-height:0}
 .toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(88px + env(safe-area-inset-bottom,0px));background:var(--ink);color:var(--bg);border-radius:14px;padding:10px 10px 10px 16px;display:flex;align-items:center;gap:12px;box-shadow:0 10px 24px var(--shadow);max-width:calc(100% - 32px);z-index:20;font-weight:600}
 .toast button{border:0;background:var(--bg);color:var(--ink);border-radius:10px;padding:7px 12px;font-weight:700}
+.toast{z-index:48}
+
+/* sayfa geçişi: İşeme / Arena */
+.pages{display:grid;grid-template-columns:1fr 1fr;gap:6px;background:var(--surface);border:1px solid var(--grout);border-radius:18px;padding:5px;position:sticky;top:calc(6px + env(safe-area-inset-top,0px));z-index:15;box-shadow:0 6px 18px var(--shadow)}
+.pages button{border:0;background:transparent;border-radius:14px;padding:10px;font-family:var(--f-display);font-size:19px;letter-spacing:.3px;color:var(--muted);display:flex;align-items:center;justify-content:center;gap:8px;position:relative}
+.pages button:hover{color:var(--ink)}
+.pages button[aria-pressed="true"]{background:var(--ink);color:var(--bg)}
+.pg-badge{min-width:20px;height:20px;padding:0 6px;border-radius:999px;background:var(--warn);color:#FFFFFF;font-family:var(--f-body);font-size:12px;font-weight:700;display:inline-grid;place-items:center;letter-spacing:0}
+
+/* arena */
+.ar-head{display:flex;flex-direction:column;gap:12px}
+.coin{display:inline-flex;align-items:center;gap:6px;background:#F5C400;color:#13262B;border-radius:999px;padding:5px 12px 5px 10px;font-family:var(--f-mono);font-weight:700;font-size:16px;box-shadow:inset 0 -3px 0 rgba(0,0,0,.15);white-space:nowrap}
+.ar-tabs{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:4px;background:var(--tile);border-radius:14px;padding:4px}
+.ar-tabs button{border:0;background:transparent;border-radius:10px;padding:7px 2px;font-weight:700;font-size:12.5px;color:var(--muted);display:flex;flex-direction:column;align-items:center;gap:1px;position:relative;min-width:0}
+.ar-tabs button .ic{font-size:19px;line-height:1.2}
+.ar-tabs button[aria-pressed="true"]{background:var(--surface);color:var(--ink);box-shadow:0 1px 3px var(--shadow)}
+.ar-tabs .pg-badge{position:absolute;top:2px;right:4px;min-width:18px;height:18px;font-size:11px}
+.ar-note{display:flex;gap:10px;align-items:center;justify-content:space-between;flex-wrap:wrap;background:var(--accent-soft);border-radius:14px;padding:10px 12px;font-weight:600;margin:0}
+.ar-help ul{margin:10px 0 0;padding-left:20px;display:flex;flex-direction:column;gap:7px;max-width:66ch}
+.deck{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:8px;margin-top:12px}
+.slot{position:relative;border:2px solid var(--ink);background:var(--surface);border-radius:14px;min-height:108px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;padding:16px 2px 8px;min-width:0;color:var(--ink)}
+.slot.boss{border-color:var(--warn)}
+.slot.empty{border:2px dashed var(--grout);background:transparent;color:var(--muted);font-weight:700;font-size:13px}
+.slot .no{position:absolute;top:4px;left:7px;font-family:var(--f-mono);font-size:10px;color:var(--muted)}
+.slot .em,.tile .em{font-size:30px;line-height:1.15}
+.st{font-family:var(--f-mono);font-size:10.5px;line-height:1.35;white-space:nowrap;color:var(--muted)}
+.lv{font-family:var(--f-mono);font-size:11px;font-weight:700;color:var(--muted)}
+.lv.boss{color:var(--warn)}
+.gear{position:absolute;top:3px;right:5px;font-size:12px;line-height:1;letter-spacing:-2px}
+.inv{display:grid;grid-template-columns:repeat(auto-fill,minmax(74px,1fr));gap:8px;margin-top:12px}
+.tile{position:relative;border:1px solid var(--grout);background:var(--tile);border-radius:14px;padding:14px 4px 8px;display:flex;flex-direction:column;align-items:center;gap:1px;min-width:0;color:var(--ink)}
+.tile:hover,.slot:not(.empty):hover{box-shadow:0 4px 12px var(--shadow)}
+.tile.boss{border-color:var(--warn)}
+.tile.on{background:var(--accent-soft);border-color:var(--accent)}
+.tile .flag{position:absolute;top:4px;left:6px;font-family:var(--f-mono);font-size:10px;font-weight:700;color:var(--accent)}
+.tile .nm2{font-size:11px;font-weight:600;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;padding:0 4px}
+.foes{list-style:none;margin:12px 0 0;padding:0;display:flex;flex-direction:column;gap:10px}
+.foe{border:1px solid var(--grout);border-radius:14px;padding:10px 12px;display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px 10px;align-items:center}
+.foe .nm{display:flex;align-items:center;gap:8px;font-weight:700;min-width:0}
+.foe .nm span:last-child{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.foe .attack{padding:9px 14px;font-size:14px}
+.foe .warnline{grid-column:1 / -1;margin:0;font-size:13px;color:var(--warn);font-weight:600}
+.army{display:flex;gap:5px;flex-wrap:wrap;grid-column:1 / -1;margin-top:6px}
+.army i{font-style:normal;display:inline-flex;flex-direction:column;align-items:center;min-width:40px;padding:4px 4px 3px;border-radius:9px;background:var(--tile);font-size:19px;line-height:1.1;position:relative}
+.army i small{font-family:var(--f-mono);font-size:9px;color:var(--muted)}
+.army i.boss{box-shadow:inset 0 0 0 1px var(--warn)}
+.army i .g{position:absolute;top:-4px;right:-4px;font-size:10px}
+.shop{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px;margin-top:12px}
+.ware{border:1px solid var(--grout);border-radius:14px;padding:12px;display:flex;flex-direction:column;gap:5px;align-items:flex-start;background:var(--tile)}
+.ware .em{font-size:34px;line-height:1.1}
+.ware b{font-size:15px;line-height:1.2}
+.ware .fx{font-size:13px;color:var(--accent);font-weight:700}
+.buy{border:0;background:var(--ink);color:var(--bg);border-radius:10px;padding:8px 12px;font-weight:700;font-size:14px;margin-top:6px}
+.buy:disabled{opacity:.4;cursor:not-allowed}
+.bag{list-style:none;margin:10px 0 0;padding:0;display:flex;flex-direction:column;gap:6px}
+.bag li{display:flex;align-items:center;gap:8px;font-size:14px;flex-wrap:wrap}
+.hist{list-style:none;margin:12px 0 0;padding:0;display:flex;flex-direction:column;gap:8px}
+.hist li{border:1px solid var(--grout);border-radius:12px;padding:10px 12px;display:grid;grid-template-columns:minmax(0,1fr) auto;gap:4px 10px;align-items:center}
+.hist .vs{display:flex;align-items:center;gap:6px;font-weight:700;flex-wrap:wrap;min-width:0}
+.hist .res{font-size:13px;font-weight:700}
+.res.win{color:var(--accent)}
+.res.lose{color:var(--warn)}
+.new-tag{background:var(--warn);color:#FFFFFF;border-radius:999px;font-size:10px;font-weight:700;padding:1px 7px;letter-spacing:.06em}
+.hist .when{font-family:var(--f-mono);font-size:12px;color:var(--muted)}
+/* pet kartı */
+.pet-top{display:flex;gap:14px;align-items:center}
+.pet-big{width:84px;height:84px;flex:none;border-radius:20px;background:var(--tile);border:2px solid var(--grout);display:grid;place-items:center;font-size:48px;line-height:1}
+.pet-big.boss{border-color:var(--warn);box-shadow:0 0 0 3px var(--surface),0 0 0 5px var(--warn)}
+.pet-stats{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.pet-stats > div{background:var(--tile);border-radius:12px;padding:8px 10px;display:flex;flex-direction:column;gap:1px}
+.pet-stats b{font-family:var(--f-mono);font-size:20px}
+.pet-stats small{font-size:12px}
+.gear-row{display:flex;flex-direction:column;gap:6px}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{border:1px solid var(--grout);background:var(--tile);border-radius:999px;padding:6px 11px;font-weight:600;font-size:13px;color:var(--ink)}
+.chip.on{border-color:var(--accent);background:var(--accent-soft)}
+.sheet-actions{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.merge-res{text-align:center;display:flex;flex-direction:column;align-items:center;gap:8px;padding:8px 0}
+.merge-res .em{font-size:72px;line-height:1;animation:pop .6s ease}
+@keyframes pop{0%{transform:scale(.3);opacity:0}60%{transform:scale(1.2);opacity:1}100%{transform:scale(1)}}
+/* savaş oynatıcı */
+.battle{--sp:1;position:fixed;inset:0;z-index:42;background:rgba(6,14,16,.74);display:grid;place-items:center;padding:max(12px,env(safe-area-inset-top,0px)) max(12px,env(safe-area-inset-right,0px)) max(12px,env(safe-area-inset-bottom,0px)) max(12px,env(safe-area-inset-left,0px))}
+.bt-card{background:var(--surface);border:1px solid var(--grout);border-radius:20px;width:100%;max-width:560px;max-height:100%;overflow-y:auto;padding:16px;display:flex;flex-direction:column;gap:14px;box-shadow:0 20px 50px rgba(0,0,0,.35)}
+.bt-top{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.bt-stage{display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);gap:8px;align-items:start}
+.bt-vs{font-family:var(--f-display);font-size:22px;color:var(--muted);align-self:center;margin-top:-40px}
+.bt-col{display:flex;flex-direction:column;gap:7px;min-width:0;align-items:center;text-align:center}
+.bt-who{display:flex;align-items:center;gap:6px;font-weight:700;min-width:0;max-width:100%;flex-wrap:wrap;justify-content:center}
+.bt-who .n{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:100%}
+.bt-role{font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:700;width:100%}
+.bt-art{width:min(116px,30vw);aspect-ratio:1;border-radius:24px;background:var(--tile);border:2px solid var(--grout);display:grid;place-items:center;font-size:clamp(44px,13vw,62px);line-height:1;position:relative}
+.bt-art.boss{border-color:var(--warn)}
+.bt-art.lungeR{animation:lungeR calc(.32s / var(--sp)) ease}
+.bt-art.lungeL{animation:lungeL calc(.32s / var(--sp)) ease}
+.bt-art.hit{animation:shake calc(.4s / var(--sp)) ease}
+.bt-art.dead{animation:poof calc(.6s / var(--sp)) ease forwards}
+.bt-art.ko{filter:grayscale(1);opacity:.35}
+@keyframes lungeR{50%{transform:translateX(22px) scale(1.08)}}
+@keyframes lungeL{50%{transform:translateX(-22px) scale(1.08)}}
+.bt-dmg{position:absolute;left:50%;top:6%;transform:translateX(-50%);font-family:var(--f-display);font-size:24px;color:var(--warn);text-shadow:0 2px 0 var(--surface),0 0 6px var(--surface);pointer-events:none;white-space:nowrap;animation:dmgUp calc(.95s / var(--sp)) ease-out forwards;z-index:2}
+.bt-dmg.crit{font-size:28px;color:#E5383B}
+.bt-dmg.miss{color:var(--muted);font-size:19px}
+@keyframes dmgUp{0%{opacity:0;transform:translate(-50%,10px) scale(.7)}15%{opacity:1;transform:translate(-50%,0) scale(1.15)}100%{opacity:0;transform:translate(-50%,-50px) scale(1)}}
+.bt-pname{font-family:var(--f-display);font-size:16px;line-height:1.15;min-height:2.3em;display:flex;align-items:center}
+.bt-hp{width:100%;display:flex;flex-direction:column;gap:3px}
+.bt-hp .bar{height:12px}
+.bt-hp .bar i{transition:width calc(.3s / var(--sp)) ease,background .3s}
+.bt-hp span{font-family:var(--f-mono);font-size:12px;font-variant-numeric:tabular-nums}
+.bt-gear{font-family:var(--f-mono);font-size:12px;color:var(--muted)}
+.bt-bench{display:flex;gap:4px;flex-wrap:wrap;justify-content:center}
+.bt-bench i{font-style:normal;width:30px;height:30px;border-radius:9px;background:var(--tile);display:grid;place-items:center;font-size:17px;border:1px solid var(--grout)}
+.bt-bench i.cur{border-color:var(--ink);box-shadow:0 0 0 1px var(--ink)}
+.bt-bench i.dead{opacity:.28;filter:grayscale(1)}
+.bt-log{min-height:4.6em;font-size:13px;display:flex;flex-direction:column;gap:3px;border-top:1px solid var(--grout);padding-top:10px}
+.bt-log p{margin:0;display:flex;align-items:center;gap:5px;flex-wrap:wrap}
+.bt-log p:not(:first-child){color:var(--muted)}
+.bt-log p.ko{font-weight:700}
+.bt-result{text-align:center;display:flex;flex-direction:column;gap:6px;align-items:center;padding:14px;border-radius:14px;background:var(--accent-soft)}
+.bt-result.lose{background:var(--tile);box-shadow:inset 0 0 0 2px var(--warn)}
+.bt-title{font-family:var(--f-display);font-size:28px;font-weight:400;line-height:1.1}
+@media (max-width:400px){.pages button{font-size:17px}.slot{min-height:100px}.slot .em,.tile .em{font-size:26px}}
 
 @media (max-width:560px){
   .stats,.two{grid-template-columns:1fr}
@@ -339,6 +460,11 @@ img{max-width:100%}
       <button class="ghost" id="logout" type="button">Çıkış</button>
     </div>
   </header>
+
+  <nav class="pages" id="pages" aria-label="Sayfa" hidden>
+    <button type="button" id="pgMain" aria-pressed="true"><span aria-hidden="true">🚽</span> İşeme</button>
+    <button type="button" id="pgArena" aria-pressed="false"><span aria-hidden="true">⚔️</span> Arena <span class="pg-badge" id="pgBadge" hidden></span></button>
+  </nav>
 
   <section class="card" id="profilePanel" hidden>
     <div class="row between">
@@ -428,6 +554,7 @@ img{max-width:100%}
   </section>
 
   <div id="game" hidden style="display:contents">
+   <div id="pageMain" style="display:contents">
     <section class="card" id="adminCard" hidden>
       <div class="row between">
         <h2 class="h">🛡️ Yönetim</h2>
@@ -575,6 +702,41 @@ img{max-width:100%}
         <li>Tek dokunuşla kayıt için adresin sonuna <code>#bas</code> ekleyip o sayfayı ana ekrana koy. Açıldığı an o dakika kaydedilir. Android’de ikona basılı tutunca da “İşedim” kısayolu çıkar.</li>
       </ol>
     </section>
+   </div>
+
+   <div id="pageArena" style="display:contents" hidden>
+    <section class="card ar-head">
+      <div class="row between">
+        <div class="row" style="gap:8px">
+          <h2 class="h">Arena</h2>
+          <button class="ghost" type="button" id="arHelpBtn">Nasıl oynanır?</button>
+        </div>
+        <span class="coin" title="Coinlerin"><span aria-hidden="true">🪙</span><b id="arCoins">0</b></span>
+      </div>
+      <div class="ar-tabs" id="arTabs" role="group" aria-label="Arena bölümü">
+        <button type="button" data-tab="ordu" aria-pressed="true"><span class="ic" aria-hidden="true">🐾</span>Ordu</button>
+        <button type="button" data-tab="savas" aria-pressed="false"><span class="ic" aria-hidden="true">⚔️</span>Savaş</button>
+        <button type="button" data-tab="market" aria-pressed="false"><span class="ic" aria-hidden="true">🛒</span>Market</button>
+        <button type="button" data-tab="gecmis" aria-pressed="false"><span class="ic" aria-hidden="true">📜</span>Geçmiş<span class="pg-badge" id="arBadge" hidden></span></button>
+      </div>
+    </section>
+
+    <section class="card ar-help" id="arHelp" hidden>
+      <div class="row between">
+        <h2 class="h">Arena nasıl çalışır?</h2>
+        <button class="ghost" type="button" id="arHelpOk">Anladım</button>
+      </div>
+      <ul>
+        <li>Kestiğin her canavar envanterine <b>pet</b> olarak gelir. Daha önce kestiklerin de pet oldu.</li>
+        <li><b>Ordu</b> sekmesinde en fazla 5 petlik ordunu kur. Ordun sen yokken de savaşır.</li>
+        <li><b>Savaş</b> sekmesinden istediğine saldır. Petler sırayla vuruşur; <b>kaybeden ordunun bütün petleri kazanana geçer.</b></li>
+        <li>Aynı petten 2 tane varsa <b>birleştir</b>: %70 ihtimalle bir üst seviye pet çıkar, %30 ihtimalle ikisi de gider.</li>
+        <li>Her gün <b>10 🪙</b> gelir, savaş kazanınca <b>+5 🪙</b>. <b>Market</b>’ten kılıç ve zırh alıp petlerine giydir.</li>
+      </ul>
+    </section>
+
+    <div id="arBody" style="display:contents"></div>
+   </div>
   </div>
 </div>
 
@@ -592,7 +754,7 @@ img{max-width:100%}
     </svg>
     <h2 class="h" id="introTitle">Peengo’ya hoş geldin!</h2>
     <p>Amaç basit: günün <b>1440 dakikasının</b> hepsinde en az bir kez işemek. Her işediğinde büyük butona bas, o dakika senin renginle boyansın. Arkadaşlarınla aynı dakikayı doldurursanız o dakika simsiyah olur.</p>
-    <p class="muted">Canavar avında dakikalarından rastgele birini feda edip canavar kesebilir, unvan toplayabilirsin.</p>
+    <p class="muted">Canavar avında dakikalarından rastgele birini feda edip canavar kesebilir, unvan toplayabilirsin. Kestiğin canavarlar Arena’da petin olur; ordunu kurup arkadaşlarına savaş açarsın.</p>
     <div class="intro-chat">
       <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5.5A2.5 2.5 0 0 1 6.5 3h11A2.5 2.5 0 0 1 20 5.5v8a2.5 2.5 0 0 1-2.5 2.5H10l-4.5 4v-4h0A1.5 1.5 0 0 1 4 14.5z" fill="currentColor"/></svg>
       <p><b>Uygulamanın kendi sohbeti var.</b> Sağ alttaki yanıp sönen butondan arkadaşlarınla yazışabilirsin.</p>
@@ -636,11 +798,36 @@ img{max-width:100%}
   </form>
 </aside>
 
+<div class="intro" id="petSheet" role="dialog" aria-modal="true" aria-label="Pet" hidden><div class="intro-card" id="petCard"></div></div>
+
+<div class="battle" id="battle" role="dialog" aria-modal="true" aria-labelledby="btTitle" hidden>
+  <div class="bt-card">
+    <div class="bt-top">
+      <h2 class="h" id="btTitle" style="margin-right:auto">Savaş</h2>
+      <div class="seg" id="btSpeed" role="group" aria-label="Oynatma hızı">
+        <button type="button" data-s="1" aria-pressed="true">×1</button>
+        <button type="button" data-s="2" aria-pressed="false">×2</button>
+        <button type="button" data-s="4" aria-pressed="false">×4</button>
+      </div>
+      <button class="ghost" type="button" id="btSkip">Sonucu göster</button>
+    </div>
+    <div class="bt-stage">
+      <div class="bt-col" id="btL"></div>
+      <div class="bt-vs" aria-hidden="true">VS</div>
+      <div class="bt-col" id="btR"></div>
+    </div>
+    <div class="bt-log" id="btLog" aria-live="polite"></div>
+    <div class="bt-result" id="btResult" hidden></div>
+    <button class="ghost" type="button" id="btClose" style="align-self:center">Kapat</button>
+  </div>
+</div>
+
 <div class="lightbox" id="lightbox" role="dialog" aria-label="Fotoğraf" hidden><img id="lightboxImg" alt="Sohbet fotoğrafı"></div>
 
 <div class="toast" id="toast" role="status" aria-live="polite" hidden>
   <span id="toastText"></span>
   <button type="button" id="undoBtn" hidden>Geri al</button>
+  <button type="button" id="toastAct" hidden></button>
 </div>
 
 <script>
@@ -693,8 +880,13 @@ const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
     authTab:'login', newColor:null, lastMark:null, busy:false, hashDone:false,
     lastT:-1, toastTimer:null,
     hunts:{}, huntArmed:false, huntBusy:false, huntTimer:null, daily:{}, dailyOk:false,
-    msgs:[], chatOpen:false, chatSeen:+(store.get('peengo.chatSeen') || 0), chatBusy:false
+    msgs:[], chatOpen:false, chatSeen:+(store.get('peengo.chatSeen') || 0), chatBusy:false,
+    page:'main', arTab:store.get('peengo.arTab') || 'ordu', ar:freshAr(), bt:null, arInit:null
   };
+  function freshAr(){
+    return {pets:[], items:[], battles:[], coins:0, cdUntil:0, unseen:0, admin:false, loaded:false, err:'',
+            busy:false, seq:0, armed:null, armT:null, newIds:new Set(), histAll:false, sheet:null, seenBusy:false, cdWas:false};
+  }
 
   const MOBS = [
     {e:'🐀', n:'Kanalizasyon Faresi'},
@@ -722,6 +914,19 @@ const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
     const m = MOBS[(n - 1) % 10 % 9];
     return {e:m.e, n:pre + m.n, boss:false, cost:1};
   }
+  /* Arena: pet seviyeleri = canavarlar (Sv 1-9) + bosslar (Sv 10-13). Değerler supabase-arena.sql ile aynı. */
+  const PETS = MOBS.concat(BOSSES);
+  const PET_HP = [30, 38, 47, 59, 73, 92, 114, 143, 179, 224, 279, 349, 437];
+  const PET_ATK = [8, 10, 12, 15, 18, 23, 28, 36, 45, 56, 70, 87, 109];
+  const ITEMS = {
+    k1:{e:'🪠', n:'Pompa Sopası', k:'k', pct:20, price:10},
+    k2:{e:'🧹', n:'Fırça Kılıcı', k:'k', pct:40, price:25},
+    k3:{e:'🗡️', n:'Altın Musluk Kılıcı', k:'k', pct:70, price:60},
+    z1:{e:'🧻', n:'Tuvalet Kağıdı Zırhı', k:'z', pct:20, price:10},
+    z2:{e:'🪣', n:'Kova Miğfer', k:'z', pct:40, price:25},
+    z3:{e:'🛡️', n:'Porselen Zırh', k:'z', pct:70, price:60}
+  };
+  const mobTier = (no, boss) => boss ? 9 + ((no / 10 - 1) % 4) : (no - 1) % 10;
   const kills = pid => (S.hunts[pid] || {}).count || 0;
   const titleOf = pid => { const k = kills(pid); for (const [n, t] of TITLES) if (k >= n) return t; return ''; };
 
@@ -866,6 +1071,19 @@ const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
         render();
       })
       .subscribe();
+    S.sb.channel('peengo-battles')
+      .on('postgres_changes', {event:'INSERT', schema:'public', table:'battles'}, p => {
+        const b = p.new;
+        if (!b || !S.me) return;
+        if (b.defender === S.me){
+          S.ar.unseen = (S.ar.unseen || 0) + 1;
+          renderNav();
+          toast(nameOf(b.attacker) + ' sana saldırdı! ' + (b.attacker_won ? 'Kaybettin, ordundaki ' + b.captured + ' pet gitti.' : 'Ordun kazandı, ' + b.captured + ' pet senin oldu.'),
+            false, {label:'İzle', fn:() => { setPage('arena'); setArTab('gecmis'); playBattle(b); }});
+        }
+        if (S.page === 'arena' && b.attacker !== S.me) loadArena();
+      })
+      .subscribe();
     S.sb.channel('peengo-marks')
       .on('postgres_changes', {event:'*', schema:'public', table:'marks'}, p => {
         if (p.eventType === 'INSERT' && p.new){
@@ -902,9 +1120,12 @@ const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
   function show(id){ ['#boot', '#auth', '#game'].forEach(s => $(s).hidden = s !== id); }
   function route(){
     if (!S.loaded){ show('#boot'); return; }
-    if (S.me && S.profiles[S.me]){ show('#game'); $('#meChip').hidden = false; $('#chatFab').hidden = false; pushRefresh(false); }
-    else { show('#auth'); $('#meChip').hidden = true; $('#leaders').hidden = true; $('#chatFab').hidden = true; openChat(false); }
-    render();
+    if (S.me && S.profiles[S.me]){
+      show('#game'); $('#meChip').hidden = false; $('#chatFab').hidden = false; $('#pages').hidden = false; pushRefresh(false);
+      if (S.arInit !== S.me){ S.arInit = S.me; arenaState(); }
+    }
+    else { show('#auth'); $('#meChip').hidden = true; $('#leaders').hidden = true; $('#chatFab').hidden = true; $('#pages').hidden = true; openChat(false); }
+    syncPage();
     renderChat(false);
     maybeIntro();
     setTimeout(() => maybePushAsk(), 1200);
@@ -1501,12 +1722,15 @@ const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
     } catch(e){ toast(errText(e)); }
   }
 
-  function toast(msg, withUndo){
+  function toast(msg, withUndo, act){
     $('#toastText').textContent = msg;
     $('#undoBtn').hidden = !withUndo;
+    const ab = $('#toastAct');
+    ab.hidden = !act;
+    if (act){ ab.textContent = act.label; ab.onclick = () => { $('#toast').hidden = true; act.fn(); }; }
     $('#toast').hidden = false;
     clearTimeout(S.toastTimer);
-    S.toastTimer = setTimeout(() => { $('#toast').hidden = true; }, withUndo ? 60000 : 4000);
+    S.toastTimer = setTimeout(() => { $('#toast').hidden = true; }, withUndo ? 60000 : act ? 9000 : 4500);
   }
 
   function maybeHashPee(){
@@ -1517,6 +1741,8 @@ const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
   }
 
   function logoutLocal(){
+    closeBattle(); closePet();
+    S.ar = freshAr(); S.arInit = null;
     S.token = null; S.me = null; S.coolUntil = 0; S.isAdmin = false; store.set('peengo.token', null);
     S.authTab = 'login'; $('#profilePanel').hidden = true; route();
   }
@@ -1834,7 +2060,7 @@ const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
     $('#mobName').textContent = mob.n;
     $('#mobBar').style.maxWidth = (mob.boss ? 220 : 110) + 'px';
     $('#mobCost').textContent = mob.cost + ' dakika';
-    $('#mobNote').textContent = 'Kesmek için duvarından rastgele ' + mob.cost + ' dakika silinir. Hangilerinin gideceğini sistem seçer.';
+    $('#mobNote').textContent = 'Kesmek için duvarından rastgele ' + mob.cost + ' dakika silinir. Hangilerinin gideceğini sistem seçer. Kestiğin canavar Arena’da petin olur.';
     const btn = $('#huntBtn');
     const enough = my >= mob.cost;
     btn.disabled = S.huntBusy || !enough;
@@ -1868,7 +2094,7 @@ const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
     $(countId).textContent = pid ? text : '';
   }
   function renderLeaders(D, pids, me){
-    $('#leaders').hidden = false;
+    $('#leaders').hidden = S.page !== 'main';
     const h = hunterOrder(pids)[0];
     setLeader('#huntLeader', '#huntLeaderCount', h, me, h ? kills(h) + ' canavar' : '', 'Henüz kimse');
     const m = pids.filter(p => (D.counts[p] || 0) > 0).sort((a, b) => (D.counts[b] || 0) - (D.counts[a] || 0) || S.profiles[a].createdAt - S.profiles[b].createdAt)[0];
@@ -1898,10 +2124,12 @@ const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
       setTimeout(() => m.classList.remove('dead'), 650);
       if (navigator.vibrate) try { navigator.vibrate([20, 40, 60]); } catch(e){}
       const msg = $('#huntMsg');
-      msg.textContent = mob.n + ' kesildi! Giden dakikalar: ' + removed.map(fmt).join(', ') + '.';
+      const pet = PETS[mobTier(r.mob_no, r.boss)];
+      msg.textContent = mob.n + ' kesildi! Giden dakikalar: ' + removed.map(fmt).join(', ') + '. Pet olarak envanterine eklendi.';
       msg.dataset.keep = '1';
       const t = TITLES.find(([need]) => need === r.mob_no);
-      toast(t ? 'Yeni unvan: ' + t[1] + '! ' + r.mob_no + ' canavar kestin.' : mob.n + ' kesildi!');
+      S.ar.loaded = false;
+      toast((t ? 'Yeni unvan: ' + t[1] + '! ' : '') + pet.e + ' ' + pet.n + ' artık senin petin.', false, {label:'Arena', fn:() => setPage('arena')});
     } catch(e){
       $('#huntMsg').textContent = errText(e);
       $('#huntMsg').dataset.keep = '1';
@@ -1937,6 +2165,638 @@ const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
     if (t !== S.lastT){ S.lastT = t; if (!$('#game').hidden) render(); }
     else if (!$('#game').hidden) updateButton();
     if (S.lastMark && Date.now() - S.lastMark.at > 60000){ S.lastMark = null; $('#undoBtn').hidden = true; }
+    if (S.page === 'arena' && S.arTab === 'savas'){
+      const c = $('#arCd'), cooling = arCdLeft() > 0;
+      if (c) c.textContent = cdText();
+      if (S.ar.cdWas && !cooling) renderArena();
+      S.ar.cdWas = cooling;
+    }
+  }
+
+  /* ---------- arena ---------- */
+  const isBoss = t => t >= 9;
+  const lvTxt = t => 'Sv ' + (t + 1);
+  const petName = t => PETS[t].n;
+  const boost = (base, code) => Math.round(base * (100 + (code ? ITEMS[code].pct : 0)) / 100);
+  const arCdLeft = () => Math.max(0, (S.ar.cdUntil || 0) - (Date.now() + (S.skew || 0)));
+  const petsOf = pid => S.ar.pets.filter(p => p.owner === pid);
+  const deckOf = pid => petsOf(pid).filter(p => p.slot != null).sort((a, b) => a.slot - b.slot);
+  function gearMap(){
+    const g = {};
+    S.ar.items.forEach(i => { if (i.pet_id != null) (g[i.pet_id] ||= {})[i.code[0]] = i; });
+    return g;
+  }
+  function statOf(p, gm){
+    const g = gm[p.id] || {};
+    const k = g.k ? g.k.code : null, z = g.z ? g.z.code : null;
+    return {hp:boost(PET_HP[p.tier], z), atk:boost(PET_ATK[p.tier], k), k, z};
+  }
+  function btn(cls, text, fn, dis){
+    const b = el('button', {type:'button', class:cls, text});
+    if (fn) b.onclick = fn;
+    b.disabled = !!dis;
+    return b;
+  }
+  const dotOf = pid => el('span', {class:'dot', style:'background:' + colorOf(pid)});
+  const gearIcons = s => (s.k || s.z) ? el('span', {class:'gear', text:(s.k ? ITEMS[s.k].e : '') + (s.z ? ITEMS[s.z].e : '')}) : null;
+
+  async function fetchAll(table, cols){
+    const out = [];
+    for (let from = 0; ; from += 1000){
+      const {data, error} = await S.sb.from(table).select(cols).order('id').range(from, from + 999);
+      if (error) throw error;
+      out.push(...(data || []));
+      if (!data || data.length < 1000) break;
+    }
+    return out;
+  }
+  function applyArenaState(st){
+    if (!st) return;
+    if (st.now) S.skew = Date.parse(st.now) - Date.now();
+    S.ar.coins = st.coins || 0;
+    S.ar.admin = !!st.admin;
+    S.ar.unseen = st.unseen || 0;
+    S.ar.cdUntil = st.cooldown_until ? Date.parse(st.cooldown_until) : 0;
+    if (st.gift > 0) toast('Günlük ' + st.gift + ' 🪙 geldi! Arena’daki markette harcayabilirsin.', false, {label:'Market', fn:() => { setPage('arena'); setArTab('market'); }});
+    renderNav();
+  }
+  async function arenaState(){
+    if (!S.token || !S.me) return;
+    try { applyArenaState(await rpc('arena_state', {p_token:S.token})); if (S.page === 'arena') renderArena(); } catch(e){}
+  }
+  async function loadArena(){
+    if (!S.me || !S.token) return;
+    const seq = ++S.ar.seq;
+    try {
+      const [pets, items, battles, st] = await Promise.all([
+        fetchAll('pets', 'id,owner,tier,slot,src,at'),
+        fetchAll('items', 'id,owner,code,pet_id'),
+        S.sb.from('battles').select('id,attacker,defender,attacker_won,captured,coins,seen,at,a_team,d_team')
+          .order('id', {ascending:false}).limit(60).then(({data, error}) => { if (error) throw error; return data || []; }),
+        rpc('arena_state', {p_token:S.token})
+      ]);
+      if (seq !== S.ar.seq) return;
+      S.ar.pets = pets; S.ar.items = items; S.ar.battles = battles;
+      S.ar.loaded = true; S.ar.err = '';
+      applyArenaState(st);
+    } catch(e){
+      if (seq !== S.ar.seq) return;
+      if (/Oturumun kapanmış/.test(e && e.message || '')){ logoutLocal(); return; }
+      S.ar.err = errText(e);
+    }
+    if (S.page === 'arena'){ renderArena(); maybeMarkSeen(); }
+    if (S.ar.sheet) renderSheet();
+  }
+  async function arenaCall(fn, args){
+    try { return await rpc(fn, Object.assign({p_token:S.token}, args)); }
+    catch(e){
+      toast(errText(e));
+      if (/Oturumun kapanmış/.test(e && e.message || '')) logoutLocal();
+      throw e;
+    }
+  }
+
+  function renderNav(){
+    $('#pgMain').setAttribute('aria-pressed', String(S.page === 'main'));
+    $('#pgArena').setAttribute('aria-pressed', String(S.page === 'arena'));
+    const n = S.ar.unseen || 0;
+    $('#pgBadge').hidden = !n; $('#pgBadge').textContent = n;
+    $('#arBadge').hidden = !n; $('#arBadge').textContent = n;
+  }
+  function setPage(p, fromHash){
+    if (!S.me || !S.profiles[S.me]) p = 'main';
+    const changed = S.page !== p;
+    S.page = p;
+    $('#pageMain').hidden = p !== 'main';
+    $('#pageArena').hidden = p !== 'arena';
+    if (p !== 'main') $('#leaders').hidden = true;
+    if (!fromHash){
+      if (p === 'arena' && location.hash !== '#arena') history.pushState(null, '', '#arena');
+      if (p === 'main' && location.hash === '#arena') history.pushState(null, '', location.pathname + location.search);
+    }
+    renderNav();
+    if (p === 'arena'){
+      renderArena();
+      if (changed || !S.ar.loaded) loadArena();
+      maybeMarkSeen();
+    } else render();
+    if (changed) window.scrollTo(0, 0);
+  }
+  function syncPage(){ setPage(location.hash === '#arena' ? 'arena' : 'main', true); }
+  function setArTab(t){
+    S.arTab = t; store.set('peengo.arTab', t);
+    S.ar.armed = null;
+    renderArena(); maybeMarkSeen();
+  }
+  function maybeMarkSeen(){
+    if (S.page !== 'arena' || S.arTab !== 'gecmis' || !S.ar.unseen || S.ar.seenBusy || !S.token) return;
+    S.ar.battles.forEach(b => { if (b.defender === S.me && !b.seen) S.ar.newIds.add(b.id); });
+    S.ar.seenBusy = true;
+    rpc('arena_seen', {p_token:S.token})
+      .then(() => { S.ar.unseen = 0; S.ar.battles.forEach(b => { if (b.defender === S.me) b.seen = true; }); renderNav(); })
+      .catch(() => {})
+      .finally(() => { S.ar.seenBusy = false; });
+  }
+
+  function renderArena(){
+    if ($('#pageArena').hidden) return;
+    $('#arCoins').textContent = S.ar.coins;
+    document.querySelectorAll('#arTabs [data-tab]').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.tab === S.arTab)));
+    $('#arHelp').hidden = store.get('peengo.arenaHelp') === '1';
+    const body = $('#arBody'); body.textContent = '';
+    if (S.ar.err) body.append(el('p', {class:'ro', style:'color:var(--warn)', text:S.ar.err}));
+    if (!S.ar.loaded){
+      body.append(el('section', {class:'card'}, [el('p', {class:'muted', style:'margin:0', text:S.ar.err ? 'Arena yüklenemedi. Biraz sonra tekrar dene.' : 'Arena yükleniyor…'})]));
+      return;
+    }
+    if (S.ar.unseen && S.arTab !== 'gecmis') body.append(el('p', {class:'ar-note'}, [
+      el('span', {text:'Sen yokken ' + S.ar.unseen + ' kez saldırıya uğradın.'}),
+      btn('ghost', 'Geçmiş’te izle', () => setArTab('gecmis'))
+    ]));
+    if (S.arTab === 'savas') renderSavas(body);
+    else if (S.arTab === 'market') renderMarket(body);
+    else if (S.arTab === 'gecmis') renderGecmis(body);
+    else renderOrdu(body);
+  }
+
+  /* Ordu + envanter */
+  function renderOrdu(body){
+    const me = S.me, gm = gearMap();
+    if (S.ar.admin){
+      body.append(el('section', {class:'card'}, [el('p', {class:'muted', style:'margin:0', text:'Yönetici hesabı arenada savaşamaz. Savaş ve Geçmiş sekmelerinden izleyebilirsin.'})]));
+      return;
+    }
+    const mine = petsOf(me), deck = deckOf(me);
+    const slots = el('div', {class:'deck'});
+    let thp = 0, tatk = 0;
+    for (let i = 0; i < 5; i++){
+      const p = deck[i];
+      if (!p){ slots.append(el('div', {class:'slot empty'}, [el('span', {class:'no', text:String(i + 1)}), document.createTextNode('Boş')])); continue; }
+      const s = statOf(p, gm); thp += s.hp; tatk += s.atk;
+      slots.append(el('button', {type:'button', class:'slot' + (isBoss(p.tier) ? ' boss' : ''), title:petName(p.tier), onclick:() => openPet(p.id)}, [
+        el('span', {class:'no', text:String(i + 1)}), gearIcons(s),
+        el('span', {class:'em', text:PETS[p.tier].e}),
+        el('span', {class:'lv' + (isBoss(p.tier) ? ' boss' : ''), text:lvTxt(p.tier)}),
+        el('span', {class:'st', text:'❤ ' + s.hp}),
+        el('span', {class:'st', text:'⚔ ' + s.atk})
+      ]));
+    }
+    body.append(el('section', {class:'card'}, [
+      el('div', {class:'row between'}, [el('h2', {class:'h', text:'Ordun'}), el('span', {class:'bcount', text:deck.length + '/5 pet'})]),
+      el('p', {class:'muted', style:'margin:6px 0 0;font-size:13px;max-width:62ch', text:'Savaşta petler 1’den 5’e sırayla çıkar. Ordun sen yokken de savaşır. Kaybedersen ordundaki bütün petler rakibe geçer.'}),
+      slots,
+      deck.length
+        ? el('p', {class:'mono muted', style:'margin:10px 0 0;font-size:13px', text:'Toplam ❤ ' + thp + ' · ⚔ ' + tatk})
+        : el('p', {class:'muted', style:'margin:10px 0 0;font-size:13px', text:mine.length ? 'Aşağıdan bir pete dokunup “Orduya koy”a bas.' : ''})
+    ]));
+
+    const counts = {};
+    mine.forEach(p => { counts[p.tier] = (counts[p.tier] || 0) + 1; });
+    const ready = Object.keys(counts).filter(t => counts[t] >= 2 && +t < 12).length;
+    const inv = el('div', {class:'inv'});
+    mine.slice().sort((a, b) => b.tier - a.tier || (a.slot == null) - (b.slot == null) || a.id - b.id).forEach(p => {
+      const s = statOf(p, gm);
+      inv.append(el('button', {type:'button', class:'tile' + (isBoss(p.tier) ? ' boss' : '') + (p.slot != null ? ' on' : ''), title:petName(p.tier) + (p.slot != null ? ' (orduda)' : ''), onclick:() => openPet(p.id)}, [
+        p.slot != null ? el('span', {class:'flag', text:'#' + p.slot}) : null,
+        gearIcons(s),
+        el('span', {class:'em', text:PETS[p.tier].e}),
+        el('span', {class:'lv' + (isBoss(p.tier) ? ' boss' : ''), text:lvTxt(p.tier)}),
+        el('span', {class:'nm2', text:petName(p.tier)})
+      ]));
+    });
+    body.append(el('section', {class:'card'}, [
+      el('div', {class:'row between'}, [el('h2', {class:'h', text:'Envanter'}), el('span', {class:'bcount', text:mine.length + ' pet'})]),
+      el('p', {class:'muted', style:'margin:6px 0 0;font-size:13px;max-width:62ch', text:mine.length
+        ? 'Bir pete dokun: orduya koy, eşya giydir ya da aynısından 2 tane varsa birleştir.' + (ready ? ' Şu an ' + ready + ' çeşit pet birleştirmeye hazır.' : '')
+        : 'Henüz petin yok. İşeme sayfasında canavar kes, kestiğin canavar buraya pet olarak gelir.'}),
+      mine.length ? inv : null
+    ]));
+  }
+
+  /* Pet kartı */
+  function openPet(id){ S.ar.sheet = {id, armed:'', busy:false, res:null}; renderSheet(); $('#petSheet').hidden = false; }
+  function closePet(){ $('#petSheet').hidden = true; S.ar.sheet = null; }
+  function renderSheet(){
+    const sh = S.ar.sheet; if (!sh) return;
+    const card = $('#petCard'); card.textContent = '';
+    if (sh.res){
+      const r = sh.res, up = r.tier + 1;
+      card.append(el('div', {class:'merge-res'}, [
+        el('span', {class:'em', text:r.ok ? PETS[up].e : '💨'}),
+        el('h2', {class:'h', text:r.ok ? 'Birleşti! ' + petName(up) + ' geldi' : 'Olmadı… iki ' + petName(r.tier) + ' de gitti'}),
+        el('p', {class:'muted', text:r.ok
+          ? lvTxt(up) + ' · ❤ ' + PET_HP[up] + ' · ⚔ ' + PET_ATK[up] + (r.items_back ? '. Üstlerindeki eşyalar çantana döndü.' : '')
+          : '%30 ihtimal tuttu.' + (r.items_back ? ' Üstlerindeki eşyalar çantana döndü.' : ' Bir dahaki sefere.')})
+      ]));
+      card.append(el('div', {class:'sheet-actions', style:'justify-content:center'}, [
+        r.ok && r.pet ? btn('primary', 'Yeni pete bak', () => openPet(r.pet)) : null,
+        btn('ghost', 'Kapat', closePet)
+      ]));
+      return;
+    }
+    const p = S.ar.pets.find(x => x.id === sh.id);
+    if (!p || p.owner !== S.me){
+      card.append(el('p', {style:'margin:0', text:'Bu pet artık sende değil.'}), btn('ghost', 'Kapat', closePet));
+      return;
+    }
+    const gm = gearMap(), s = statOf(p, gm), boss = isBoss(p.tier);
+    const src = {av:'Avdan geldi', birlesim:'Birleşimden doğdu', savas:'Savaşta ele geçirildi'}[p.src] || '';
+    card.append(el('div', {class:'pet-top'}, [
+      el('div', {class:'pet-big' + (boss ? ' boss' : ''), text:PETS[p.tier].e}),
+      el('div', {style:'min-width:0;display:flex;flex-direction:column;gap:2px'}, [
+        el('p', {class:'eyebrow', text:(boss ? 'Boss · ' : '') + 'Seviye ' + (p.tier + 1) + ' / 13'}),
+        el('h2', {class:'h', text:petName(p.tier)}),
+        el('p', {class:'muted', style:'margin:0;font-size:13px', text:src + (p.slot != null ? ' · Orduda ' + p.slot + '. sırada' : '')})
+      ])
+    ]));
+    card.append(el('div', {class:'pet-stats'}, [
+      el('div', null, [el('span', {class:'eyebrow', text:'Can'}), el('b', {text:'❤ ' + s.hp}), s.z ? el('small', {class:'muted', text:'+%' + ITEMS[s.z].pct + ' zırhtan'}) : null]),
+      el('div', null, [el('span', {class:'eyebrow', text:'Saldırı'}), el('b', {text:'⚔ ' + s.atk}), s.k ? el('small', {class:'muted', text:'+%' + ITEMS[s.k].pct + ' kılıçtan'}) : null])
+    ]));
+    ['k', 'z'].forEach(kind => {
+      const cur = (gm[p.id] || {})[kind];
+      const byCode = {};
+      S.ar.items.filter(i => i.owner === S.me && i.pet_id == null && i.code[0] === kind).forEach(i => { (byCode[i.code] ||= []).push(i); });
+      const chips = el('div', {class:'chips'});
+      if (cur) chips.append(btn('chip on', ITEMS[cur.code].e + ' ' + ITEMS[cur.code].n + ' · Çıkar', () => equip(cur.id, null), S.ar.busy));
+      Object.keys(byCode).sort().forEach(code => {
+        const it = ITEMS[code], n = byCode[code].length;
+        chips.append(btn('chip', it.e + ' ' + it.n + ' +%' + it.pct + (n > 1 ? ' ×' + n : '') + ' · Giydir', () => equip(byCode[code][0].id, p.id), S.ar.busy));
+      });
+      if (!chips.children.length) chips.append(el('span', {class:'muted', style:'font-size:13px', text:'Çantanda ' + (kind === 'k' ? 'kılıç' : 'zırh') + ' yok. Market’ten alabilirsin.'}));
+      card.append(el('div', {class:'gear-row'}, [el('p', {class:'eyebrow', text:kind === 'k' ? 'Kılıç' : 'Zırh'}), chips]));
+    });
+
+    const deck = deckOf(S.me);
+    const acts = el('div', {class:'sheet-actions'});
+    if (p.slot != null) acts.append(btn('ghost', 'Ordudan çıkar', () => setDeck(deck.filter(x => x.id !== p.id).map(x => x.id)), S.ar.busy));
+    else acts.append(btn('primary', deck.length >= 5 ? 'Ordun dolu (5/5)' : 'Orduya koy', () => setDeck(deck.map(x => x.id).concat(p.id)), deck.length >= 5 || S.ar.busy));
+    card.append(acts);
+
+    const mates = S.ar.pets.filter(x => x.owner === S.me && x.tier === p.tier && x.id !== p.id);
+    if (p.tier >= 12) card.append(el('p', {class:'muted', style:'margin:0;font-size:13px', text:'En üst seviye pet. Daha fazla birleşmez.'}));
+    else if (!mates.length) card.append(el('p', {class:'muted', style:'margin:0;font-size:13px', text:'Birleştirmek için 1 tane daha ' + petName(p.tier) + ' lazım.'}));
+    else {
+      const armed = sh.armed === 'merge', up = p.tier + 1;
+      const fromDeck = mates.every(x => x.slot != null);
+      card.append(el('div', {class:'gear-row'}, [
+        el('p', {class:'eyebrow', text:'Birleştir'}),
+        el('p', {style:'margin:0;font-size:14px', text:'2 × ' + PETS[p.tier].e + ' ' + petName(p.tier) + ' → %70 ihtimalle ' + PETS[up].e + ' ' + petName(up) + ' (' + lvTxt(up) + '). %30 ihtimalle ikisi de gider.' + (fromDeck ? ' Eşi ordundan alınır.' : '')}),
+        btn('attack' + (armed ? ' armed' : ''), sh.busy ? 'Birleştiriliyor…' : armed ? 'Eminim, birleştir!' : 'Birleştir', () => mergePet(p.id), sh.busy || S.ar.busy)
+      ]));
+    }
+    card.append(btn('ghost', 'Kapat', closePet));
+    card.lastChild.style.alignSelf = 'center';
+  }
+  async function setDeck(ids){
+    if (S.ar.busy) return;
+    S.ar.busy = true;
+    S.ar.pets.forEach(p => { if (p.owner === S.me) p.slot = null; });
+    ids.forEach((id, i) => { const p = S.ar.pets.find(x => x.id === id); if (p) p.slot = i + 1; });
+    renderArena(); renderSheet();
+    try { await arenaCall('arena_deck', {p_pets:ids}); } catch(e){}
+    S.ar.busy = false;
+    await loadArena();
+  }
+  async function equip(itemId, petId){
+    if (S.ar.busy) return;
+    S.ar.busy = true;
+    const it = S.ar.items.find(i => i.id === itemId);
+    if (it){
+      if (petId != null) S.ar.items.forEach(i => { if (i.pet_id === petId && i.code[0] === it.code[0]) i.pet_id = null; });
+      it.pet_id = petId;
+    }
+    renderSheet(); renderArena();
+    try { await arenaCall('arena_equip', {p_item:itemId, p_pet:petId}); } catch(e){}
+    S.ar.busy = false;
+    await loadArena();
+  }
+  async function mergePet(id){
+    const sh = S.ar.sheet;
+    if (!sh || sh.busy || S.ar.busy) return;
+    if (sh.armed !== 'merge'){
+      sh.armed = 'merge'; renderSheet();
+      clearTimeout(sh.t); sh.t = setTimeout(() => { if (S.ar.sheet === sh && !sh.busy){ sh.armed = ''; renderSheet(); } }, 6000);
+      return;
+    }
+    sh.busy = true; sh.armed = ''; S.ar.busy = true; renderSheet();
+    try {
+      const r = await arenaCall('arena_merge', {p_pet:id});
+      sh.res = r;
+      if (navigator.vibrate) try { navigator.vibrate(r.ok ? [30, 40, 90] : [160]); } catch(e){}
+    } catch(e){}
+    sh.busy = false; S.ar.busy = false;
+    renderSheet();
+    await loadArena();
+  }
+
+  /* Savaş */
+  function cdText(){
+    if (S.ar.admin) return 'Sadece izleyici';
+    const l = arCdLeft();
+    return l ? 'Sonraki saldırı ' + mmss(l) : 'Saldırmaya hazırsın';
+  }
+  function armyRow(deck, gm){
+    return el('div', {class:'army'}, deck.map(p => {
+      const s = statOf(p, gm);
+      return el('i', {class:isBoss(p.tier) ? 'boss' : '', title:petName(p.tier) + ' · ❤ ' + s.hp + ' · ⚔ ' + s.atk}, [
+        document.createTextNode(PETS[p.tier].e), el('small', {text:lvTxt(p.tier)}),
+        (s.k || s.z) ? el('span', {class:'g', text:(s.k ? ITEMS[s.k].e : '') + (s.z ? ITEMS[s.z].e : '')}) : null
+      ]);
+    }));
+  }
+  function renderSavas(body){
+    const me = S.me, gm = gearMap();
+    const myDeck = S.ar.admin ? [] : deckOf(me);
+    const cooling = arCdLeft() > 0;
+    S.ar.cdWas = cooling;
+    body.append(el('section', {class:'card'}, [
+      el('div', {class:'row between'}, [el('h2', {class:'h', text:'Savaş aç'}), el('span', {class:'bcount', id:'arCd', text:cdText()})]),
+      el('p', {class:'muted', style:'margin:6px 0 0;font-size:13px;max-width:62ch', text:'Rakibin çevrimdışı olsa da ordusu savaşır. Önce iki ordunun 1. petleri çarpışır, sırayla vururlar; ölenin yerine sıradaki çıkar. Kazanan, kaybeden ordunun bütün petlerini alır ve +5 🪙 kazanır. 10 dakikada bir saldırabilirsin.'}),
+      S.ar.admin ? null : el('div', {style:'margin-top:12px'}, [
+        el('p', {class:'eyebrow', text:'Senin ordun'}),
+        myDeck.length ? armyRow(myDeck, gm) : el('p', {class:'ro', style:'margin-top:6px', text:'Ordun boş. Önce Ordu sekmesinden en az 1 pet seç.'})
+      ])
+    ]));
+    const foes = Object.keys(S.profiles).filter(pid => pid !== me && !S.profiles[pid].admin).map(pid => {
+      const d = deckOf(pid); let hp = 0, atk = 0;
+      d.forEach(p => { const s = statOf(p, gm); hp += s.hp; atk += s.atk; });
+      return {pid, d, hp, atk};
+    }).sort((a, b) => (b.d.length > 0) - (a.d.length > 0) || (b.hp + b.atk * 4) - (a.hp + a.atk * 4) || nameOf(a.pid).localeCompare(nameOf(b.pid), 'tr'));
+    const ul = el('ul', {class:'foes'});
+    foes.forEach(f => {
+      const armed = S.ar.armed === f.pid;
+      const can = !S.ar.admin && myDeck.length > 0 && f.d.length > 0 && !cooling && !S.ar.busy;
+      ul.append(el('li', {class:'foe'}, [
+        el('div', {style:'min-width:0;display:flex;flex-direction:column;gap:2px'}, [
+          el('span', {class:'nm'}, [dotOf(f.pid), el('span', {text:nameOf(f.pid)})]),
+          el('span', {class:'mono muted', style:'font-size:12px', text:f.d.length ? f.d.length + ' pet · ❤ ' + f.hp + ' · ⚔ ' + f.atk : 'Ordusu yok, saldırılamaz'})
+        ]),
+        S.ar.admin ? el('span') : btn('attack' + (armed ? ' armed' : ''), S.ar.busy === f.pid ? 'Savaşılıyor…' : armed ? 'Eminim, saldır!' : 'Saldır', () => attackFoe(f.pid), !can),
+        armed ? el('p', {class:'warnline', text:'Kaybedersen ordundaki ' + myDeck.length + ' pet ona geçer. Kazanırsan onun ' + f.d.length + ' peti senin olur.'}) : null,
+        f.d.length ? armyRow(f.d, gm) : null
+      ]));
+    });
+    body.append(el('section', {class:'card'}, [
+      el('h2', {class:'h', text:'Rakipler'}),
+      foes.length ? ul : el('p', {class:'muted', style:'margin:8px 0 0', text:'Henüz başka oyuncu yok.'})
+    ]));
+  }
+  async function attackFoe(pid){
+    if (S.ar.busy) return;
+    if (S.ar.armed !== pid){
+      S.ar.armed = pid;
+      clearTimeout(S.ar.armT);
+      S.ar.armT = setTimeout(() => { S.ar.armed = null; if (S.page === 'arena') renderArena(); }, 8000);
+      renderArena();
+      return;
+    }
+    S.ar.armed = null; clearTimeout(S.ar.armT);
+    S.ar.busy = pid; renderArena();
+    try {
+      const b = await arenaCall('arena_attack', {p_target:pid});
+      if (b.cooldown_until) S.ar.cdUntil = Date.parse(b.cooldown_until);
+      S.ar.battles = [b].concat(S.ar.battles.filter(x => x.id !== b.id));
+      playBattle(b);
+    } catch(e){}
+    S.ar.busy = false;
+    await loadArena();
+  }
+
+  /* Market */
+  function renderMarket(body){
+    const shop = el('div', {class:'shop'});
+    Object.keys(ITEMS).forEach(code => {
+      const it = ITEMS[code];
+      shop.append(el('div', {class:'ware'}, [
+        el('span', {class:'em', text:it.e}),
+        el('b', {text:it.n}),
+        el('span', {class:'fx', text:'+%' + it.pct + (it.k === 'k' ? ' saldırı' : ' can')}),
+        btn('buy', S.ar.busy === code ? 'Alınıyor…' : 'Satın al · ' + it.price + ' 🪙', () => buyItem(code), S.ar.admin || !!S.ar.busy || S.ar.coins < it.price)
+      ]));
+    });
+    body.append(el('section', {class:'card'}, [
+      el('div', {class:'row between'}, [el('h2', {class:'h', text:'Market'}), el('span', {class:'coin'}, [el('span', {'aria-hidden':'true', text:'🪙'}), el('b', {text:String(S.ar.coins)})])]),
+      el('p', {class:'muted', style:'margin:6px 0 0;font-size:13px;max-width:62ch', text:'Her gün ilk girişinde 10 🪙 gelir, savaş kazanınca +5 🪙. Kılıç petin saldırısını, zırh canını yüzde olarak artırır. Bir pet aynı anda 1 kılıç + 1 zırh giyer.'}),
+      shop
+    ]));
+    const mine = S.ar.items.filter(i => i.owner === S.me);
+    const ul = el('ul', {class:'bag'});
+    const free = {};
+    mine.filter(i => i.pet_id == null).forEach(i => { free[i.code] = (free[i.code] || 0) + 1; });
+    Object.keys(free).sort().forEach(code => ul.append(el('li', null, [
+      el('span', {text:ITEMS[code].e + ' ' + ITEMS[code].n + (free[code] > 1 ? ' ×' + free[code] : '')}),
+      el('span', {class:'muted', text:'· boşta'})
+    ])));
+    mine.filter(i => i.pet_id != null).forEach(i => {
+      const p = S.ar.pets.find(x => x.id === i.pet_id);
+      ul.append(el('li', null, [
+        el('span', {text:ITEMS[i.code].e + ' ' + ITEMS[i.code].n}),
+        el('span', {class:'muted', text:'→ ' + (p ? PETS[p.tier].e + ' ' + petName(p.tier) + ' (' + lvTxt(p.tier) + ')' : 'bir pette')})
+      ]));
+    });
+    body.append(el('section', {class:'card'}, [
+      el('div', {class:'row between'}, [el('h2', {class:'h', text:'Çantan'}), el('span', {class:'bcount', text:mine.length + ' eşya'})]),
+      mine.length ? ul : el('p', {class:'muted', style:'margin:6px 0 0', text:'Çantan boş.'}),
+      mine.length ? el('p', {class:'muted', style:'margin:10px 0 0;font-size:13px', text:'Giydirmek için Ordu sekmesinde bir pete dokun.'}) : null
+    ]));
+  }
+  async function buyItem(code){
+    if (S.ar.busy) return;
+    S.ar.busy = code; renderArena();
+    try {
+      const r = await arenaCall('arena_buy', {p_code:code});
+      S.ar.coins = r.coins;
+      toast(ITEMS[code].e + ' ' + ITEMS[code].n + ' çantana eklendi.', false, {label:'Giydir', fn:() => { setPage('arena'); setArTab('ordu'); }});
+    } catch(e){}
+    S.ar.busy = false;
+    await loadArena();
+  }
+
+  /* Geçmiş */
+  function whenTxt(at){ const d = new Date(Date.parse(at)); return chatDay(d.getTime()) + ' ' + pad(d.getHours()) + ':' + pad(d.getMinutes()); }
+  function segBtn(text, on, fn){ const b = el('button', {type:'button', 'aria-pressed':String(on), text}); b.onclick = fn; return b; }
+  function renderGecmis(body){
+    const me = S.me;
+    const list = S.ar.battles.filter(b => S.ar.histAll || b.attacker === me || b.defender === me);
+    const ul = el('ul', {class:'hist'});
+    list.forEach(b => {
+      const mineB = b.attacker === me || b.defender === me;
+      const iWon = (b.attacker === me) === b.attacker_won;
+      const winner = b.attacker_won ? b.attacker : b.defender;
+      const isNew = (b.defender === me && !b.seen) || S.ar.newIds.has(b.id);
+      const res = mineB ? (iWon ? 'Kazandın · +' + b.captured + ' pet' : 'Kaybettin · −' + b.captured + ' pet') : nameOf(winner) + ' kazandı · ' + b.captured + ' pet el değiştirdi';
+      ul.append(el('li', null, [
+        el('div', {style:'min-width:0;display:flex;flex-direction:column;gap:3px'}, [
+          el('span', {class:'vs'}, [
+            dotOf(b.attacker), el('span', {text:b.attacker === me ? 'Sen' : nameOf(b.attacker)}),
+            el('span', {class:'muted', text:'⚔'}),
+            dotOf(b.defender), el('span', {text:b.defender === me ? 'Sen' : nameOf(b.defender)}),
+            isNew ? el('span', {class:'new-tag', text:'YENİ'}) : null
+          ]),
+          el('span', {class:'res ' + (mineB ? (iWon ? 'win' : 'lose') : ''), text:res}),
+          el('span', {class:'when', text:whenTxt(b.at) + ' · ' + (b.a_team || []).length + ' vs ' + (b.d_team || []).length + ' pet'})
+        ]),
+        btn('ghost', 'İzle', () => watchBattle(b.id))
+      ]));
+    });
+    body.append(el('section', {class:'card'}, [
+      el('div', {class:'row between'}, [
+        el('h2', {class:'h', text:'Savaş geçmişi'}),
+        el('div', {class:'seg', role:'group', 'aria-label':'Kimin savaşları'}, [
+          segBtn('Benim', !S.ar.histAll, () => { S.ar.histAll = false; renderArena(); }),
+          segBtn('Herkes', S.ar.histAll, () => { S.ar.histAll = true; renderArena(); })
+        ])
+      ]),
+      list.length ? ul : el('p', {class:'muted', style:'margin:10px 0 0', text:S.ar.histAll ? 'Henüz hiç savaş olmadı.' : 'Henüz savaşa girmedin. Savaş sekmesinden birine saldır.'})
+    ]));
+  }
+  async function watchBattle(id){
+    const cached = S.ar.battles.find(b => b.id === id && b.log);
+    if (cached){ playBattle(cached); return; }
+    try {
+      const {data, error} = await S.sb.from('battles').select('*').eq('id', id).single();
+      if (error) throw error;
+      const i = S.ar.battles.findIndex(b => b.id === id);
+      if (i >= 0) S.ar.battles[i] = data;
+      playBattle(data);
+    } catch(e){ toast(errText(e)); }
+  }
+
+  /* ---------- savaş oynatıcı: sunucunun hesapladığı turları canlı gibi oynatır ---------- */
+  function setSpeed(v){
+    const sp = [1, 2, 4].includes(v) ? v : 1;
+    store.set('peengo.btSpeed', String(sp));
+    if (S.bt) S.bt.speed = sp;
+    $('#battle').style.setProperty('--sp', sp);
+    document.querySelectorAll('#btSpeed [data-s]').forEach(b => b.setAttribute('aria-pressed', String(+b.dataset.s === sp)));
+  }
+  function stopBattle(){ if (S.bt){ clearTimeout(S.bt.timer); S.bt.timers.forEach(clearTimeout); } S.bt = null; }
+  function closeBattle(){
+    if ($('#battle').hidden && !S.bt) return;
+    stopBattle();
+    $('#battle').hidden = true;
+    if (S.page === 'arena') renderArena();
+  }
+  const teamOf = side => S.bt.b[side === 0 ? 'a_team' : 'd_team'] || [];
+  const btWho = side => S.bt.owners[side] === S.me ? 'Sen' : nameOf(S.bt.owners[side]);
+  function anim(node, cls){
+    node.classList.remove('lungeR', 'lungeL', 'hit');
+    void node.offsetWidth;
+    node.classList.add(cls);
+  }
+  function btLater(fn, ms){ const bt = S.bt; const t = setTimeout(() => { if (S.bt === bt && !bt.done) fn(); }, ms); bt.timers.push(t); }
+  function logLine(kids, cls){
+    const box = $('#btLog');
+    box.prepend(el('p', {class:cls || ''}, kids));
+    while (box.children.length > 3) box.lastChild.remove();
+  }
+  function setHp(side, idx){
+    const c = S.bt.cols[side], p = teamOf(side)[idx]; if (!p) return;
+    const v = S.bt.hp[side][idx], pct = Math.max(0, v / p.hp * 100);
+    c.bar.style.width = pct + '%';
+    c.bar.style.background = pct > 50 ? 'var(--accent)' : pct > 20 ? '#E0A800' : 'var(--warn)';
+    c.hpTxt.textContent = '❤ ' + v + ' / ' + p.hp;
+  }
+  function showFighter(side, idx){
+    const bt = S.bt, c = bt.cols[side], p = teamOf(side)[idx];
+    if (!p) return;
+    bt.cur[side] = idx;
+    c.art.className = 'bt-art' + (isBoss(p.t) ? ' boss' : '');
+    c.art.textContent = PETS[p.t].e;
+    c.pname.textContent = petName(p.t);
+    c.gear.textContent = lvTxt(p.t) + ' · ⚔ ' + p.atk + (p.k ? ' ' + ITEMS[p.k].e : '') + (p.z ? ' ' + ITEMS[p.z].e : '');
+    setHp(side, idx);
+    c.chips.forEach((ch, j) => { ch.classList.toggle('cur', j === idx); ch.classList.toggle('dead', bt.hp[side][j] <= 0); });
+  }
+  function playBattle(b){
+    stopBattle();
+    if (!b || !Array.isArray(b.log)){ toast('Bu savaşın kaydı açılamadı.'); return; }
+    const flip = S.me === b.defender;
+    const bt = S.bt = {b, i:0, timer:null, timers:[], done:false, cur:[0, 0], cols:[], owners:[b.attacker, b.defender],
+      hp:[(b.a_team || []).map(p => p.hp), (b.d_team || []).map(p => p.hp)], speed:1};
+    setSpeed(+(store.get('peengo.btSpeed') || 1));
+    [0, 1].forEach(side => {
+      const left = (side === 0) !== flip;
+      const col = left ? $('#btL') : $('#btR');
+      col.textContent = '';
+      const art = el('div', {class:'bt-art'}), pname = el('div', {class:'bt-pname'}), bar = el('i'), hpTxt = el('span');
+      const gear = el('div', {class:'bt-gear'}), bench = el('div', {class:'bt-bench'});
+      const chips = teamOf(side).map(p => { const ch = el('i', {title:petName(p.t), text:PETS[p.t].e}); bench.append(ch); return ch; });
+      col.append(
+        el('div', {class:'bt-who'}, [dotOf(bt.owners[side]), el('span', {class:'n', text:btWho(side)}), el('span', {class:'bt-role', text:side === 0 ? 'Saldıran' : 'Savunan'})]),
+        art, pname, el('div', {class:'bt-hp'}, [el('div', {class:'bar'}, [bar]), hpTxt]), gear, bench
+      );
+      bt.cols[side] = {art, pname, bar, hpTxt, gear, chips, left};
+      showFighter(side, 0);
+    });
+    $('#btLog').textContent = '';
+    $('#btResult').hidden = true;
+    $('#btSkip').hidden = false;
+    $('#btTitle').textContent = whenTxt(b.at || new Date().toISOString());
+    logLine([el('span', {text:'Yazı tura atıldı. İlk vuruş:'}), dotOf(bt.owners[b.starter || 0]), el('b', {text:btWho(b.starter || 0)})]);
+    $('#battle').hidden = false;
+    bt.timer = setTimeout(btStep, 900 / bt.speed);
+  }
+  function btStep(){
+    const bt = S.bt;
+    if (!bt || bt.done) return;
+    const log = bt.b.log;
+    if (bt.i >= log.length){ finishBattle(); return; }
+    const [s, ai, ti, dmg, flag, hpAfter] = log[bt.i++];
+    const t = 1 - s;
+    if (bt.cur[s] !== ai) showFighter(s, ai);
+    if (bt.cur[t] !== ti) showFighter(t, ti);
+    bt.hp[t][ti] = hpAfter;
+    const A = bt.cols[s], T = bt.cols[t], ap = teamOf(s)[ai], tp = teamOf(t)[ti];
+    anim(A.art, A.left ? 'lungeR' : 'lungeL');
+    btLater(() => {
+      if (flag !== 2) anim(T.art, 'hit');
+      const d = el('span', {class:'bt-dmg' + (flag === 1 ? ' crit' : flag === 2 ? ' miss' : ''), text:flag === 2 ? 'ISKA' : (flag === 1 ? 'KRİTİK −' : '−') + dmg});
+      T.art.append(d);
+      setTimeout(() => d.remove(), 1000 / bt.speed + 150);
+      setHp(t, ti);
+    }, 140 / bt.speed);
+    logLine([dotOf(bt.owners[s]), el('span', {text:PETS[ap.t].e + ' ' + petName(ap.t)}), el('span', {class:'muted', text:'→'}), dotOf(bt.owners[t]),
+      el('span', {text:PETS[tp.t].e + ' ' + (flag === 2 ? 'ıska!' : dmg + ' hasar' + (flag === 1 ? ', kritik!' : ''))})]);
+    let wait = 780 / bt.speed;
+    if (hpAfter <= 0){
+      btLater(() => { T.chips[ti].classList.add('dead'); anim(T.art, 'hit'); T.art.classList.add('dead');
+        logLine([dotOf(bt.owners[t]), el('span', {text:PETS[tp.t].e + ' ' + petName(tp.t) + ' yere serildi!'})], 'ko'); }, 420 / bt.speed);
+      wait += 700 / bt.speed;
+      if (ti + 1 < teamOf(t).length) btLater(() => showFighter(t, ti + 1), wait - 160 / bt.speed);
+    }
+    bt.timer = setTimeout(btStep, wait);
+  }
+  function finishBattle(){
+    const bt = S.bt;
+    if (!bt || bt.done) return;
+    bt.done = true;
+    clearTimeout(bt.timer); bt.timers.forEach(clearTimeout);
+    const log = bt.b.log;
+    for (; bt.i < log.length; bt.i++){ const e = log[bt.i]; bt.hp[1 - e[0]][e[2]] = e[5]; }
+    [0, 1].forEach(side => {
+      const hp = bt.hp[side];
+      let idx = hp.findIndex(v => v > 0);
+      const allDead = idx < 0;
+      if (allDead) idx = hp.length - 1;
+      showFighter(side, idx);
+      bt.cols[side].art.querySelectorAll('.bt-dmg').forEach(d => d.remove());
+      if (allDead) bt.cols[side].art.classList.add('ko');
+    });
+    const b = bt.b, me = S.me;
+    const winner = b.attacker_won ? b.attacker : b.defender, loser = b.attacker_won ? b.defender : b.attacker;
+    logLine([el('b', {text:'Savaş ' + log.length + ' vuruşta bitti.'})]);
+    let title, sub, cls = 'win';
+    if (winner === me){ title = '🏆 Kazandın!'; sub = 'Rakibin ' + b.captured + ' peti artık senin. +' + (b.coins || 5) + ' 🪙'; }
+    else if (loser === me){ title = '💀 Kaybettin'; sub = 'Ordundaki ' + b.captured + ' pet gitti. Yeni sahibi: ' + nameOf(winner) + '.'; cls = 'lose'; }
+    else { title = '🏆 ' + nameOf(winner) + ' kazandı'; sub = b.captured + ' pet el değiştirdi.'; }
+    const r = $('#btResult');
+    r.textContent = ''; r.className = 'bt-result ' + cls; r.hidden = false;
+    r.append(el('b', {class:'bt-title', text:title}), el('span', {text:sub}),
+      el('div', {class:'sheet-actions', style:'justify-content:center;margin-top:4px'}, [btn('ghost', 'Tekrar izle', () => playBattle(b)), btn('primary', 'Tamam', closeBattle)]));
+    $('#btSkip').hidden = true;
+    if (navigator.vibrate && (winner === me || loser === me)) try { navigator.vibrate(winner === me ? [40, 60, 120] : [220]); } catch(e){}
   }
 
   /* ---------- wire up ---------- */
@@ -1955,7 +2815,26 @@ const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
   $('#pushOn').onclick = pushEnable;
   $('#pushOff').onclick = pushDisable;
   $('#pushTest').onclick = pushTest;
-  window.addEventListener('hashchange', () => { S.hashDone = false; maybeHashPee(); });
+  window.addEventListener('hashchange', () => { S.hashDone = false; maybeHashPee(); syncPage(); });
+  window.addEventListener('popstate', () => syncPage());
+  $('#pgMain').onclick = () => setPage('main');
+  $('#pgArena').onclick = () => setPage('arena');
+  document.querySelectorAll('#arTabs [data-tab]').forEach(b => { b.onclick = () => setArTab(b.dataset.tab); });
+  $('#arHelpOk').onclick = () => { store.set('peengo.arenaHelp', '1'); $('#arHelp').hidden = true; };
+  $('#arHelpBtn').onclick = () => { store.set('peengo.arenaHelp', null); $('#arHelp').hidden = false; $('#arHelp').scrollIntoView({behavior:'smooth', block:'nearest'}); };
+  $('#petSheet').addEventListener('click', ev => { if (ev.target === $('#petSheet')) closePet(); });
+  $('#btClose').onclick = closeBattle;
+  $('#btSkip').onclick = () => finishBattle();
+  document.querySelectorAll('#btSpeed [data-s]').forEach(b => { b.onclick = () => setSpeed(+b.dataset.s); });
+  document.addEventListener('keydown', ev => {
+    if (ev.key !== 'Escape') return;
+    if (!$('#battle').hidden) closeBattle();
+    else if (!$('#petSheet').hidden) closePet();
+  });
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState !== 'visible' || !S.loaded || !S.me) return;
+    if (S.page === 'arena') loadArena(); else arenaState();
+  });
   document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible' && S.loaded) refreshAll(); });
 
   $('#meEdit').onclick = openProfile;
@@ -1992,7 +2871,7 @@ const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
     try {
       const html = await fetch(location.pathname + '?vc=' + Date.now(), {cache:'no-store'}).then(r => r.ok ? r.text() : '');
       const m = html.match(/name="peengo-version" content="([^"]+)"/);
-      if (m && MY_VERSION && m[1] !== MY_VERSION && !S.busy && !S.huntBusy){
+      if (m && MY_VERSION && m[1] !== MY_VERSION && !S.busy && !S.huntBusy && !S.bt && !S.ar.busy){
         location.replace(location.pathname + '?v=' + encodeURIComponent(m[1]) + location.hash);
       }
     } catch(e){}
