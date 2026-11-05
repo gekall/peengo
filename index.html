@@ -6,7 +6,7 @@
 <title>Peengo</title>
 <meta name="description" content="Arkadaşlarınla günün 1440 dakikasını doldur.">
 <meta name="theme-color" content="#13262B">
-<meta name="peengo-version" content="2026-11-05.20">
+<meta name="peengo-version" content="2026-11-05.21">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Peengo">
@@ -2115,7 +2115,7 @@ const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
     $('#mobName').textContent = mob.n;
     const need = tapNeed(n);
     $('#mobCost').textContent = mob.cost + ' dk ya da ' + need + ' vuruş';
-    $('#mobNote').textContent = 'Kesmek için ya duvarından rastgele ' + mob.cost + ' dakika ver (Saldır) ya da 👊 butonuna ' + need + ' kere vur. Uygulama açıkken saniyede 1 kez kendiliğinden vurulur. Yumrukla günde en fazla ' + (S.tapLimit || 40) + ' canavar kesilir' + (S.tapLimit != null ? (S.tapUsed >= S.tapLimit ? ' (bugünkü hakkın bitti, gece 00:00’da yenilenir)' : ' (bugün ' + S.tapUsed + '/' + S.tapLimit + ')') : '') + '; dakikayla kesmek sınırsız. Kestiğin canavar Arena’da petin olur.';
+    $('#mobNote').textContent = 'Kesmek için ya duvarından rastgele ' + mob.cost + ' dakika ver (Saldır) ya da 👊 butonuna ' + need + ' kere vur. Uygulama açıkken saniyede 1 kez kendiliğinden vurulur. Kestiğin canavar Arena’da petin olur.';
     renderTap();
     const btn = $('#huntBtn');
     const enough = my >= mob.cost;
@@ -2228,7 +2228,7 @@ const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
     if (t.n >= t.need){ t.done = true; finishTap(t); }
     renderTap();
   }
-  /* Uygulama açık ve ekrandayken saniyede 1 otomatik vuruş (günlük yumruk hakkı bitene kadar) */
+  /* Uygulama açık ve ekrandayken saniyede 1 otomatik vuruş */
   function autoTap(){
     if (!S.loaded || !S.me || !S.token || S.huntBusy || document.visibilityState !== 'visible' || tapLimitHit()) return;
     if (S.tapDay && S.tapDay !== todayKey()){ S.tapDay = todayKey(); tapStatus(); }
