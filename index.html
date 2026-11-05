@@ -6,7 +6,7 @@
 <title>Peengo</title>
 <meta name="description" content="Arkadaşlarınla günün 1440 dakikasını doldur.">
 <meta name="theme-color" content="#13262B">
-<meta name="peengo-version" content="2026-11-05.12">
+<meta name="peengo-version" content="2026-11-05.13">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Peengo">
@@ -331,6 +331,11 @@ body.intro-open .chat-fab{z-index:45;animation:fabPulse 1.4s ease-in-out infinit
 .ar-status{display:flex;flex-direction:column;border-left:4px solid var(--accent)}
 .ar-status.off{border-left-color:var(--grout)}
 .ar-status .st-line{font-family:var(--f-display);font-weight:400;font-size:20px}
+.motto{margin:2px 0 0;font-style:italic;font-size:13px;color:var(--ink);overflow-wrap:anywhere;line-height:1.35}
+.motto.bt{font-size:12px;color:var(--muted);margin:-2px 0 0;max-width:100%}
+.motto-edit{display:flex;gap:8px;margin-top:10px}
+.motto-edit input{flex:1;min-width:0;border:1px solid var(--grout);background:var(--tile);border-radius:10px;padding:10px 12px;font-size:16px}
+.motto-edit .primary{padding:10px 16px;font-size:15px}
 .ar-note{display:flex;gap:10px;align-items:center;justify-content:space-between;flex-wrap:wrap;background:var(--accent-soft);border-radius:14px;padding:10px 12px;font-weight:600;margin:0}
 .ar-help ul{margin:10px 0 0;padding-left:20px;display:flex;flex-direction:column;gap:7px;max-width:66ch}
 .deck{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:8px;margin-top:12px}
@@ -1025,10 +1030,10 @@ const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
 
   /* ---------- data ---------- */
   async function loadPlayers(){
-    const {data, error} = await S.sb.from('players_public').select('id,name,color,created_at,is_admin,arena_off');
+    const {data, error} = await S.sb.from('players_public').select('id,name,color,created_at,is_admin,arena_off,arena_motto');
     if (error) throw error;
     const p = {};
-    (data || []).forEach(r => { p[r.id] = {name:r.name, color:r.color, createdAt:Date.parse(r.created_at), admin:!!r.is_admin, off:!!r.arena_off}; });
+    (data || []).forEach(r => { p[r.id] = {name:r.name, color:r.color, createdAt:Date.parse(r.created_at), admin:!!r.is_admin, off:!!r.arena_off, motto:r.arena_motto || ''}; });
     S.profiles = p;
   }
   async function loadMarks(){
@@ -2384,7 +2389,9 @@ const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
     $('#arCoins').textContent = S.ar.coins;
     document.querySelectorAll('#arTabs [data-tab]').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.tab === S.arTab)));
     $('#arHelp').hidden = store.get('peengo.arenaHelp') === '1';
+    const ae = document.activeElement, keepFocus = ae && ae.id === 'mottoInput' ? [ae.selectionStart, ae.selectionEnd] : null;
     const body = $('#arBody'); body.textContent = '';
+    if (keepFocus) setTimeout(() => { const i = $('#mottoInput'); if (i){ i.focus(); try { i.setSelectionRange(keepFocus[0], keepFocus[1]); } catch(e){} } }, 0);
     if (S.ar.err) body.append(el('p', {class:'ro', style:'color:var(--warn)', text:S.ar.err}));
     if (!S.ar.loaded){
       body.append(el('section', {class:'card'}, [el('p', {class:'muted', style:'margin:0', text:S.ar.err ? 'Arena yüklenemedi. Biraz sonra tekrar dene.' : 'Arena yükleniyor…'})]));
@@ -2408,7 +2415,7 @@ const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
       return;
     }
     const mine = petsOf(me), deck = deckOf(me);
-    body.append(statusCard());
+    body.append(statusCard(), mottoCard());
     const slots = el('div', {class:'deck'});
     let thp = 0, tatk = 0;
     for (let i = 0; i < 5; i++){
@@ -2476,6 +2483,36 @@ const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
           : 'Ordun savaşa açık: herkes sana saldırabilir, sen de istediğine saldırabilirsin. İstemezsen inaktif yap.'})
     ]);
   }
+  /* Ordu sözü */
+  const mottoOf = pid => (S.profiles[pid] || {}).motto || '';
+  const mottoEl = (pid, cls) => mottoOf(pid) ? el('p', {class:'motto' + (cls ? ' ' + cls : ''), text:'“' + mottoOf(pid) + '”'}) : null;
+  function mottoCard(){
+    const cur = mottoOf(S.me);
+    const inp = el('input', {id:'mottoInput', maxlength:'80', autocomplete:'off', placeholder:'Örn. Kaybetmek isteyen saldırsın', 'aria-label':'Ordu sözü'});
+    inp.value = S.ar.mottoDraft != null ? S.ar.mottoDraft : cur;
+    const count = el('span', {class:'mono muted', style:'font-size:12px', text:inp.value.length + '/80'});
+    const save = btn('primary', S.ar.busy === 'motto' ? 'Kaydediliyor…' : 'Kaydet', () => saveMotto(inp.value), !!S.ar.busy || inp.value.trim() === cur);
+    inp.addEventListener('input', () => { S.ar.mottoDraft = inp.value; count.textContent = inp.value.length + '/80'; save.disabled = !!S.ar.busy || inp.value.trim() === cur; });
+    inp.addEventListener('keydown', ev => { if (ev.key === 'Enter' && !save.disabled){ ev.preventDefault(); saveMotto(inp.value); } });
+    return el('section', {class:'card'}, [
+      el('div', {class:'row between'}, [el('h2', {class:'h', text:'Ordu sözün'}), count]),
+      el('p', {class:'muted', style:'margin:6px 0 0;font-size:13px', text:'Rakiplerin Savaş sekmesinde ve savaş ekranında ordunun yanında görür. Bir cümle, en fazla 80 karakter.'}),
+      el('div', {class:'motto-edit'}, [inp, save])
+    ]);
+  }
+  async function saveMotto(text){
+    if (S.ar.busy) return;
+    S.ar.busy = 'motto'; renderArena();
+    try {
+      const r = await arenaCall('arena_motto', {p_text:text});
+      if (S.profiles[S.me]) S.profiles[S.me].motto = r.motto || '';
+      S.ar.mottoDraft = null;
+      toast(r.motto ? 'Ordu sözün kaydedildi.' : 'Ordu sözün silindi.');
+    } catch(e){}
+    S.ar.busy = false;
+    renderArena();
+  }
+
   async function toggleArena(off){
     if (S.ar.busy) return;
     S.ar.busy = 'toggle'; renderArena();
@@ -2636,6 +2673,7 @@ const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
       ]),
       S.ar.admin ? null : el('div', {style:'margin-top:12px'}, [
         el('p', {class:'eyebrow', text:'Senin ordun'}),
+        mottoEl(me),
         myDeck.length ? armyRow(myDeck, gm) : el('p', {class:'ro', style:'margin-top:6px', text:'Ordun boş. Önce Ordu sekmesinden en az 1 pet seç.'})
       ])
     ]));
@@ -2651,6 +2689,7 @@ const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
       ul.append(el('li', {class:'foe'}, [
         el('div', {style:'min-width:0;display:flex;flex-direction:column;gap:2px'}, [
           el('span', {class:'nm'}, [dotOf(f.pid), el('span', {text:nameOf(f.pid)})]),
+          mottoEl(f.pid),
           el('span', {class:'mono muted', style:'font-size:12px', text:f.off ? '⚪ Ordusu inaktif, saldırılamaz' : f.d.length ? f.d.length + ' pet · ❤ ' + f.hp + ' · ⚔ ' + f.atk : 'Ordusu yok, saldırılamaz'})
         ]),
         S.ar.admin ? el('span') : btn('attack' + (armed ? ' armed' : ''), S.ar.busy === f.pid ? 'Savaşılıyor…' : armed ? 'Eminim, saldır!' : f.off ? 'İnaktif' : 'Saldır', () => attackFoe(f.pid), !can),
@@ -2867,6 +2906,7 @@ const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
       const chips = teamOf(side).map(p => { const ch = el('i', {title:petName(p.t), text:PETS[p.t].e}); bench.append(ch); return ch; });
       col.append(
         el('div', {class:'bt-who'}, [dotOf(bt.owners[side]), el('span', {class:'n', text:btWho(side)}), el('span', {class:'bt-role', text:side === 0 ? 'Saldıran' : 'Savunan'})]),
+        mottoEl(bt.owners[side], 'bt'),
         art, pname, el('div', {class:'bt-hp'}, [el('div', {class:'bar'}, [bar]), hpTxt]), gear, bench
       );
       bt.cols[side] = {art, pname, bar, hpTxt, gear, chips, left};
