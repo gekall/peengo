@@ -899,28 +899,33 @@ end $$;
 --  * İstediğin oyuncuya saldırırsın (10 dk'da bir). Önce iki ordunun 1. petleri çarpışır,
 --    sırayla vururlar; ölen petin yerine sıradaki çıkar. Savaşı sunucu hesaplar, kayıt tutulur.
 --  * Kaybeden ordunun bütün petleri (üstlerindeki eşyalarla) kazananın envanterine geçer, kazanan +5 coin.
---  * Aynı seviyeden 2 pet birleşir: %70 bir üst seviye pet, %30 ikisi de gider.
+--  * Aynı seviyeden 2 pet birleşir: şans Sv 1'de %90, her seviyede %1 azalır; olmazsa ikisi de gider.
 --  * Her gün ilk girişte 10 coin. Market: kılıç (saldırı +%) ve zırh (can +%).
 
 alter table public.players add column if not exists coins int not null default 0;
 alter table public.players add column if not exists coin_day date;
 alter table public.players add column if not exists last_attack_at timestamptz;
 
--- Pet istatistikleri (13 seviye: 9 canavar + 4 boss). index.html'deki PET_HP / PET_ATK ile aynı olmalı.
+-- Pet istatistikleri (13 seviye: av döngüsünde 10, sadece birleştirmeyle 3). index.html'deki PET_HP / PET_ATK ile aynı olmalı.
 create or replace function public.pet_hp(t int) returns int language sql immutable as $$
   select (array[30,38,47,59,73,92,114,143,179,224,279,349,437])[t + 1] $$;
 create or replace function public.pet_atk(t int) returns int language sql immutable as $$
   select (array[8,10,12,15,18,23,28,36,45,56,70,87,109])[t + 1] $$;
--- Market eşyaları: k = kılıç (saldırı yüzdesi), z = zırh (can yüzdesi)
+-- Market eşyaları: k = kılıç (saldırı yüzdesi), z = zırh (can yüzdesi). İsimler index.html ITEMS içinde.
 create or replace function public.item_pct(c text) returns int language sql immutable as $$
   select case c when 'k1' then 20 when 'k2' then 40 when 'k3' then 70
                 when 'z1' then 20 when 'z2' then 40 when 'z3' then 70 else 0 end $$;
 create or replace function public.item_price(c text) returns int language sql immutable as $$
   select case c when 'k1' then 10 when 'k2' then 25 when 'k3' then 60
                 when 'z1' then 10 when 'z2' then 25 when 'z3' then 60 end $$;
--- Kaçıncı av hangi canavar: her 10. av boss (4 boss sırayla), diğerleri 9 canavar sırayla
+-- Kaçıncı av hangi pet: turun n. avı = Sv n (5. ve 10. boss). Sv 11-13 sadece birleştirmeyle. Ayrıntı: supabase-arena-v2.sql
 create or replace function public.mob_tier(p_no int, p_boss boolean) returns int language sql immutable as $$
-  select case when p_boss then 9 + ((p_no / 10 - 1) % 4) else (p_no - 1) % 10 end $$;
+  select (p_no - 1) % 10 $$;
+create table if not exists public.arena_meta (k text primary key, v text, at timestamptz not null default now());
+alter table public.arena_meta enable row level security;
+revoke all on public.arena_meta from anon, authenticated;
+-- Yeni kurulumda petler baştan yeni sırayla oluşur, v2'deki taşıma gerekmez
+insert into public.arena_meta (k, v) select 'tier_v2', 'yeni kurulum' where not exists (select 1 from public.pets);
 
 create table if not exists public.pets (
   id bigint generated always as identity primary key,
@@ -1072,7 +1077,7 @@ begin
   return v_n;
 end $$;
 
--- Birleştir: bu pet + aynı seviyeden bir tane daha. %70 bir üst seviye, %30 ikisi de gider.
+-- Birleştir: bu pet + aynı seviyeden bir tane daha. Şans %(90 - tier), olmazsa ikisi de gider.
 -- Eşi seçerken önce ordu dışındaki ve eşyasız petler kullanılır. Üstlerindeki eşyalar çantaya döner.
 create or replace function public.arena_merge(p_token uuid, p_pet bigint)
 returns json language plpgsql security definer set search_path = public as $$
@@ -1090,7 +1095,7 @@ begin
   if v_mate is null then raise exception 'Birleştirmek için aynı petten bir tane daha lazım.'; end if;
   select count(*) into v_items from items where pet_id in (p_pet, v_mate);
   delete from pets where id in (p_pet, v_mate);
-  v_ok := random() < 0.7;
+  v_ok := random() * 100 < 90 - v_tier;
   if v_ok then
     insert into pets (owner, tier, slot, src) values (v_pid, v_tier + 1, least(v_slot1, v_slot2), 'birlesim')
       returning id into v_new;
@@ -1233,3 +1238,106 @@ select 'arena hazir' as durum,
        (select string_agg(pp.name || ':' || c, ', ' order by c desc)
           from (select owner, count(*) c from public.pets group by owner) x
           join public.players pp on pp.id = x.owner) as kimde_kac_pet;
+
+
+-- ===================== ARENA v2 (supabase-arena-v2.sql) =====================
+-- Peengo Arena v2
+--  * Av döngüsü 10 canavar: her turun 5. ve 10. avı boss, 10 avdan sonra başa döner.
+--  * Sv 11-13 (Kanalizasyon Ejderi, Rögar Krakeni, Sifonların Efendisi) avda çıkmaz, sadece birleştirmeyle elde edilir.
+--  * Birleştirme şansı Sv 1'de %90, her seviyede %1 azalır (Sv 12 → 13: %79).
+-- Supabase > SQL Editor > New query: yapıştır ve Run'a bas. Tekrar çalıştırmak güvenlidir (seviye taşıma bir kere yapılır).
+--
+-- Seviye sırası (Sv = tier + 1):
+--   1 Kanalizasyon Faresi   2 Tuvalet Örümceği   3 Lavabo Mikrobu   4 Gider Yılanı   5 Rögar Kurbağası (BOSS)
+--   6 Sifon Yarasası        7 Klozet Yengeci     8 Fayans Hamamböceği   9 Tıkanık Hortlak   10 Kireç Golemi (BOSS)
+--   11 Kanalizasyon Ejderi  12 Rögar Krakeni     13 Sifonların Efendisi   (efsaneler, sadece birleştirme)
+
+create table if not exists public.arena_meta (k text primary key, v text, at timestamptz not null default now());
+alter table public.arena_meta enable row level security;
+revoke all on public.arena_meta from anon, authenticated;
+
+-- Kaçıncı av hangi pet: turun n. avı = Sv n
+create or replace function public.mob_tier(p_no int, p_boss boolean) returns int language sql immutable as $$
+  select (p_no - 1) % 10 $$;
+
+-- Var olan petleri ve savaş kayıtlarını yeni sıraya taşı (canavar aynı kalır, seviyesi değişir). Bir kere çalışır.
+do $$
+declare m int[] := array[0, 1, 2, 3, 5, 6, 7, 8, 4, 9, 10, 11, 12];
+begin
+  if not exists (select 1 from public.arena_meta where k = 'tier_v2') then
+    update public.pets set tier = m[tier + 1];
+    update public.battles b set
+      a_team = (select coalesce(jsonb_agg(jsonb_set(e, '{t}', to_jsonb(m[(e->>'t')::int + 1])) order by o), '[]'::jsonb)
+                  from jsonb_array_elements(b.a_team) with ordinality x(e, o)),
+      d_team = (select coalesce(jsonb_agg(jsonb_set(e, '{t}', to_jsonb(m[(e->>'t')::int + 1])) order by o), '[]'::jsonb)
+                  from jsonb_array_elements(b.d_team) with ordinality x(e, o));
+    insert into public.arena_meta (k, v) values ('tier_v2', 'tasindi');
+  end if;
+end $$;
+
+-- Canavar avı: her 5. av boss (2 dakika), diğerleri 1 dakika
+create or replace function public.hunt(p_token uuid)
+returns json language plpgsql security definer set search_path = public as $$
+declare
+  v_pid uuid; v_no int; v_boss boolean; v_cost int; v_have int; v_removed smallint[];
+begin
+  select player_id into v_pid from sessions where token = p_token;
+  if v_pid is null then raise exception 'Oturumun kapanmış. Tekrar giriş yap.'; end if;
+  perform pg_advisory_xact_lock(hashtext('hunt:' || v_pid::text));
+
+  select count(*) + 1 into v_no from hunts where player_id = v_pid;
+  v_boss := v_no % 5 = 0;
+  v_cost := case when v_boss then 2 else 1 end;
+
+  select count(*) into v_have from marks where player_id = v_pid;
+  if v_have < v_cost then
+    raise exception 'Bu canavar için duvarında en az % dakika olmalı. Biraz daha işe!', v_cost;
+  end if;
+
+  with pick as (
+    select minute from marks where player_id = v_pid order by random() limit v_cost
+  ), del as (
+    delete from marks m using pick
+     where m.player_id = v_pid and m.minute = pick.minute
+    returning m.minute
+  )
+  select array_agg(minute order by minute) into v_removed from del;
+
+  insert into hunts(player_id, mob_no, boss, removed) values (v_pid, v_no, v_boss, v_removed);
+  return json_build_object('mob_no', v_no, 'boss', v_boss, 'removed', v_removed, 'kills', v_no);
+end $$;
+
+-- Birleştir: şans Sv 1'de %90, her seviyede %1 azalır
+create or replace function public.arena_merge(p_token uuid, p_pet bigint)
+returns json language plpgsql security definer set search_path = public as $$
+declare v_pid uuid; v_tier int; v_slot1 smallint; v_mate bigint; v_slot2 smallint; v_items int; v_ok boolean; v_new bigint; v_chance int;
+begin
+  v_pid := arena_pid(p_token);
+  perform pg_advisory_xact_lock(hashtext('peengo-arena'));
+  select tier, slot into v_tier, v_slot1 from pets where id = p_pet and owner = v_pid;
+  if v_tier is null then raise exception 'Bu pet artık senin değil. Sayfayı yenile.'; end if;
+  if v_tier >= 12 then raise exception 'Sifonların Efendisi en üst seviye, daha fazla birleşmez.'; end if;
+  select p.id, p.slot into v_mate, v_slot2 from pets p
+   where p.owner = v_pid and p.tier = v_tier and p.id <> p_pet
+   order by (p.slot is not null), exists (select 1 from items i where i.pet_id = p.id), p.id
+   limit 1;
+  if v_mate is null then raise exception 'Birleştirmek için aynı petten bir tane daha lazım.'; end if;
+  select count(*) into v_items from items where pet_id in (p_pet, v_mate);
+  delete from pets where id in (p_pet, v_mate);
+  v_chance := 90 - v_tier;
+  v_ok := random() * 100 < v_chance;
+  if v_ok then
+    insert into pets (owner, tier, slot, src) values (v_pid, v_tier + 1, least(v_slot1, v_slot2), 'birlesim')
+      returning id into v_new;
+  end if;
+  return json_build_object('ok', v_ok, 'tier', v_tier, 'pet', v_new, 'items_back', v_items, 'chance', v_chance);
+end $$;
+
+revoke execute on function public.arena_merge(uuid, bigint) from public;
+grant execute on function public.arena_merge(uuid, bigint) to anon, authenticated;
+
+select 'arena v2 hazir' as durum,
+       (select v from public.arena_meta where k = 'tier_v2') as tasima,
+       (select string_agg('Sv' || (tier + 1) || ':' || c, ' ' order by tier) from (select tier, count(*) c from public.pets group by tier) x) as seviye_dagilimi,
+       (select count(*) from public.battles) as savas,
+       position('% 5 = 0' in pg_get_functiondef('public.hunt(uuid)'::regprocedure)) > 0 as av_5te_boss;
