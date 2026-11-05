@@ -6,7 +6,7 @@
 <title>Peengo</title>
 <meta name="description" content="Arkadaşlarınla günün 1440 dakikasını doldur.">
 <meta name="theme-color" content="#13262B">
-<meta name="peengo-version" content="2026-11-05.21">
+<meta name="peengo-version" content="2026-11-05.22">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Peengo">
@@ -400,6 +400,7 @@ body.intro-open .chat-fab{z-index:45;animation:fabPulse 1.4s ease-in-out infinit
 .chips{display:flex;flex-wrap:wrap;gap:6px}
 .chip{border:1px solid var(--grout);background:var(--tile);border-radius:999px;padding:6px 11px;font-weight:600;font-size:13px;color:var(--ink)}
 .chip.on{border-color:var(--accent);background:var(--accent-soft)}
+.ghost.armed{border-color:var(--warn);color:var(--warn)}
 .sheet-actions{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
 .merge-res{text-align:center;display:flex;flex-direction:column;align-items:center;gap:8px;padding:8px 0}
 .merge-res .em{font-size:72px;line-height:1;animation:pop .6s ease}
@@ -768,7 +769,7 @@ img{max-width:100%}
         <li>Av döngüsü 10 canavar: her turun <b>5. ve 10. avı boss</b>, sonra başa dönülür.</li>
         <li>Aynı petten 2 tane varsa <b>birleştir</b>: bir üst seviye pet çıkar. Şans Sv 1’de <b>%90</b>, her seviyede %1 azalır; efsanelere geçiş zor: Sv10→11 <b>%60</b>, Sv11→12 <b>%45</b>, Sv12→13 <b>%30</b>. Tutmazsa ikisi de gider.</li>
         <li><b>Sv 11–13 efsaneler</b> (🐉 Kanalizasyon Ejderi, 🦑 Rögar Krakeni, 👹 Sifonların Efendisi) avda çıkmaz, sadece birleştirmeyle elde edilir.</li>
-        <li>Her gün <b>10 🪙</b> gelir, savaş kazanınca <b>+5 🪙</b>. <b>Market</b>’ten kılıç ve zırh alıp petlerine giydir.</li>
+        <li>Her gün <b>10 🪙</b> gelir, savaş kazanınca <b>+5 🪙</b>. Fazla petlerini <b>satabilirsin</b> (Sv1–8 0,1 · Sv10 0,3 · Sv13 25 🪙). <b>Market</b>’ten kılıç ve zırh alıp petlerine giydir.</li>
       </ul>
     </section>
 
@@ -962,6 +963,9 @@ const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
     z3:{e:'🛡️', n:'Porselen Zırh', k:'z', pct:70, price:60}
   };
   const mobTier = no => (no - 1) % 10;
+  /* Pet satış fiyatı (coin). supabase-pet-sat.sql ile aynı. */
+  const PET_PRICE = [0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.2, 0.3, 1, 4, 25];
+  const fmtCoin = c => (Math.round((+c || 0) * 10) / 10).toLocaleString('tr-TR', {maximumFractionDigits:1});
   const kills = pid => (S.hunts[pid] || {}).count || 0;
   const titleOf = pid => { const k = kills(pid); for (const [n, t] of TITLES) if (k >= n) return t; return ''; };
 
@@ -2454,7 +2458,7 @@ const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
 
   function renderArena(){
     if ($('#pageArena').hidden) return;
-    $('#arCoins').textContent = S.ar.coins;
+    $('#arCoins').textContent = fmtCoin(S.ar.coins);
     document.querySelectorAll('#arTabs [data-tab]').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.tab === S.arTab)));
     $('#arHelp').hidden = store.get('peengo.arenaHelp') === '1';
     const ae = document.activeElement, keepFocus = ae && ae.id === 'mottoInput' ? [ae.selectionStart, ae.selectionEnd] : null;
@@ -2678,8 +2682,42 @@ const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
         btn('attack' + (armed ? ' armed' : ''), sh.busy ? 'Birleştiriliyor…' : armed ? 'Eminim, birleştir!' : 'Birleştir', () => mergePet(p.id), sh.busy || S.ar.busy)
       ]));
     }
+    // Satış
+    const price = PET_PRICE[p.tier];
+    const bulk = S.ar.pets.filter(x => x.owner === S.me && x.tier === p.tier && x.slot == null && !(gm[x.id] && (gm[x.id].k || gm[x.id].z)));
+    const sellArmed = sh.armed === 'sell', bulkArmed = sh.armed === 'bulk';
+    const sellBox = el('div', {class:'gear-row'}, [
+      el('p', {class:'eyebrow', text:'Sat'}),
+      el('p', {class:'muted', style:'margin:0;font-size:13px', text:'Bu pet ' + fmtCoin(price) + ' 🪙 eder.' + (p.slot != null ? ' Satarsan ordudan da çıkar.' : '') + ((gm[p.id] || {}).k || (gm[p.id] || {}).z ? ' Üstündeki eşyalar çantana döner.' : '')}),
+      el('div', {class:'sheet-actions'}, [
+        btn('ghost' + (sellArmed ? ' armed' : ''), sellArmed ? 'Eminim, sat (+' + fmtCoin(price) + ' 🪙)' : 'Bunu sat · ' + fmtCoin(price) + ' 🪙', () => sellPets([p.id], 'sell'), S.ar.busy),
+        bulk.length >= 2 ? btn('ghost' + (bulkArmed ? ' armed' : ''), bulkArmed ? 'Eminim, ' + bulk.length + ' tanesini sat' : 'Ordu dışındaki ' + bulk.length + ' tane ' + lvTxt(p.tier) + ' petini sat · ' + fmtCoin(price * bulk.length) + ' 🪙', () => sellPets(bulk.map(x => x.id), 'bulk'), S.ar.busy) : null
+      ])
+    ]);
+    card.append(sellBox);
     card.append(btn('ghost', 'Kapat', closePet));
     card.lastChild.style.alignSelf = 'center';
+  }
+  async function sellPets(ids, kind){
+    const sh = S.ar.sheet;
+    if (!sh || S.ar.busy || !ids.length) return;
+    if (sh.armed !== kind){
+      sh.armed = kind; renderSheet();
+      clearTimeout(sh.t); sh.t = setTimeout(() => { if (S.ar.sheet === sh && sh.armed === kind){ sh.armed = ''; renderSheet(); } }, 6000);
+      return;
+    }
+    sh.armed = ''; S.ar.busy = 'sell'; renderSheet();
+    try {
+      const r = await arenaCall('arena_sell', {p_pets:ids});
+      S.ar.coins = r.coins;
+      const gone = new Set(ids);
+      S.ar.pets = S.ar.pets.filter(x => !gone.has(x.id));
+      toast(r.sold + ' pet satıldı, +' + fmtCoin(r.gained) + ' 🪙.' + (r.items_back ? ' Eşyalar çantana döndü.' : ''));
+      if (gone.has(sh.id)) closePet();
+    } catch(e){}
+    S.ar.busy = false;
+    renderSheet(); renderArena();
+    await loadArena();
   }
   async function setDeck(ids){
     if (S.ar.busy) return;
@@ -2816,8 +2854,9 @@ const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
       ]));
     });
     body.append(el('section', {class:'card'}, [
-      el('div', {class:'row between'}, [el('h2', {class:'h', text:'Market'}), el('span', {class:'coin'}, [el('span', {'aria-hidden':'true', text:'🪙'}), el('b', {text:String(S.ar.coins)})])]),
-      el('p', {class:'muted', style:'margin:6px 0 0;font-size:13px;max-width:62ch', text:'Her gün ilk girişinde 10 🪙 gelir, savaş kazanınca +5 🪙. Kılıç petin saldırısını, zırh canını yüzde olarak artırır. Bir pet aynı anda 1 kılıç + 1 zırh giyer.'}),
+      el('div', {class:'row between'}, [el('h2', {class:'h', text:'Market'}), el('span', {class:'coin'}, [el('span', {'aria-hidden':'true', text:'🪙'}), el('b', {text:fmtCoin(S.ar.coins)})])]),
+      el('p', {class:'muted', style:'margin:6px 0 0;font-size:13px;max-width:62ch', text:'Her gün ilk girişinde 10 🪙 gelir, savaş kazanınca +5 🪙. Petlerini de satabilirsin: Ordu sekmesinde pete dokun. Kılıç petin saldırısını, zırh canını yüzde olarak artırır. Bir pet aynı anda 1 kılıç + 1 zırh giyer.'}),
+      el('p', {class:'mono muted', style:'margin:6px 0 0;font-size:12px', text:'Pet satış fiyatı: Sv1–8 0,1 · Sv9 0,2 · Sv10 0,3 · Sv11 1 · Sv12 4 · Sv13 25 🪙'}),
       shop
     ]));
     const mine = S.ar.items.filter(i => i.owner === S.me);
