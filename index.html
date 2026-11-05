@@ -6,7 +6,7 @@
 <title>Peengo</title>
 <meta name="description" content="Arkadaşlarınla günün 1440 dakikasını doldur.">
 <meta name="theme-color" content="#13262B">
-<meta name="peengo-version" content="2026-11-05.15">
+<meta name="peengo-version" content="2026-11-05.16">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Peengo">
@@ -208,7 +208,7 @@ button{cursor:pointer}
 .adm-list{list-style:none;margin:12px 0 0;padding:0;display:flex;flex-direction:column;gap:8px}
 .adm-row{border:1px solid var(--grout);border-radius:12px;padding:10px 12px;display:flex;flex-direction:column;gap:8px}
 .adm-head{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
-.adm-head .nm{font-weight:700;display:flex;align-items:center;gap:8px;min-width:0;flex:1}
+.adm-head .nm{font-weight:700;display:flex;align-items:center;gap:8px;min-width:0;flex:1 1 170px}
 .adm-head .nm span:last-child{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .adm-edit{display:flex;gap:8px}
 .adm-edit input{flex:1;min-width:0;border:1px solid var(--grout);background:var(--tile);border-radius:10px;padding:8px 10px;font-size:16px}
@@ -499,6 +499,19 @@ img{max-width:100%}
       <p class="muted" style="margin:0;font-size:13px">Değiştirirsen bundan sonra yeni isminle giriş yaparsın. Şifren ve rengin aynı kalır, dakikaların ve avların kaybolmaz.</p>
       <p class="err" id="renameErr"></p>
       <button class="primary" type="submit" id="renameBtn">Kaydet</button>
+    </form>
+    <form class="form" id="passForm" style="border-top:1px solid var(--grout);padding-top:16px">
+      <h3 class="h" style="font-size:18px">Şifreni değiştir</h3>
+      <div class="field">
+        <label for="passOld">Şu anki şifren</label>
+        <input id="passOld" type="password" autocomplete="current-password">
+      </div>
+      <div class="field">
+        <label for="passNew">Yeni şifre</label>
+        <input id="passNew" type="password" autocomplete="new-password" placeholder="En az 4 karakter">
+      </div>
+      <p class="err" id="passErr"></p>
+      <button class="primary" type="submit" id="passBtn">Şifreyi değiştir</button>
     </form>
   </section>
 
@@ -1556,13 +1569,32 @@ const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
       bRen.onclick = () => { S.admOpen[pid] = open === 'name' ? null : 'name'; S.admFocus = S.admOpen[pid] ? pid : null; $('#admErr').textContent = ''; renderAdmPlayers(); };
       bMin.onclick = () => { S.admOpen[pid] = open === 'mins' ? null : 'mins'; $('#admErr').textContent = ''; renderAdmPlayers(); };
       const canDelete = !p.admin && pid !== S.me;
+      const bPw = !p.admin ? el('button', {type:'button', class:'ghost', text: open === 'pass' ? 'Vazgeç' : 'Şifre'}) : null;
+      if (bPw) bPw.onclick = () => { S.admOpen[pid] = open === 'pass' ? null : 'pass'; S.admFocus = S.admOpen[pid] ? pid : null; $('#admErr').textContent = ''; renderAdmPlayers(); };
       const bDel = canDelete ? el('button', {type:'button', class:'ghost adm-del', text: open === 'del' ? 'Vazgeç' : 'Hesabı sil'}) : null;
       if (bDel) bDel.onclick = () => { S.admOpen[pid] = open === 'del' ? null : 'del'; $('#admErr').textContent = ''; renderAdmPlayers(); };
       const li = el('li', {class:'adm-row'}, [el('div', {class:'adm-head'}, [
         el('span', {class:'nm'}, [el('span', {class:'dot', style:'background:' + colorOf(pid)}), el('span', {text: p.name + (p.admin ? ' 🛡️' : dailyTag(pid))})]),
         el('span', {class:'mono muted', style:'font-size:12px', text: mins.length + ' dk'}),
-        bRen, bMin, bDel
+        bRen, bPw, bMin, bDel
       ])]);
+      if (open === 'pass' && bPw){
+        const inp = el('input', {maxlength:'72', autocomplete:'off', autocapitalize:'off', spellcheck:'false', placeholder:'Yeni şifre (en az 4 karakter)', 'aria-label': p.name + ' için yeni şifre'});
+        const save = el('button', {type:'button', class:'primary', style:'padding:8px 14px;font-size:14px', text:'Kaydet'});
+        save.onclick = async () => {
+          save.disabled = true; $('#admErr').textContent = '';
+          try {
+            const r = await rpc('admin_set_password', {p_token:S.token, p_player:pid, p_pass:inp.value});
+            S.admOpen[pid] = null; inp.blur();
+            toast(r.name + ' için yeni şifre kaydedildi. Ona söyleyebilirsin; giriş yapınca profilinden kendi şifresini koyabilir.');
+            renderAdmPlayers();
+          } catch(e){ $('#admErr').textContent = errText(e); save.disabled = false; }
+        };
+        inp.addEventListener('keydown', ev => { if (ev.key === 'Enter') save.click(); });
+        li.append(el('div', {class:'adm-edit'}, [inp, save]),
+          el('p', {class:'muted', style:'margin:0;font-size:12px', text:'Eski şifre görülemez, sadece yenisi konur. Açık oturumları kapanmaz.'}));
+        if (S.admFocus === pid){ S.admFocus = null; setTimeout(() => inp.focus(), 0); }
+      }
       if (open === 'del' && canDelete){
         const msgCount = S.msgs.filter(x => x.player_id === pid).length;
         const kills0 = kills(pid);
@@ -3042,6 +3074,20 @@ const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
   $('#meEdit').onclick = openProfile;
   $('#profClose').onclick = () => { $('#profilePanel').hidden = true; };
   $('#renameForm').addEventListener('submit', doRename);
+  $('#passForm').addEventListener('submit', async ev => {
+    ev.preventDefault();
+    const err = $('#passErr'), btn = $('#passBtn');
+    const oldPw = $('#passOld').value, newPw = $('#passNew').value;
+    if (!oldPw){ err.textContent = 'Şu anki şifreni yaz.'; return; }
+    if (newPw.length < 4){ err.textContent = 'Yeni şifre en az 4 karakter olmalı.'; return; }
+    btn.disabled = true; err.textContent = '';
+    try {
+      await rpc('change_password', {p_token:S.token, p_old:oldPw, p_new:newPw});
+      $('#passOld').value = ''; $('#passNew').value = '';
+      toast('Şifren değişti. Bundan sonra yeni şifrenle giriş yaparsın.');
+    } catch(e){ err.textContent = errText(e); }
+    finally { btn.disabled = false; }
+  });
   $('#chatFab').onclick = () => openChat(!S.chatOpen);
   $('#chatClose').onclick = () => openChat(false);
   $('#chatForm').addEventListener('submit', sendChat);
