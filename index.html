@@ -6,7 +6,7 @@
 <title>Peengo</title>
 <meta name="description" content="Arkadaşlarınla günün 1440 dakikasını doldur.">
 <meta name="theme-color" content="#13262B">
-<meta name="peengo-version" content="2026-11-05.4">
+<meta name="peengo-version" content="2026-11-05.5">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Peengo">
@@ -158,6 +158,13 @@ button{cursor:pointer}
 @keyframes blink{50%{outline-color:transparent}}
 .legend{display:flex;flex-wrap:wrap;gap:6px 14px;margin-top:12px;font-size:13px;color:var(--muted)}
 .legend span{display:inline-flex;align-items:center;gap:6px}
+.legend .lg-btn{border:1px solid transparent;background:transparent;border-radius:999px;padding:3px 8px 3px 6px;display:inline-flex;align-items:center;gap:6px;color:var(--muted);font-size:13px}
+.legend .lg-btn:hover{color:var(--ink);background:var(--tile)}
+.legend .lg-btn[aria-pressed="true"]{color:var(--ink);background:var(--tile);border-color:var(--ink);font-weight:700}
+.view-tools{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.pick{border:1px solid var(--grout);background:var(--tile);color:var(--ink);border-radius:999px;padding:6px 10px;font-weight:700;font-size:13px;max-width:180px}
+.pick.on{border-color:var(--ink);background:var(--surface)}
+.view-note{margin:8px 0 0;font-size:13px;font-weight:600;display:flex;align-items:center;gap:6px}
 
 /* hour zoom */
 .dg{display:grid;grid-template-columns:repeat(10,minmax(0,1fr));gap:5px;margin-top:12px}
@@ -497,12 +504,16 @@ img{max-width:100%}
     <section class="card">
       <div class="row between">
         <h2 class="h">Dakika duvarı</h2>
-        <div class="seg" role="group" aria-label="Görünüm">
-          <button type="button" id="modeAll" aria-pressed="true">Ortak</button>
-          <button type="button" id="modeMe" aria-pressed="false">Benim</button>
+        <div class="view-tools">
+          <div class="seg" role="group" aria-label="Görünüm">
+            <button type="button" id="modeAll" aria-pressed="true">Ortak</button>
+            <button type="button" id="modeMe" aria-pressed="false">Benim</button>
+          </div>
+          <select class="pick" id="modePick" aria-label="Bir oyuncunun duvarını gör"><option value="">Oyuncu seç…</option></select>
         </div>
       </div>
-      <p class="muted" style="margin:6px 0 0">Her satır bir saat, her kare bir dakika. Aynı dakikayı birden fazla kişi doldurduysa o kare simsiyah olur. Bir kareye dokun, o saati büyüt.</p>
+      <p class="muted" style="margin:6px 0 0">Her satır bir saat, her kare bir dakika. Aynı dakikayı birden fazla kişi doldurduysa o kare simsiyah olur. Bir kareye dokun, o saati büyüt. Birinin duvarını görmek için aşağıdaki ismine dokun ya da yukarıdan seç.</p>
+      <p class="view-note" id="viewNote" hidden></p>
       <div class="gridbox"><div class="grid" id="grid" role="grid" aria-label="24 saat 60 dakika duvarı"></div></div>
       <div class="legend" id="legend"></div>
     </section>
@@ -1574,6 +1585,17 @@ const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
   });
   const dayKey = ms => { const d = new Date(ms); return d.getFullYear() + '-' + (d.getMonth() + 1) + '-' + d.getDate(); };
 
+  /* Duvar görünümü: 'all' ortak, 'me' benim, ya da bir oyuncunun id'si */
+  function viewWho(me){
+    if (S.mode === 'all') return null;
+    if (S.mode === 'me') return me;
+    if (!S.profiles[S.mode] || S.profiles[S.mode].admin){ S.mode = 'all'; return null; }
+    return S.mode;
+  }
+  function setMode(m){
+    S.mode = (S.mode === m) ? 'all' : m;
+    render();
+  }
   function render(){
     if (!$('#auth').hidden) renderAuth();
     if ($('#game').hidden) return;
@@ -1596,9 +1618,10 @@ const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
     $('#allPct').textContent = (1440 - D.union) === 0 ? 'Bütün dakikalar dolu. PEENGO!' : 'Kimsenin olmadığı ' + (1440 - D.union) + ' dakika var';
 
     const t0 = nowT();
+    const who = viewWho(me);
     for (let t = 0; t < 1440; t++){
       let list = D.owners[t];
-      if (S.mode === 'me') list = list.filter(p => p === me);
+      if (who) list = list.filter(p => p === who);
       const c = cells[t];
       c.style.background = list.length ? paint(list) : '';
       c.title = fmt(t) + ' · ' + (D.owners[t].length ? D.owners[t].map(nameOf).join(', ') : 'boş');
@@ -1608,20 +1631,44 @@ const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
     const selH = S.selHour ?? Math.floor(t0 / 60);
     hourLabels.forEach((hl, h) => hl.classList.toggle('sel', h === selH));
     $('#modeAll').setAttribute('aria-pressed', S.mode === 'all');
-    $('#modeMe').setAttribute('aria-pressed', S.mode === 'me');
+    $('#modeMe').setAttribute('aria-pressed', S.mode === 'me' || who === me);
     const lg = $('#legend'); lg.textContent = '';
     const pids = Object.keys(S.profiles).filter(p => !S.profiles[p].admin).sort((a, b) => S.profiles[a].createdAt - S.profiles[b].createdAt);
-    pids.forEach(pid => lg.append(el('span', null, [el('span', {class:'dot', style:'background:' + colorOf(pid)}), document.createTextNode(nameOf(pid) + dailyTag(pid))])));
+    pids.forEach(pid => {
+      const b = el('button', {type:'button', class:'lg-btn', 'aria-pressed': String(who === pid), title: nameOf(pid) + ' duvarını göster'},
+        [el('span', {class:'dot', style:'background:' + colorOf(pid)}), document.createTextNode(nameOf(pid) + dailyTag(pid))]);
+      b.onclick = () => setMode(pid === me ? 'me' : pid);
+      lg.append(b);
+    });
+    // oyuncu seçici
+    const pick = $('#modePick');
+    const others = pids.filter(p => p !== me).sort((a, b) => nameOf(a).localeCompare(nameOf(b), 'tr'));
+    const key = others.map(p => p + ':' + nameOf(p)).join('|');
+    if (pick.dataset.key !== key){
+      pick.textContent = '';
+      pick.append(el('option', {value:'', text:'Oyuncu seç…'}));
+      others.forEach(p => pick.append(el('option', {value:p, text:nameOf(p)})));
+      pick.dataset.key = key;
+    }
+    pick.value = (who && who !== me) ? who : '';
+    pick.classList.toggle('on', !!(who && who !== me));
+    const note = $('#viewNote');
+    if (who){
+      note.hidden = false; note.textContent = '';
+      const cnt = D.counts[who] || 0;
+      note.append(el('span', {class:'dot', style:'background:' + colorOf(who)}),
+        document.createTextNode((who === me ? 'Senin duvarın' : nameOf(who) + ' duvarı') + ' · ' + cnt + '/1440 dakika' + (S.dailyOk ? ' · günlük ' + daily(who) : '')));
+    } else note.hidden = true;
     if (pids.length > 1){
       lg.append(el('span', null, [el('span', {class:'dot multi', style:'background:' + MULTI}), document.createTextNode('2+ kişi aynı dakikada')]));
     }
 
-    $('#zoomTitle').textContent = pad(selH) + ':00 saati';
+    $('#zoomTitle').textContent = pad(selH) + ':00 saati' + (who && who !== me ? ' · ' + nameOf(who) : '');
     let filled = 0;
     for (let m = 0; m < 60; m++){
       const t = selH * 60 + m;
       let list = D.owners[t];
-      if (S.mode === 'me') list = list.filter(p => p === me);
+      if (who) list = list.filter(p => p === who);
       const b = tiles[m];
       if (list.length){ filled++; const hx = paint(list); b.style.background = hx; b.style.color = onColor(hx); b.classList.add('f'); }
       else { b.style.background = ''; b.style.color = ''; b.classList.remove('f'); }
@@ -1903,6 +1950,7 @@ const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
   $('#huntCancel').onclick = () => armHunt(false);
   $('#modeAll').onclick = () => { S.mode = 'all'; render(); };
   $('#modeMe').onclick = () => { S.mode = 'me'; render(); };
+  $('#modePick').addEventListener('change', ev => { S.mode = ev.target.value || 'all'; render(); });
   $('#logout').onclick = async () => { const tk = S.token; await pushDetach(tk); logoutLocal(); if (tk) rpc('logout', {p_token:tk}).catch(() => {}); };
   $('#pushOn').onclick = pushEnable;
   $('#pushOff').onclick = pushDisable;
