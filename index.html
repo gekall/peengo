@@ -6,7 +6,7 @@
 <title>Peengo</title>
 <meta name="description" content="Arkadaşlarınla günün 1440 dakikasını doldur.">
 <meta name="theme-color" content="#13262B">
-<meta name="peengo-version" content="2026-11-05.18">
+<meta name="peengo-version" content="2026-11-05.19">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Peengo">
@@ -766,7 +766,7 @@ img{max-width:100%}
         <li>Savaşmak istemiyorsan ordunu <b>6 saatliğine inaktif</b> yap: kimse sana saldıramaz, sen de saldıramazsın. Süre bitmeden “Süreyi uzat”a basarsan 6 saat baştan başlar. Saldırdıktan sonraki 1 saat içinde inaktife geçilemez.</li>
         <li><b>Savaş</b> sekmesinden istediğine saldır. Petler sırayla vuruşur; <b>kaybeden ordunun bütün petleri kazanana geçer.</b></li>
         <li>Av döngüsü 10 canavar: her turun <b>5. ve 10. avı boss</b>, sonra başa dönülür.</li>
-        <li>Aynı petten 2 tane varsa <b>birleştir</b>: bir üst seviye pet çıkar. Şans Sv 1’de <b>%90</b>, her seviyede %1 azalır; tutmazsa ikisi de gider.</li>
+        <li>Aynı petten 2 tane varsa <b>birleştir</b>: bir üst seviye pet çıkar. Şans Sv 1’de <b>%90</b>, her seviyede %1 azalır; efsanelere geçiş zor: Sv10→11 <b>%60</b>, Sv11→12 <b>%45</b>, Sv12→13 <b>%30</b>. Tutmazsa ikisi de gider.</li>
         <li><b>Sv 11–13 efsaneler</b> (🐉 Kanalizasyon Ejderi, 🦑 Rögar Krakeni, 👹 Sifonların Efendisi) avda çıkmaz, sadece birleştirmeyle elde edilir.</li>
         <li>Her gün <b>10 🪙</b> gelir, savaş kazanınca <b>+5 🪙</b>. <b>Market</b>’ten kılıç ve zırh alıp petlerine giydir.</li>
       </ul>
@@ -1157,7 +1157,7 @@ const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
     if (!S.loaded){ show('#boot'); return; }
     if (S.me && S.profiles[S.me]){
       show('#game'); $('#meChip').hidden = false; $('#chatFab').hidden = false; $('#pages').hidden = false; pushRefresh(false);
-      if (S.arInit !== S.me){ S.arInit = S.me; arenaState(); }
+      if (S.arInit !== S.me){ S.arInit = S.me; arenaState(); tapStatus(); }
     }
     else { show('#auth'); $('#meChip').hidden = true; $('#leaders').hidden = true; $('#chatFab').hidden = true; $('#pages').hidden = true; openChat(false); }
     syncPage();
@@ -1797,7 +1797,7 @@ const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
 
   function logoutLocal(){
     closeBattle(); closePet();
-    S.ar = freshAr(); S.arInit = null;
+    S.ar = freshAr(); S.arInit = null; S.tapUsed = 0; S.tapLimit = null; S.tap = null;
     S.token = null; S.me = null; S.coolUntil = 0; S.isAdmin = false; store.set('peengo.token', null);
     S.authTab = 'login'; $('#profilePanel').hidden = true; route();
   }
@@ -2115,7 +2115,7 @@ const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
     $('#mobName').textContent = mob.n;
     const need = tapNeed(n);
     $('#mobCost').textContent = mob.cost + ' dk ya da ' + need + ' vuruş';
-    $('#mobNote').textContent = 'Kesmek için ya duvarından rastgele ' + mob.cost + ' dakika ver (Saldır) ya da 👊 butonuna ' + need + ' kere vur. Uygulama açıkken saniyede 2 kez kendiliğinden vurulur. Kestiğin canavar Arena’da petin olur.';
+    $('#mobNote').textContent = 'Kesmek için ya duvarından rastgele ' + mob.cost + ' dakika ver (Saldır) ya da 👊 butonuna ' + need + ' kere vur. Uygulama açıkken saniyede 1 kez kendiliğinden vurulur. Yumrukla günde en fazla ' + (S.tapLimit || 40) + ' canavar kesilir' + (S.tapLimit != null ? ' (bugün ' + S.tapUsed + '/' + S.tapLimit + ')' : '') + '; dakikayla kesmek sınırsız. Kestiğin canavar Arena’da petin olur.';
     renderTap();
     const btn = $('#huntBtn');
     const enough = my >= mob.cost;
@@ -2185,18 +2185,30 @@ const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
 
   /* Yumrukla av: canavar 40, boss 80 vuruş. Süreyi sunucu da tutar (hile koruması). */
   const tapNeed = n => n % 5 === 0 ? 80 : 40;
+  const tapLimitHit = () => S.tapLimit != null && S.tapUsed >= S.tapLimit;
+  const LIMIT_RE = /Bugünlük yumruk hakkın bitti/;
+  async function tapStatus(){
+    if (!S.token || !S.me) return;
+    try {
+      const r = await rpc('hunt_tap_status', {p_token:S.token});
+      S.tapUsed = r.used; S.tapLimit = r.limit; S.tapDay = todayKey();
+      if (!$('#game').hidden) render();
+    } catch(e){}
+  }
+  function todayKey(){ const d = new Date(Date.now() + (S.skew || 0)); return d.getFullYear() + '-' + d.getMonth() + '-' + d.getDate(); }
   function renderTap(){
     if (!S.me) return;
     const n = kills(S.me) + 1, need = tapNeed(n), mob = mobFor(n);
     const tp = S.tap && S.tap.mob === n ? S.tap : null;
     const done = Math.min(tp ? tp.n : 0, need);
     const tb = $('#tapBtn');
-    tb.disabled = S.huntBusy || !!(tp && tp.wait);
-    tb.textContent = tp && tp.wait ? '⏳ Düşüyor…' : '👊 Vur · ' + done + '/' + need;
+    const capped = tapLimitHit() && !(tp && tp.wait);
+    tb.disabled = S.huntBusy || !!(tp && tp.wait) || capped;
+    tb.textContent = capped ? '👊 Bugünlük bitti · ' + S.tapUsed + '/' + S.tapLimit : tp && tp.wait ? '⏳ Düşüyor…' : '👊 Vur · ' + done + '/' + need;
     $('#mobBar').style.maxWidth = Math.round((mob.boss ? 220 : 110) * (1 - done / need)) + 'px';
   }
   function tapHit(auto){
-    if (!S.me || S.huntBusy) return;
+    if (!S.me || S.huntBusy || tapLimitHit()) return;
     auto = auto === true;
     const n = kills(S.me) + 1;
     if (!S.tap || S.tap.mob !== n) S.tap = {mob:n, n:0, need:tapNeed(n), started:false, done:false, wait:false, manual:false};
@@ -2206,8 +2218,9 @@ const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
     if (!auto) t.manual = true;
     if (!t.started){
       t.started = true;
-      rpc('hunt_tap_start', {p_token:S.token}).catch(e => {
-        if (S.tap === t){ S.tap = null; $('#huntMsg').textContent = errText(e); $('#huntMsg').dataset.keep = '1'; renderTap(); }
+      rpc('hunt_tap_start', {p_token:S.token}).then(r => { if (r && r.limit != null){ S.tapUsed = r.used; S.tapLimit = r.limit; } }).catch(e => {
+        if (LIMIT_RE.test(errText(e))) S.tapUsed = S.tapLimit = S.tapLimit || 40;
+        if (S.tap === t){ S.tap = null; $('#huntMsg').textContent = errText(e); $('#huntMsg').dataset.keep = '1'; render(); }
       });
     }
     if (!$('#pageMain').hidden){ const m = $('#mob'); m.classList.remove('tap'); void m.offsetWidth; m.classList.add('tap'); }
@@ -2215,9 +2228,10 @@ const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
     if (t.n >= t.need){ t.done = true; finishTap(t); }
     renderTap();
   }
-  /* Uygulama açık ve ekrandayken saniyede 2 otomatik vuruş */
+  /* Uygulama açık ve ekrandayken saniyede 1 otomatik vuruş (günlük yumruk hakkı bitene kadar) */
   function autoTap(){
-    if (!S.loaded || !S.me || !S.token || S.huntBusy || document.visibilityState !== 'visible') return;
+    if (!S.loaded || !S.me || !S.token || S.huntBusy || document.visibilityState !== 'visible' || tapLimitHit()) return;
+    if (S.tapDay && S.tapDay !== todayKey()){ S.tapDay = todayKey(); tapStatus(); }
     if ($('#game').hidden || (S.profiles[S.me] || {}).admin) return;
     tapHit(true);
   }
@@ -2230,12 +2244,17 @@ const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
     try {
       const r = await rpc('hunt_tap', {p_token:S.token});
       S.tap = null;
+      if (r.limit != null){ S.tapUsed = r.used; S.tapLimit = r.limit; }
       onKilled(r, mob, !t.manual);
     } catch(e){
       const msg = errText(e), m = /Çok hızlı.*?(\d+) sn/.exec(msg);
       $('#huntMsg').textContent = msg; $('#huntMsg').dataset.keep = '1';
       if (m && S.tap === t) retry = (+m[1]) * 1000 + 300;
-      else { S.tap = null; if (/Oturumun kapanmış/.test(e && e.message || '')) logoutLocal(); }
+      else {
+        S.tap = null;
+        if (LIMIT_RE.test(msg)) S.tapUsed = S.tapLimit = S.tapLimit || 40;
+        if (/Oturumun kapanmış/.test(e && e.message || '')) logoutLocal();
+      }
     }
     S.huntBusy = false;
     render();
@@ -2305,7 +2324,7 @@ const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
   const isBoss = t => !!PETS[t].boss;
   const isLegend = t => !!PETS[t].legend;
   const rankCls = t => isLegend(t) ? ' efs' : isBoss(t) ? ' boss' : '';
-  const mergeChance = t => 90 - t;
+  const mergeChance = t => t === 9 ? 60 : t === 10 ? 45 : t === 11 ? 30 : 90 - t;
   const lvTxt = t => 'Sv ' + (t + 1);
   const petName = t => PETS[t].n;
   const boost = (base, code) => Math.round(base * (100 + (code ? ITEMS[code].pct : 0)) / 100);
@@ -3051,7 +3070,7 @@ const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
   $('#undoBtn').onclick = undo;
   $('#huntBtn').onclick = attack;
   $('#tapBtn').onclick = () => tapHit(false);
-  setInterval(autoTap, 500);
+  setInterval(autoTap, 1000);
   $('#huntCancel').onclick = () => armHunt(false);
   $('#modeAll').onclick = () => { S.mode = 'all'; render(); };
   $('#modeMe').onclick = () => { S.mode = 'me'; render(); };
@@ -3079,6 +3098,7 @@ const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
   document.addEventListener('visibilitychange', () => {
     if (document.visibilityState !== 'visible' || !S.loaded || !S.me) return;
     if (S.page === 'arena') loadArena(); else arenaState();
+    tapStatus();
   });
   document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible' && S.loaded) refreshAll(); });
 
