@@ -6,7 +6,7 @@
 <title>Peengo</title>
 <meta name="description" content="Arkadaşlarınla günün 1440 dakikasını doldur.">
 <meta name="theme-color" content="#13262B">
-<meta name="peengo-version" content="2026-11-05.23">
+<meta name="peengo-version" content="2026-11-06.1">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Peengo">
@@ -227,8 +227,8 @@ button{cursor:pointer}
 .adm-confirm p{margin:0;font-size:13px;max-width:60ch}
 .adm-danger{border:0;background:var(--warn);color:var(--surface);border-radius:10px;padding:10px 14px;font-weight:700;align-self:flex-start}
 .adm-danger:disabled{opacity:.5}
-/* hunt */
-.leaders{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+/* lider */
+.leaders{display:grid;grid-template-columns:1fr;gap:12px}
 .crown{display:flex;align-items:center;gap:12px;background:var(--surface);border:1px solid var(--grout);border-radius:16px;padding:12px 14px;min-width:0}
 .crown .cr{font-size:28px;line-height:1;flex:none}
 .lead-body{display:flex;flex-direction:column;gap:2px;min-width:0}
@@ -236,32 +236,7 @@ button{cursor:pointer}
 .crown .who span:last-child{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .crown .who.none{font-weight:500;color:var(--muted);font-size:14px}
 .crown .kc{font-family:var(--f-mono);font-size:13px;color:var(--muted);white-space:nowrap}
-@media (max-width:420px){.crown{flex-direction:column;align-items:flex-start;gap:6px;padding:10px 12px}.crown .cr{font-size:22px}}
-.mob{display:grid;grid-template-columns:auto 1fr;gap:16px;align-items:center;margin-top:14px}
-.mob-art{width:96px;height:96px;border-radius:20px;background:var(--tile);border:2px solid var(--grout);display:grid;place-items:center;font-size:54px;line-height:1;position:relative}
-.mob.boss .mob-art{border-color:var(--warn);box-shadow:0 0 0 4px var(--surface),0 0 0 6px var(--warn)}
-.mob-tag{position:absolute;top:-10px;left:50%;transform:translateX(-50%);background:var(--warn);color:var(--surface);font-family:var(--f-display);font-size:12px;letter-spacing:.08em;padding:1px 8px;border-radius:999px}
-.mob-info{display:flex;flex-direction:column;gap:6px;min-width:0}
-.mob-name{font-family:var(--f-display);font-size:22px;line-height:1.1}
-.hp{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--muted)}
-.hp .hb{flex:1;max-width:220px;height:10px;border-radius:999px;background:var(--warn);opacity:.85}
-.mob.hit .mob-art{animation:shake .45s ease}
-.mob.dead .mob-art{animation:poof .6s ease forwards}
-@keyframes shake{20%{transform:translateX(-6px) rotate(-4deg)}40%{transform:translateX(6px) rotate(4deg)}60%{transform:translateX(-4px)}80%{transform:translateX(4px)}}
-@keyframes poof{0%{transform:scale(1)}40%{transform:scale(1.15);filter:brightness(1.6)}100%{transform:scale(.6);opacity:0}}
-.hunt-actions{display:flex;flex-wrap:wrap;gap:10px;margin-top:14px;align-items:center}
-.attack{border:0;background:var(--warn);color:var(--surface);border-radius:12px;padding:12px 18px;font-weight:700;font-size:16px}
-.attack.armed{box-shadow:0 0 0 3px var(--surface),0 0 0 5px var(--warn)}
-.attack:disabled{opacity:.5;cursor:not-allowed}
-.tapbtn{border:2px solid var(--warn);background:var(--surface);color:var(--warn);border-radius:12px;padding:10px 16px;font-weight:700;font-size:16px;touch-action:manipulation;user-select:none;-webkit-user-select:none;-webkit-tap-highlight-color:transparent;font-variant-numeric:tabular-nums;min-width:150px;transition:transform .06s ease}
-.tapbtn:active{transform:scale(.94)}
-.tapbtn:disabled{opacity:.5;cursor:not-allowed}
-.mob.tap .mob-art{animation:tapHit .14s ease}
-@keyframes tapHit{50%{transform:scale(.9) rotate(-4deg)}}
-.hp .hb{transition:max-width .12s linear}
-.next-reward{margin:10px 0 0;font-size:14px}
-.hunt-lb{margin-top:16px}
-.title-chip{font-size:11px;font-weight:700;letter-spacing:.04em;color:var(--accent);margin-left:6px;white-space:nowrap}
+.push-actions{display:flex;flex-wrap:wrap;gap:10px;margin-top:14px;align-items:center}
 .tips ol{margin:10px 0 0;padding-left:20px;display:flex;flex-direction:column;gap:8px;max-width:65ch}
 code{font-family:var(--f-mono);background:var(--tile);border-radius:6px;padding:1px 6px;font-size:13px}
 
@@ -290,7 +265,6 @@ body.intro-open .chat-fab{z-index:45;animation:fabPulse 1.4s ease-in-out infinit
 .msg p{margin:2px 0 0;white-space:pre-wrap;overflow-wrap:anywhere}
 .msg-del{border:0;background:transparent;color:var(--muted);font-size:11px;font-weight:700;padding:0 0 0 4px;margin-left:auto;font-family:var(--f-body)}
 .msg-del:hover,.msg-del[data-armed="1"]{color:var(--warn)}
-.msg-watch{border:0;background:var(--ink);color:var(--bg);border-radius:999px;padding:6px 12px;font-weight:700;font-size:13px;margin-top:6px}
 .day-sep{align-self:center;font-size:11px;font-weight:700;color:var(--muted);letter-spacing:.1em;text-transform:uppercase;margin:6px 0}
 .chat-empty{margin:auto;text-align:center;color:var(--muted);max-width:30ch}
 .chat-form{display:flex;gap:8px;padding:12px 16px;border-top:1px solid var(--grout)}
@@ -312,145 +286,6 @@ body.intro-open .chat-fab{z-index:45;animation:fabPulse 1.4s ease-in-out infinit
 .toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(88px + env(safe-area-inset-bottom,0px));background:var(--ink);color:var(--bg);border-radius:14px;padding:10px 10px 10px 16px;display:flex;align-items:center;gap:12px;box-shadow:0 10px 24px var(--shadow);max-width:calc(100% - 32px);z-index:20;font-weight:600}
 .toast button{border:0;background:var(--bg);color:var(--ink);border-radius:10px;padding:7px 12px;font-weight:700}
 .toast{z-index:48}
-
-/* sayfa geçişi: İşeme / Arena */
-.pages{display:grid;grid-template-columns:1fr 1fr;gap:6px;background:var(--surface);border:1px solid var(--grout);border-radius:18px;padding:5px;position:sticky;top:calc(6px + env(safe-area-inset-top,0px));z-index:15;box-shadow:0 6px 18px var(--shadow)}
-.pages button{border:0;background:transparent;border-radius:14px;padding:10px;font-family:var(--f-display);font-size:19px;letter-spacing:.3px;color:var(--muted);display:flex;align-items:center;justify-content:center;gap:8px;position:relative}
-.pages button:hover{color:var(--ink)}
-.pages button[aria-pressed="true"]{background:var(--ink);color:var(--bg)}
-.pg-badge{min-width:20px;height:20px;padding:0 6px;border-radius:999px;background:var(--warn);color:#FFFFFF;font-family:var(--f-body);font-size:12px;font-weight:700;display:inline-grid;place-items:center;letter-spacing:0}
-
-/* arena */
-.ar-head{display:flex;flex-direction:column;gap:12px}
-.coin{display:inline-flex;align-items:center;gap:6px;background:#F5C400;color:#13262B;border-radius:999px;padding:5px 12px 5px 10px;font-family:var(--f-mono);font-weight:700;font-size:16px;box-shadow:inset 0 -3px 0 rgba(0,0,0,.15);white-space:nowrap}
-.ar-tabs{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:4px;background:var(--tile);border-radius:14px;padding:4px}
-.ar-tabs button{border:0;background:transparent;border-radius:10px;padding:7px 2px;font-weight:700;font-size:12.5px;color:var(--muted);display:flex;flex-direction:column;align-items:center;gap:1px;position:relative;min-width:0}
-.ar-tabs button .ic{font-size:19px;line-height:1.2}
-.ar-tabs button[aria-pressed="true"]{background:var(--surface);color:var(--ink);box-shadow:0 1px 3px var(--shadow)}
-.ar-tabs .pg-badge{position:absolute;top:2px;right:4px;min-width:18px;height:18px;font-size:11px}
-.ar-status{display:flex;flex-direction:column;border-left:4px solid var(--accent)}
-.ar-status.off{border-left-color:var(--grout)}
-.ar-status .st-line{font-family:var(--f-display);font-weight:400;font-size:20px}
-.ar-status .st-left{font-family:var(--f-mono);font-size:13px;color:var(--muted);font-weight:700}
-.motto{margin:2px 0 0;font-style:italic;font-size:13px;color:var(--ink);overflow-wrap:anywhere;line-height:1.35}
-.motto.bt{font-size:12px;color:var(--muted);margin:-2px 0 0;max-width:100%}
-.motto-edit{display:flex;gap:8px;margin-top:10px}
-.motto-edit input{flex:1;min-width:0;border:1px solid var(--grout);background:var(--tile);border-radius:10px;padding:10px 12px;font-size:16px}
-.motto-edit .primary{padding:10px 16px;font-size:15px}
-.ar-note{display:flex;gap:10px;align-items:center;justify-content:space-between;flex-wrap:wrap;background:var(--accent-soft);border-radius:14px;padding:10px 12px;font-weight:600;margin:0}
-.ar-help ul{margin:10px 0 0;padding-left:20px;display:flex;flex-direction:column;gap:7px;max-width:66ch}
-.deck{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:8px;margin-top:12px}
-.slot{position:relative;border:2px solid var(--ink);background:var(--surface);border-radius:14px;min-height:108px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;padding:16px 2px 8px;min-width:0;color:var(--ink)}
-.slot.boss{border-color:var(--warn)}
-.slot.empty{border:2px dashed var(--grout);background:transparent;color:var(--muted);font-weight:700;font-size:13px}
-.slot .no{position:absolute;top:4px;left:7px;font-family:var(--f-mono);font-size:10px;color:var(--muted)}
-.slot .em,.tile .em{font-size:30px;line-height:1.15}
-.st{font-family:var(--f-mono);font-size:10.5px;line-height:1.35;white-space:nowrap;color:var(--muted)}
-.lv{font-family:var(--f-mono);font-size:11px;font-weight:700;color:var(--muted)}
-.lv.boss{color:var(--warn)}
-.slot.efs,.tile.efs,.bt-art.efs{border-color:#D4A017;box-shadow:0 0 0 1px #D4A017,0 0 12px rgba(212,160,23,.35)}
-.pet-big.efs{border-color:#D4A017;box-shadow:0 0 0 3px var(--surface),0 0 0 5px #D4A017,0 0 18px rgba(212,160,23,.45)}
-.lv.efs{color:#B8860B}
-.slot.hero,.tile.hero,.bt-art.hero{border-color:#7B4DFF;box-shadow:0 0 0 1px #7B4DFF,0 0 14px rgba(123,77,255,.4)}
-.pet-big.hero{border-color:#7B4DFF;box-shadow:0 0 0 3px var(--surface),0 0 0 5px #7B4DFF,0 0 18px rgba(123,77,255,.5)}
-.lv.hero{color:#7B4DFF}
-.army i.hero{box-shadow:inset 0 0 0 1px #7B4DFF}
-.bt-dmg.heal{color:var(--accent);top:auto;bottom:6%;font-size:20px}
-.army i.efs{box-shadow:inset 0 0 0 1px #D4A017}
-.gear{position:absolute;top:3px;right:5px;font-size:12px;line-height:1;letter-spacing:-2px}
-.inv{display:grid;grid-template-columns:repeat(auto-fill,minmax(74px,1fr));gap:8px;margin-top:12px}
-.tile{position:relative;border:1px solid var(--grout);background:var(--tile);border-radius:14px;padding:14px 4px 8px;display:flex;flex-direction:column;align-items:center;gap:1px;min-width:0;color:var(--ink)}
-.tile:hover,.slot:not(.empty):hover{box-shadow:0 4px 12px var(--shadow)}
-.tile.boss{border-color:var(--warn)}
-.tile.on{background:var(--accent-soft);border-color:var(--accent)}
-.tile .flag{position:absolute;top:4px;left:6px;font-family:var(--f-mono);font-size:10px;font-weight:700;color:var(--accent)}
-.tile .nm2{font-size:11px;font-weight:600;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;padding:0 4px}
-.foes{list-style:none;margin:12px 0 0;padding:0;display:flex;flex-direction:column;gap:10px}
-.foe{border:1px solid var(--grout);border-radius:14px;padding:10px 12px;display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px 10px;align-items:center}
-.foe .nm{display:flex;align-items:center;gap:8px;font-weight:700;min-width:0}
-.foe .nm span:last-child{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.foe .attack{padding:9px 14px;font-size:14px}
-.foe .warnline{grid-column:1 / -1;margin:0;font-size:13px;color:var(--warn);font-weight:600}
-.army{display:flex;gap:5px;flex-wrap:wrap;grid-column:1 / -1;margin-top:6px}
-.army i{font-style:normal;display:inline-flex;flex-direction:column;align-items:center;min-width:40px;padding:4px 4px 3px;border-radius:9px;background:var(--tile);font-size:19px;line-height:1.1;position:relative}
-.army i small{font-family:var(--f-mono);font-size:9px;color:var(--muted)}
-.army i.boss{box-shadow:inset 0 0 0 1px var(--warn)}
-.army i .g{position:absolute;top:-4px;right:-4px;font-size:10px}
-.shop{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px;margin-top:12px}
-.ware{border:1px solid var(--grout);border-radius:14px;padding:12px;display:flex;flex-direction:column;gap:5px;align-items:flex-start;background:var(--tile)}
-.ware .em{font-size:34px;line-height:1.1}
-.ware b{font-size:15px;line-height:1.2}
-.ware .fx{font-size:13px;color:var(--accent);font-weight:700}
-.buy{border:0;background:var(--ink);color:var(--bg);border-radius:10px;padding:8px 12px;font-weight:700;font-size:14px;margin-top:6px}
-.buy:disabled{opacity:.4;cursor:not-allowed}
-.bag{list-style:none;margin:10px 0 0;padding:0;display:flex;flex-direction:column;gap:6px}
-.bag li{display:flex;align-items:center;gap:8px;font-size:14px;flex-wrap:wrap}
-.hist{list-style:none;margin:12px 0 0;padding:0;display:flex;flex-direction:column;gap:8px}
-.hist li{border:1px solid var(--grout);border-radius:12px;padding:10px 12px;display:grid;grid-template-columns:minmax(0,1fr) auto;gap:4px 10px;align-items:center}
-.hist .vs{display:flex;align-items:center;gap:6px;font-weight:700;flex-wrap:wrap;min-width:0}
-.hist .res{font-size:13px;font-weight:700}
-.res.win{color:var(--accent)}
-.res.lose{color:var(--warn)}
-.new-tag{background:var(--warn);color:#FFFFFF;border-radius:999px;font-size:10px;font-weight:700;padding:1px 7px;letter-spacing:.06em}
-.hist .when{font-family:var(--f-mono);font-size:12px;color:var(--muted)}
-/* pet kartı */
-.pet-top{display:flex;gap:14px;align-items:center}
-.pet-big{width:84px;height:84px;flex:none;border-radius:20px;background:var(--tile);border:2px solid var(--grout);display:grid;place-items:center;font-size:48px;line-height:1}
-.pet-big.boss{border-color:var(--warn);box-shadow:0 0 0 3px var(--surface),0 0 0 5px var(--warn)}
-.pet-stats{display:grid;grid-template-columns:1fr 1fr;gap:8px}
-.pet-stats > div{background:var(--tile);border-radius:12px;padding:8px 10px;display:flex;flex-direction:column;gap:1px}
-.pet-stats b{font-family:var(--f-mono);font-size:20px}
-.pet-stats small{font-size:12px}
-.gear-row{display:flex;flex-direction:column;gap:6px}
-.chips{display:flex;flex-wrap:wrap;gap:6px}
-.chip{border:1px solid var(--grout);background:var(--tile);border-radius:999px;padding:6px 11px;font-weight:600;font-size:13px;color:var(--ink)}
-.chip.on{border-color:var(--accent);background:var(--accent-soft)}
-.ghost.armed{border-color:var(--warn);color:var(--warn)}
-.sheet-actions{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
-.merge-res{text-align:center;display:flex;flex-direction:column;align-items:center;gap:8px;padding:8px 0}
-.merge-res .em{font-size:72px;line-height:1;animation:pop .6s ease}
-@keyframes pop{0%{transform:scale(.3);opacity:0}60%{transform:scale(1.2);opacity:1}100%{transform:scale(1)}}
-/* savaş oynatıcı */
-.battle{--sp:1;position:fixed;inset:0;z-index:42;background:rgba(6,14,16,.74);display:grid;place-items:center;padding:max(12px,env(safe-area-inset-top,0px)) max(12px,env(safe-area-inset-right,0px)) max(12px,env(safe-area-inset-bottom,0px)) max(12px,env(safe-area-inset-left,0px))}
-.bt-card{background:var(--surface);border:1px solid var(--grout);border-radius:20px;width:100%;max-width:560px;max-height:100%;overflow-y:auto;padding:16px;display:flex;flex-direction:column;gap:14px;box-shadow:0 20px 50px rgba(0,0,0,.35)}
-.bt-top{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
-.bt-stage{display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);gap:8px;align-items:start}
-.bt-vs{font-family:var(--f-display);font-size:22px;color:var(--muted);align-self:center;margin-top:-40px}
-.bt-col{display:flex;flex-direction:column;gap:7px;min-width:0;align-items:center;text-align:center}
-.bt-who{display:flex;align-items:center;gap:6px;font-weight:700;min-width:0;max-width:100%;flex-wrap:wrap;justify-content:center}
-.bt-who .n{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:100%}
-.bt-role{font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:700;width:100%}
-.bt-art{width:min(116px,30vw);aspect-ratio:1;border-radius:24px;background:var(--tile);border:2px solid var(--grout);display:grid;place-items:center;font-size:clamp(44px,13vw,62px);line-height:1;position:relative}
-.bt-art.boss{border-color:var(--warn)}
-.bt-art.lungeR{animation:lungeR calc(.32s / var(--sp)) ease}
-.bt-art.lungeL{animation:lungeL calc(.32s / var(--sp)) ease}
-.bt-art.hit{animation:shake calc(.4s / var(--sp)) ease}
-.bt-art.dead{animation:poof calc(.6s / var(--sp)) ease forwards}
-.bt-art.ko{filter:grayscale(1);opacity:.35}
-@keyframes lungeR{50%{transform:translateX(22px) scale(1.08)}}
-@keyframes lungeL{50%{transform:translateX(-22px) scale(1.08)}}
-.bt-dmg{position:absolute;left:50%;top:6%;transform:translateX(-50%);font-family:var(--f-display);font-size:24px;color:var(--warn);text-shadow:0 2px 0 var(--surface),0 0 6px var(--surface);pointer-events:none;white-space:nowrap;animation:dmgUp calc(.95s / var(--sp)) ease-out forwards;z-index:2}
-.bt-dmg.crit{font-size:28px;color:#E5383B}
-.bt-dmg.miss{color:var(--muted);font-size:19px}
-@keyframes dmgUp{0%{opacity:0;transform:translate(-50%,10px) scale(.7)}15%{opacity:1;transform:translate(-50%,0) scale(1.15)}100%{opacity:0;transform:translate(-50%,-50px) scale(1)}}
-.bt-pname{font-family:var(--f-display);font-size:16px;line-height:1.15;min-height:2.3em;display:flex;align-items:center}
-.bt-hp{width:100%;display:flex;flex-direction:column;gap:3px}
-.bt-hp .bar{height:12px}
-.bt-hp .bar i{transition:width calc(.3s / var(--sp)) ease,background .3s}
-.bt-hp span{font-family:var(--f-mono);font-size:12px;font-variant-numeric:tabular-nums}
-.bt-gear{font-family:var(--f-mono);font-size:12px;color:var(--muted)}
-.bt-bench{display:flex;gap:4px;flex-wrap:wrap;justify-content:center}
-.bt-bench i{font-style:normal;width:30px;height:30px;border-radius:9px;background:var(--tile);display:grid;place-items:center;font-size:17px;border:1px solid var(--grout)}
-.bt-bench i.cur{border-color:var(--ink);box-shadow:0 0 0 1px var(--ink)}
-.bt-bench i.dead{opacity:.28;filter:grayscale(1)}
-.bt-log{min-height:4.6em;font-size:13px;display:flex;flex-direction:column;gap:3px;border-top:1px solid var(--grout);padding-top:10px}
-.bt-log p{margin:0;display:flex;align-items:center;gap:5px;flex-wrap:wrap}
-.bt-log p:not(:first-child){color:var(--muted)}
-.bt-log p.ko{font-weight:700}
-.bt-result{text-align:center;display:flex;flex-direction:column;gap:6px;align-items:center;padding:14px;border-radius:14px;background:var(--accent-soft)}
-.bt-result.lose{background:var(--tile);box-shadow:inset 0 0 0 2px var(--warn)}
-.bt-title{font-family:var(--f-display);font-size:28px;font-weight:400;line-height:1.1}
-@media (max-width:400px){.pages button{font-size:17px}.slot{min-height:100px}.slot .em,.tile .em{font-size:26px}}
 
 @media (max-width:560px){
   .stats,.two{grid-template-columns:1fr}
@@ -487,11 +322,6 @@ img{max-width:100%}
     </div>
   </header>
 
-  <nav class="pages" id="pages" aria-label="Sayfa" hidden>
-    <button type="button" id="pgMain" aria-pressed="true"><span aria-hidden="true">🚽</span> İşeme</button>
-    <button type="button" id="pgArena" aria-pressed="false"><span aria-hidden="true">⚔️</span> Arena <span class="pg-badge" id="pgBadge" hidden></span></button>
-  </nav>
-
   <section class="card" id="profilePanel" hidden>
     <div class="row between">
       <h2 class="h">Profilin</h2>
@@ -502,7 +332,7 @@ img{max-width:100%}
         <label for="renameName">Kullanıcı adı</label>
         <input id="renameName" maxlength="20" autocomplete="username" autocapitalize="off" spellcheck="false">
       </div>
-      <p class="muted" style="margin:0;font-size:13px">Değiştirirsen bundan sonra yeni isminle giriş yaparsın. Şifren ve rengin aynı kalır, dakikaların ve avların kaybolmaz.</p>
+      <p class="muted" style="margin:0;font-size:13px">Değiştirirsen bundan sonra yeni isminle giriş yaparsın. Şifren ve rengin aynı kalır, dakikaların kaybolmaz.</p>
       <p class="err" id="renameErr"></p>
       <button class="primary" type="submit" id="renameBtn">Kaydet</button>
     </form>
@@ -522,14 +352,6 @@ img{max-width:100%}
   </section>
 
   <div class="leaders" id="leaders" hidden>
-    <div class="crown">
-      <span class="cr" aria-hidden="true">⚔️</span>
-      <div class="lead-body">
-        <p class="eyebrow">Canavar Avcısı</p>
-        <div class="who" id="huntLeader"></div>
-        <span class="kc" id="huntLeaderCount"></span>
-      </div>
-    </div>
     <div class="crown">
       <span class="cr" aria-hidden="true">👑</span>
       <div class="lead-body">
@@ -593,7 +415,6 @@ img{max-width:100%}
   </section>
 
   <div id="game" hidden style="display:contents">
-   <div id="pageMain" style="display:contents">
     <section class="card" id="adminCard" hidden>
       <div class="row between">
         <h2 class="h">🛡️ Yönetim</h2>
@@ -638,33 +459,6 @@ img{max-width:100%}
         <div class="big" id="allCount">0 <small>/ 1440</small></div>
         <div class="bar"><i id="allBar" style="background:var(--accent)"></i></div>
         <p class="muted" style="margin:0" id="allPct">Kimsenin olmadığı 1440 dakika var</p>
-      </div>
-    </section>
-
-    <section class="card" id="huntCard">
-      <div class="row between">
-        <h2 class="h">Canavar avı</h2>
-        <span class="bcount" id="huntNo"></span>
-      </div>
-      <div class="mob" id="mob">
-        <div class="mob-art" id="mobArt" aria-hidden="true">🐀</div>
-        <div class="mob-info">
-          <p class="eyebrow" id="mobKind">Sıradaki canavar</p>
-          <span class="mob-name" id="mobName">Kanalizasyon Faresi</span>
-          <div class="hp"><span class="hb" id="mobBar"></span><span class="mono" id="mobCost">1 dakika</span></div>
-          <p class="muted" style="margin:0;font-size:13px" id="mobNote">Kesmek için duvarından rastgele 1 dakika silinir. Hangilerinin gideceğini sistem seçer.</p>
-        </div>
-      </div>
-      <div class="hunt-actions">
-        <button class="attack" type="button" id="huntBtn">Saldır</button>
-        <button class="tapbtn" type="button" id="tapBtn" aria-live="off">👊 Vur</button>
-        <button class="ghost" type="button" id="huntCancel" hidden>Vazgeç</button>
-      </div>
-      <p class="status" id="huntMsg" style="text-align:left;margin-top:10px"></p>
-      <p class="next-reward muted" id="nextReward"></p>
-      <div class="hunt-lb">
-        <p class="eyebrow">Av tablosu</p>
-        <ol class="lb" id="huntLb"></ol>
       </div>
     </section>
 
@@ -727,7 +521,7 @@ img{max-width:100%}
       </div>
       <p class="muted" style="margin:6px 0 0;max-width:60ch">Sabah 07:00'de günaydın ve günün boş saat hedefi, akşam 20:00'de "gece alarmları kuruldu mu?" hatırlatması. Mesajlar senin duvarına göre değişir.</p>
       <p class="ro" id="pushNote" style="margin-top:12px" hidden></p>
-      <div class="hunt-actions">
+      <div class="push-actions">
         <button class="primary" type="button" id="pushOn">Bildirimleri aç</button>
         <button class="ghost" type="button" id="pushTest" hidden>Deneme bildirimi gönder</button>
         <button class="ghost" type="button" id="pushOff" hidden>Kapat</button>
@@ -742,45 +536,6 @@ img{max-width:100%}
         <li>Tek dokunuşla kayıt için adresin sonuna <code>#bas</code> ekleyip o sayfayı ana ekrana koy. Açıldığı an o dakika kaydedilir. Android’de ikona basılı tutunca da “İşedim” kısayolu çıkar.</li>
       </ol>
     </section>
-   </div>
-
-   <div id="pageArena" style="display:contents" hidden>
-    <section class="card ar-head">
-      <div class="row between">
-        <div class="row" style="gap:8px">
-          <h2 class="h">Arena</h2>
-          <button class="ghost" type="button" id="arHelpBtn">Nasıl oynanır?</button>
-        </div>
-        <span class="coin" title="Coinlerin"><span aria-hidden="true">🪙</span><b id="arCoins">0</b></span>
-      </div>
-      <div class="ar-tabs" id="arTabs" role="group" aria-label="Arena bölümü">
-        <button type="button" data-tab="ordu" aria-pressed="true"><span class="ic" aria-hidden="true">🐾</span>Ordu</button>
-        <button type="button" data-tab="savas" aria-pressed="false"><span class="ic" aria-hidden="true">⚔️</span>Savaş</button>
-        <button type="button" data-tab="market" aria-pressed="false"><span class="ic" aria-hidden="true">🛒</span>Market</button>
-        <button type="button" data-tab="gecmis" aria-pressed="false"><span class="ic" aria-hidden="true">📜</span>Geçmiş<span class="pg-badge" id="arBadge" hidden></span></button>
-      </div>
-    </section>
-
-    <section class="card ar-help" id="arHelp" hidden>
-      <div class="row between">
-        <h2 class="h">Arena nasıl çalışır?</h2>
-        <button class="ghost" type="button" id="arHelpOk">Anladım</button>
-      </div>
-      <ul>
-        <li>Kestiğin her canavar envanterine <b>pet</b> olarak gelir. Daha önce kestiklerin de pet oldu.</li>
-        <li><b>Ordu</b> sekmesinde en fazla 5 petlik ordunu kur. Ordun sen yokken de savaşır.</li>
-        <li>Savaşmak istemiyorsan ordunu <b>6 saatliğine inaktif</b> yap: kimse sana saldıramaz, sen de saldıramazsın. Süre bitmeden “Süreyi uzat”a basarsan 6 saat baştan başlar. Saldırdıktan sonraki 1 saat içinde inaktife geçilemez.</li>
-        <li><b>Savaş</b> sekmesinden istediğine saldır. Petler sırayla vuruşur; <b>kaybeden ordunun bütün petleri kazanana geçer.</b></li>
-        <li>Av döngüsü 10 canavar: her turun <b>5. ve 10. avı boss</b>, sonra başa dönülür.</li>
-        <li>Aynı petten 2 tane varsa <b>birleştir</b>: bir üst seviye pet çıkar. Şans Sv 1’de <b>%90</b>, her seviyede %1 azalır; efsanelere geçiş zor: Sv10→11 <b>%60</b>, Sv11→12 <b>%45</b>, Sv12→13 <b>%30</b>. Tutmazsa ikisi de gider.</li>
-        <li><b>Sv 11–13 efsaneler</b> (🐉 Kanalizasyon Ejderi, 🦑 Rögar Krakeni, 👹 Sifonların Efendisi) avda çıkmaz, sadece birleştirmeyle elde edilir.</li>
-        <li>Her gün <b>10 🪙</b> gelir, savaş kazanınca <b>+5 🪙</b>. Fazla petlerini <b>satabilirsin</b> (Sv1 0,1 · Sv10 1 · Sv13 70 🪙). <b>Market</b>’ten süreli kılıç (kritik) ve zırh (can yenileme) alıp petlerine giydir.</li>
-        <li>İki Sv13 birleşince %25 ihtimalle <b>kahraman</b> (Sv14) doğar. Kahramanlar petleri yiyerek <b>Sv40</b>’a kadar büyür ve savaşta ele geçirilmez.</li>
-      </ul>
-    </section>
-
-    <div id="arBody" style="display:contents"></div>
-   </div>
   </div>
 </div>
 
@@ -798,7 +553,6 @@ img{max-width:100%}
     </svg>
     <h2 class="h" id="introTitle">Peengo’ya hoş geldin!</h2>
     <p>Amaç basit: günün <b>1440 dakikasının</b> hepsinde en az bir kez işemek. Her işediğinde büyük butona bas, o dakika senin renginle boyansın. Arkadaşlarınla aynı dakikayı doldurursanız o dakika simsiyah olur.</p>
-    <p class="muted">Canavar avında dakikalarından rastgele birini feda edip canavar kesebilir, unvan toplayabilirsin. Kestiğin canavarlar Arena’da petin olur; ordunu kurup arkadaşlarına savaş açarsın.</p>
     <div class="intro-chat">
       <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5.5A2.5 2.5 0 0 1 6.5 3h11A2.5 2.5 0 0 1 20 5.5v8a2.5 2.5 0 0 1-2.5 2.5H10l-4.5 4v-4h0A1.5 1.5 0 0 1 4 14.5z" fill="currentColor"/></svg>
       <p><b>Uygulamanın kendi sohbeti var.</b> Sağ alttaki yanıp sönen butondan arkadaşlarınla yazışabilirsin.</p>
@@ -841,30 +595,6 @@ img{max-width:100%}
     <button type="submit" id="chatSend">Gönder</button>
   </form>
 </aside>
-
-<div class="intro" id="petSheet" role="dialog" aria-modal="true" aria-label="Pet" hidden><div class="intro-card" id="petCard"></div></div>
-
-<div class="battle" id="battle" role="dialog" aria-modal="true" aria-labelledby="btTitle" hidden>
-  <div class="bt-card">
-    <div class="bt-top">
-      <h2 class="h" id="btTitle" style="margin-right:auto">Savaş</h2>
-      <div class="seg" id="btSpeed" role="group" aria-label="Oynatma hızı">
-        <button type="button" data-s="1" aria-pressed="true">×1</button>
-        <button type="button" data-s="2" aria-pressed="false">×2</button>
-        <button type="button" data-s="4" aria-pressed="false">×4</button>
-      </div>
-      <button class="ghost" type="button" id="btSkip">Sonucu göster</button>
-    </div>
-    <div class="bt-stage">
-      <div class="bt-col" id="btL"></div>
-      <div class="bt-vs" aria-hidden="true">VS</div>
-      <div class="bt-col" id="btR"></div>
-    </div>
-    <div class="bt-log" id="btLog" aria-live="polite"></div>
-    <div class="bt-result" id="btResult" hidden></div>
-    <button class="ghost" type="button" id="btClose" style="align-self:center">Kapat</button>
-  </div>
-</div>
 
 <div class="lightbox" id="lightbox" role="dialog" aria-label="Fotoğraf" hidden><img id="lightboxImg" alt="Sohbet fotoğrafı"></div>
 
@@ -923,65 +653,9 @@ const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
     loaded:false, mode:'all', selHour:null, selMin:null,
     authTab:'login', newColor:null, lastMark:null, busy:false, hashDone:false,
     lastT:-1, toastTimer:null,
-    hunts:{}, huntArmed:false, huntBusy:false, huntTimer:null, daily:{}, dailyOk:false,
-    msgs:[], chatOpen:false, chatSeen:+(store.get('peengo.chatSeen') || 0), chatBusy:false,
-    page:'main', arTab:store.get('peengo.arTab') || 'ordu', ar:freshAr(), bt:null, arInit:null
+    daily:{}, dailyOk:false,
+    msgs:[], chatOpen:false, chatSeen:+(store.get('peengo.chatSeen') || 0), chatBusy:false
   };
-  function freshAr(){
-    return {pets:[], items:[], battles:[], coins:0, cdUntil:0, unseen:0, admin:false, loaded:false, err:'',
-            busy:false, seq:0, armed:null, armT:null, newIds:new Set(), histAll:false, sheet:null, seenBusy:false, cdWas:false};
-  }
-
-  /* Pet/canavar seviyeleri (Sv = sıra + 1). Av döngüsü ilk 10'dur: turun 5. ve 10. avı boss.
-     Sv 11-13 efsanedir, avda çıkmaz, sadece birleştirmeyle elde edilir. supabase-arena-v2.sql ile aynı. */
-  const PETS = [
-    {e:'🐀', n:'Kanalizasyon Faresi'},
-    {e:'🕷️', n:'Tuvalet Örümceği'},
-    {e:'🦠', n:'Lavabo Mikrobu'},
-    {e:'🐍', n:'Gider Yılanı'},
-    {e:'🐸', n:'Rögar Kurbağası', boss:true},
-    {e:'🦇', n:'Sifon Yarasası'},
-    {e:'🦀', n:'Klozet Yengeci'},
-    {e:'🪳', n:'Fayans Hamamböceği'},
-    {e:'👻', n:'Tıkanık Hortlak'},
-    {e:'🗿', n:'Kireç Golemi', boss:true},
-    {e:'🐉', n:'Kanalizasyon Ejderi', legend:true},
-    {e:'🦑', n:'Rögar Krakeni', legend:true},
-    {e:'👹', n:'Sifonların Efendisi', legend:true}
-  ];
-  /* Kahramanlar Sv14-40: iki Sv13 birleşince %25 ihtimalle doğar, pet yedirerek seviye atlar. */
-  [[14, 18, '🦸', 'Pisuvar Muhafızı'], [19, 23, '🧙', 'Sifon Büyücüsü'], [24, 28, '🦹', 'Gider Haydudu'],
-   [29, 33, '🧛', 'Rögar Kontu'], [34, 38, '🧞', 'Lavabo Cini'], [39, 40, '👑', 'Tuvaletlerin Tanrısı']]
-    .forEach(([a, b, e, n]) => { for (let L = a; L <= b; L++) PETS.push({e, n, hero:true}); });
-  const TITLES = [[40, 'Efsane Avcı'], [30, 'Ejder Avcısı'], [20, 'Kılıç Ustası'], [10, 'Çaylak Avcı']];
-  function mobFor(n){
-    const t = (n - 1) % 10, m = PETS[t], boss = !!m.boss;
-    const round = Math.floor((n - 1) / 40);
-    const pre = round > 0 ? (round === 1 ? 'Öfkeli ' : 'Kadim ') : '';
-    return {e:m.e, n:pre + m.n, boss, cost:boss ? 2 : 1, tier:t};
-  }
-  /* Arena: seviye başına can/saldırı. Değerler supabase-arena.sql ile aynı. */
-  /* Dengeleme (5 Kasım): her seviye +2 can, ~+0.75 saldırı. Eski üstel eğri Sv13'ü ~200 kat güçlü yapıyordu. */
-  const PET_HP = [34, 36, 38, 40, 42, 44, 46, 48, 50, 52, 54, 56, 58, 59, 61, 62, 64, 65, 67, 68, 70, 71, 73, 74, 76, 77, 79, 80, 82, 83, 85, 86, 88, 89, 91, 92, 94, 95, 97, 98];
-  const PET_ATK = [14, 15, 16, 16, 17, 18, 18, 19, 20, 21, 22, 22, 23, 23, 24, 24, 25, 25, 26, 26, 27, 27, 28, 28, 29, 29, 30, 30, 31, 31, 32, 32, 33, 33, 34, 34, 35, 35, 36, 36];
-  /* Eşyalar süreli: kılıç kritik ihtimali, zırh her turda can yenileme verir. supabase-kahraman.sql ile aynı. */
-  const ITEMS = {
-    k1:{e:'🔧', n:'Musluk Anahtarı', k:'k', crit:8, price:10, days:1},
-    k2:{e:'🧹', n:'Fırça Kılıcı', k:'k', crit:15, price:25, days:2},
-    k3:{e:'🗡️', n:'Altın Musluk Kılıcı', k:'k', crit:25, price:60, days:3},
-    z1:{e:'🧻', n:'Tuvalet Kağıdı Zırhı', k:'z', regen:2, price:10, days:1},
-    z2:{e:'⛑️', n:'Lavabo Kaskı', k:'z', regen:3, price:25, days:2},
-    z3:{e:'🛡️', n:'Porselen Zırh', k:'z', regen:5, price:60, days:3}
-  };
-  const BASE_CRIT = 18;
-  const itemFx = code => ITEMS[code].k === 'k' ? 'kritik +%' + ITEMS[code].crit : 'her tur +' + ITEMS[code].regen + ' can';
-  const mobTier = no => (no - 1) % 10;
-  /* Pet satış fiyatı (coin). supabase-pet-sat.sql ile aynı. */
-  const PET_PRICE = [0.1, 0.1, 0.2, 0.2, 0.4, 0.3, 0.3, 0.4, 0.5, 1.0, 3, 12, 70, 80, 85, 90, 95, 100, 105, 110, 115, 120, 125, 130, 135, 140, 145, 150, 155, 160, 165, 170, 175, 180, 185, 190, 195, 200, 205, 210];
-  const fmtCoin = c => (Math.round((+c || 0) * 10) / 10).toLocaleString('tr-TR', {maximumFractionDigits:1});
-  const kills = pid => (S.hunts[pid] || {}).count || 0;
-  const titleOf = pid => { const k = kills(pid); for (const [n, t] of TITLES) if (k >= n) return t; return ''; };
-
   function el(tag, attrs, kids){
     const e = document.createElement(tag);
     if (attrs) for (const k in attrs){
@@ -1062,10 +736,10 @@ const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
 
   /* ---------- data ---------- */
   async function loadPlayers(){
-    const {data, error} = await S.sb.from('players_public').select('id,name,color,created_at,is_admin,arena_off,arena_motto,arena_off_until');
+    const {data, error} = await S.sb.from('players_public').select('id,name,color,created_at,is_admin');
     if (error) throw error;
     const p = {};
-    (data || []).forEach(r => { p[r.id] = {name:r.name, color:r.color, createdAt:Date.parse(r.created_at), admin:!!r.is_admin, offUntil:r.arena_off_until ? Date.parse(r.arena_off_until) : 0, motto:r.arena_motto || ''}; });
+    (data || []).forEach(r => { p[r.id] = {name:r.name, color:r.color, createdAt:Date.parse(r.created_at), admin:!!r.is_admin}; });
     S.profiles = p;
   }
   async function loadMarks(){
@@ -1080,7 +754,7 @@ const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
     S.marks = m;
   }
   async function loadMessages(){
-    const {data, error} = await S.sb.from('messages').select('id,player_id,body,at,image_path,battle_id').order('id', {ascending:false}).limit(150);
+    const {data, error} = await S.sb.from('messages').select('id,player_id,body,at,image_path').order('id', {ascending:false}).limit(150);
     if (error) return;
     S.msgs = (data || []).reverse();
   }
@@ -1096,16 +770,6 @@ const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
     if (!S.dailyOk) return pid === me ? ' (sen)' : '';
     return pid === me ? ' (sen, günlük ' + daily(pid) + ')' : ' (günlük ' + daily(pid) + ')';
   };
-  async function loadHunts(){
-    const h = {};
-    for (let from = 0; ; from += 1000){
-      const {data, error} = await S.sb.from('hunts').select('id,player_id,at').order('id').range(from, from + 999);
-      if (error) return;
-      (data || []).forEach(r => { const x = (h[r.player_id] ||= {count:0, last:0}); x.count++; x.last = Math.max(x.last, Date.parse(r.at)); });
-      if (!data || data.length < 1000) break;
-    }
-    S.hunts = h;
-  }
   function subscribe(){
     S.sb.channel('peengo-chat')
       .on('postgres_changes', {event:'INSERT', schema:'public', table:'messages'}, p => {
@@ -1113,27 +777,6 @@ const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
       })
       .on('postgres_changes', {event:'DELETE', schema:'public', table:'messages'}, p => {
         if (p.old && p.old.id != null) removeMessage(p.old.id);
-      })
-      .subscribe();
-    S.sb.channel('peengo-hunts')
-      .on('postgres_changes', {event:'INSERT', schema:'public', table:'hunts'}, p => {
-        if (!p.new || S.huntSeen === p.new.id) return;
-        const x = (S.hunts[p.new.player_id] ||= {count:0, last:0});
-        if (p.new.mob_no > x.count){ x.count = p.new.mob_no; x.last = Date.parse(p.new.at); }
-        render();
-      })
-      .subscribe();
-    S.sb.channel('peengo-battles')
-      .on('postgres_changes', {event:'INSERT', schema:'public', table:'battles'}, p => {
-        const b = p.new;
-        if (!b || !S.me) return;
-        if (b.defender === S.me){
-          S.ar.unseen = (S.ar.unseen || 0) + 1;
-          renderNav();
-          toast(nameOf(b.attacker) + ' sana saldırdı! ' + (b.attacker_won ? 'Kaybettin, ordundaki ' + b.captured + ' pet gitti.' : 'Ordun kazandı, ' + b.captured + ' pet senin oldu.'),
-            false, {label:'İzle', fn:() => { setPage('arena'); setArTab('gecmis'); playBattle(b); }});
-        }
-        if (S.page === 'arena' && b.attacker !== S.me) loadArena();
       })
       .subscribe();
     S.sb.channel('peengo-marks')
@@ -1150,7 +793,7 @@ const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
       .subscribe();
   }
   async function refreshAll(){
-    try { await Promise.all([loadPlayers(), loadMarks(), loadHunts(), loadMessages(), loadDaily()]); route(); renderChat(false); } catch(e){}
+    try { await Promise.all([loadPlayers(), loadMarks(), loadMessages(), loadDaily()]); route(); renderChat(false); } catch(e){}
   }
 
   function derive(){
@@ -1173,11 +816,10 @@ const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
   function route(){
     if (!S.loaded){ show('#boot'); return; }
     if (S.me && S.profiles[S.me]){
-      show('#game'); $('#meChip').hidden = false; $('#chatFab').hidden = false; $('#pages').hidden = false; pushRefresh(false);
-      if (S.arInit !== S.me){ S.arInit = S.me; arenaState(); tapStatus(); }
+      show('#game'); $('#meChip').hidden = false; $('#chatFab').hidden = false; pushRefresh(false);
     }
-    else { show('#auth'); $('#meChip').hidden = true; $('#leaders').hidden = true; $('#chatFab').hidden = true; $('#pages').hidden = true; openChat(false); }
-    syncPage();
+    else { show('#auth'); $('#meChip').hidden = true; $('#leaders').hidden = true; $('#chatFab').hidden = true; openChat(false); }
+    render();
     renderChat(false);
     maybeIntro();
     setTimeout(() => maybePushAsk(), 1200);
@@ -1265,7 +907,6 @@ const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
         parts.push(img);
       }
       if (m.body) parts.push(el('p', {text:m.body}));
-      if (m.battle_id) parts.push(btn('msg-watch', '▶ Maçı izle', () => watchBattle(m.battle_id)));
       list.append(el('div', {class:'msg' + (mine ? ' mine' : ''), style:'--c:' + colorOf(m.player_id)}, parts));
     });
     if (forceBottom || nearBottom) list.scrollTop = list.scrollHeight;
@@ -1615,20 +1256,19 @@ const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
       }
       if (open === 'del' && canDelete){
         const msgCount = S.msgs.filter(x => x.player_id === pid).length;
-        const kills0 = kills(pid);
         const yes = el('button', {type:'button', class:'adm-danger', text: p.name + ' hesabını kalıcı olarak sil'});
         yes.onclick = async () => {
           yes.disabled = true; $('#admErr').textContent = '';
           try {
             const r = await rpc('admin_delete_player', {p_token:S.token, p_player:pid});
-            delete S.profiles[pid]; delete S.marks[pid]; delete S.hunts[pid]; delete S.admOpen[pid];
+            delete S.profiles[pid]; delete S.marks[pid]; delete S.admOpen[pid];
             S.msgs = S.msgs.filter(x => x.player_id !== pid);
             toast(r.name + ' silindi (' + r.marks + ' dakika, ' + r.messages + ' mesaj).');
             render(); renderChat(false); cleanupPhotos(true);
           } catch(e){ $('#admErr').textContent = errText(e); yes.disabled = false; }
         };
         li.append(el('div', {class:'adm-confirm'}, [
-          el('p', {text: 'Bu geri alınamaz. ' + p.name + ' için ' + mins.length + ' dakika, ' + kills0 + ' av ve ' + msgCount + ' sohbet mesajı da silinir. Rengi ve kullanıcı adı boşa çıkar.'}),
+          el('p', {text: 'Bu geri alınamaz. ' + p.name + ' için ' + mins.length + ' dakika ve ' + msgCount + ' sohbet mesajı da silinir. Rengi ve kullanıcı adı boşa çıkar.'}),
           yes
         ]));
       }
@@ -1813,8 +1453,6 @@ const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
   }
 
   function logoutLocal(){
-    closeBattle(); closePet();
-    S.ar = freshAr(); S.arInit = null; S.tapUsed = 0; S.tapLimit = null; S.tap = null;
     S.token = null; S.me = null; S.coolUntil = 0; S.isAdmin = false; store.set('peengo.token', null);
     S.authTab = 'login'; $('#profilePanel').hidden = true; route();
   }
@@ -1874,13 +1512,6 @@ const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
     golge:'<circle cx="10" cy="10" r="6" fill="currentColor" opacity=".35"/><circle cx="14" cy="14" r="6" fill="none" stroke="currentColor" stroke-width="2"/>',
     zirve:'<path d="M2.5 20.5L9.5 9l3.5 6 2.2-3.2 6.3 8.7z" fill="currentColor"/><path d="M9.5 9V3l4.5 1.6-4.5 1.6" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/>'
   };
-  Object.assign(ICON, {
-    ilkkan:'<path d="M12 3c3.5 4.6 6 8 6 11a6 6 0 0 1-12 0c0-3 2.5-6.4 6-11z" fill="none" stroke="currentColor" stroke-width="2"/><path d="M9 14.5a3 3 0 0 0 3 3" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>',
-    kilic:'<path d="M14.5 3.5H20.5V9.5L10 20l-2-2-2 2-2-2 2-2-2-2z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><path d="M8 12l4 4" fill="none" stroke="currentColor" stroke-width="1.8"/>',
-    ejder:'<path d="M3 15c3-1 4-5 8-6 3-.8 6 .5 7.5 2.5L21 9l-.5 5c-1 3-4 5-8 5-4 0-6-2-9.5-4z" fill="currentColor"/><circle cx="16" cy="12" r="1.1" style="fill:var(--surface)"/>',
-    efsane:'<path d="M12 2.5l2.4 6.1 6.6.4-5.1 4.2 1.7 6.3L12 16l-5.6 3.5 1.7-6.3L3 9l6.6-.4z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><circle cx="12" cy="11.5" r="2.2" fill="currentColor"/>',
-    tac:'<path d="M3 18.5h18L19.5 8l-4.5 4-3-6-3 6-4.5-4z" fill="currentColor"/><path d="M3 21h18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>'
-  });
   const dayKey = ms => { const d = new Date(ms); return d.getFullYear() + '-' + (d.getMonth() + 1) + '-' + d.getDate(); };
 
   /* Duvar görünümü: 'all' ortak, 'me' benim, ya da bir oyuncunun id'si */
@@ -2007,7 +1638,6 @@ const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
     ])));
 
     renderLeaders(D, pids, me);
-    renderHunt(pids, me, my);
     const groups = achievements(D, pids, me, my);
     let got = 0, total = 0;
     const bd = $('#badges'); bd.textContent = '';
@@ -2099,14 +1729,6 @@ const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
         {k:'bin', n:'Bin Dakika', d:'1000 dakika topla', ok:my >= 1000},
         {k:'peengo', n:'PEENGO!', d:'1440 dakikanın hepsi', ok:my >= 1440}
       ]},
-      {title:'Canavar avı', items:[
-        {k:'ilkkan', n:'İlk Kan', d:'İlk canavarını kes', ok:kills(me) >= 1},
-        {k:'kilic', n:'Çaylak Avcı', d:'10 canavar kes', ok:kills(me) >= 10},
-        {k:'kilic', n:'Kılıç Ustası', d:'20 canavar kes', ok:kills(me) >= 20},
-        {k:'ejder', n:'Ejder Avcısı', d:'30 canavar kes', ok:kills(me) >= 30},
-        {k:'efsane', n:'Efsane Avcı', d:'40 canavar kes', ok:kills(me) >= 40},
-        {k:'tac', n:'Canavar Avcısı', d:'Av tablosunda 1. ol. Geçilirsen taç gider', ok:hunterOrder(pids)[0] === me}
-      ]},
       {title:'Arkadaşlarla', items:[
         {k:'senkron', n:'Senkron', d:'Bir arkadaşınla aynı gün aynı dakika', ok:sync},
         {k:'uclu', n:'Üçlü Senkron', d:'Üç kişi aynı gün aynı dakikada', ok:sync3},
@@ -2116,49 +1738,7 @@ const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
     ];
   }
 
-  /* ---------- hunt ---------- */
-  function hunterOrder(pids){
-    return pids.filter(p => kills(p) > 0).sort((a, b) => kills(b) - kills(a) || (S.hunts[a].last - S.hunts[b].last));
-  }
-  function renderHunt(pids, me, my){
-    const order = hunterOrder(pids);
-
-    const k = kills(me), n = k + 1, mob = mobFor(n);
-    $('#huntNo').textContent = k + ' av';
-    $('#mob').classList.toggle('boss', mob.boss);
-    const art = $('#mobArt'); art.textContent = mob.e;
-    if (mob.boss) art.append(el('span', {class:'mob-tag', text:'BOSS'}));
-    $('#mobKind').textContent = (mob.boss ? 'Boss' : 'Canavar') + ' #' + n + ' · kesince Sv ' + (mob.tier + 1) + ' pet';
-    $('#mobName').textContent = mob.n;
-    const need = tapNeed(n);
-    $('#mobCost').textContent = mob.cost + ' dk ya da ' + need + ' vuruş';
-    $('#mobNote').textContent = 'Kesmek için ya duvarından rastgele ' + mob.cost + ' dakika ver (Saldır) ya da 👊 butonuna ' + need + ' kere vur. Uygulama açıkken saniyede 1 kez kendiliğinden vurulur. Kestiğin canavar Arena’da petin olur.';
-    renderTap();
-    const btn = $('#huntBtn');
-    const enough = my >= mob.cost;
-    btn.disabled = S.huntBusy || !enough;
-    btn.classList.toggle('armed', S.huntArmed);
-    btn.textContent = S.huntBusy ? 'Saldırılıyor…' : S.huntArmed ? 'Eminim, saldır! (−' + mob.cost + ' dakika)' : 'Saldır';
-    $('#huntCancel').hidden = !S.huntArmed;
-    if (!enough && !S.huntBusy && $('#huntMsg').dataset.keep !== '1') $('#huntMsg').textContent = 'Dakika vermek için duvarında en az ' + mob.cost + ' dakika olmalı. İstersen 👊 ile vurarak kes!';
-    else if (S.huntArmed) $('#huntMsg').textContent = 'Rastgele ' + mob.cost + ' dakikan silinecek. Emin misin?';
-    else if ($('#huntMsg').dataset.keep !== '1') $('#huntMsg').textContent = '';
-
-    const next = TITLES.slice().reverse().find(([need]) => k < need);
-    $('#nextReward').textContent = next ? 'Sonraki ödül: ' + next[0] + ' avda “' + next[1] + '” unvanı (' + k + '/' + next[0] + ')' : 'Bütün unvanlar sende. Sıradaki hedef: Canavar Avcısı tacını korumak.';
-
-    const lb = $('#huntLb'); lb.textContent = '';
-    if (!order.length) lb.append(el('li', {class:'muted', style:'display:block', text:'Henüz kimse canavar kesmedi. İlk kanı sen dök.'}));
-    order.forEach((pid, i) => {
-      const t = titleOf(pid);
-      lb.append(el('li', null, [
-        el('span', {class:'rk', text:i === 0 ? '👑' : '#' + (i + 1)}),
-        el('span', {class:'nm'}, [el('span', {class:'dot', style:'background:' + colorOf(pid)}), el('span', {text:nameOf(pid) + dailyTag(pid, me)}), t ? el('span', {class:'title-chip', text:t}) : null]),
-        el('span', {class:'ct', text:kills(pid) + ' av'})
-      ]));
-    });
-  }
-
+  /* ---------- lider ---------- */
   function setLeader(whoId, countId, pid, me, text, empty){
     const w = $(whoId); w.textContent = '';
     w.classList.toggle('none', !pid);
@@ -2167,134 +1747,9 @@ const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
     $(countId).textContent = pid ? text : '';
   }
   function renderLeaders(D, pids, me){
-    $('#leaders').hidden = S.page !== 'main';
-    const h = hunterOrder(pids)[0];
-    setLeader('#huntLeader', '#huntLeaderCount', h, me, h ? kills(h) + ' canavar' : '', 'Henüz kimse');
+    $('#leaders').hidden = false;
     const m = pids.filter(p => (D.counts[p] || 0) > 0).sort((a, b) => (D.counts[b] || 0) - (D.counts[a] || 0) || S.profiles[a].createdAt - S.profiles[b].createdAt)[0];
     setLeader('#minLeader', '#minLeaderCount', m, me, m ? D.counts[m] + ' dakika' : '', 'Henüz kimse');
-  }
-
-  function armHunt(on){
-    S.huntArmed = on;
-    clearTimeout(S.huntTimer);
-    if (on) S.huntTimer = setTimeout(() => { S.huntArmed = false; render(); }, 8000);
-    $('#huntMsg').dataset.keep = '';
-    render();
-  }
-  /* Canavar kesildi (dakikayla ya da yumrukla) */
-  function onKilled(r, mob, quiet){
-    const removed = r.removed || [];
-    removed.forEach(t => { delete mine()[t]; });
-    const x = (S.hunts[S.me] ||= {count:0, last:0});
-    x.count = Math.max(x.count, r.mob_no); x.last = Date.now();
-    const m = $('#mob'); m.classList.remove('dead', 'tap'); void m.offsetWidth; m.classList.add('dead');
-    setTimeout(() => m.classList.remove('dead'), 650);
-    if (!quiet && navigator.vibrate) try { navigator.vibrate([20, 40, 60]); } catch(e){}
-    const msg = $('#huntMsg');
-    const pet = PETS[mobTier(r.mob_no)];
-    msg.textContent = mob.n + ' kesildi! ' + (removed.length ? 'Giden dakikalar: ' + removed.map(fmt).join(', ') + '.' : quiet ? 'Otomatik vuruşlarla düştü, dakikan gitmedi.' : 'Yumrukla kestin, dakikan gitmedi.') + ' Pet olarak envanterine eklendi.';
-    msg.dataset.keep = '1';
-    const t = TITLES.find(([need]) => need === r.mob_no);
-    S.ar.loaded = false;
-    if (S.page === 'arena') loadArena();
-    if (!quiet || t || r.boss) toast((t ? 'Yeni unvan: ' + t[1] + '! ' : '') + pet.e + ' ' + pet.n + ' artık senin petin.', false, {label:'Arena', fn:() => setPage('arena')});
-  }
-
-  /* Yumrukla av: canavar 40, boss 80 vuruş. Süreyi sunucu da tutar (hile koruması). */
-  const tapNeed = n => n % 5 === 0 ? 80 : 40;
-  const tapLimitHit = () => S.tapLimit != null && S.tapUsed >= S.tapLimit;
-  const LIMIT_RE = /Bugünlük yumruk hakkın bitti/;
-  async function tapStatus(){
-    if (!S.token || !S.me) return;
-    try {
-      const r = await rpc('hunt_tap_status', {p_token:S.token});
-      S.tapUsed = r.used; S.tapLimit = r.limit; S.tapDay = todayKey();
-      if (!$('#game').hidden) render();
-    } catch(e){}
-  }
-  function todayKey(){ const d = new Date(Date.now() + (S.skew || 0)); return d.getFullYear() + '-' + d.getMonth() + '-' + d.getDate(); }
-  function renderTap(){
-    if (!S.me) return;
-    const n = kills(S.me) + 1, need = tapNeed(n), mob = mobFor(n);
-    const tp = S.tap && S.tap.mob === n ? S.tap : null;
-    const done = Math.min(tp ? tp.n : 0, need);
-    const tb = $('#tapBtn');
-    const capped = tapLimitHit() && !(tp && tp.wait);
-    tb.disabled = S.huntBusy || !!(tp && tp.wait) || capped;
-    tb.textContent = capped ? '👊 Bugünlük bitti · ' + S.tapLimit + '/' + S.tapLimit : tp && tp.wait ? '⏳ Düşüyor…' : '👊 Vur · ' + done + '/' + need;
-    $('#mobBar').style.maxWidth = Math.round((mob.boss ? 220 : 110) * (1 - done / need)) + 'px';
-  }
-  function tapHit(auto){
-    if (!S.me || S.huntBusy || tapLimitHit()) return;
-    auto = auto === true;
-    const n = kills(S.me) + 1;
-    if (!S.tap || S.tap.mob !== n) S.tap = {mob:n, n:0, need:tapNeed(n), started:false, done:false, wait:false, manual:false};
-    const t = S.tap;
-    if (t.done) return;
-    t.n++;
-    if (!auto) t.manual = true;
-    if (!t.started){
-      t.started = true;
-      rpc('hunt_tap_start', {p_token:S.token}).then(r => { if (r && r.limit != null){ S.tapUsed = r.used; S.tapLimit = r.limit; } }).catch(e => {
-        if (LIMIT_RE.test(errText(e))) S.tapUsed = S.tapLimit = S.tapLimit || 40;
-        if (S.tap === t){ S.tap = null; $('#huntMsg').textContent = errText(e); $('#huntMsg').dataset.keep = '1'; render(); }
-      });
-    }
-    if (!$('#pageMain').hidden){ const m = $('#mob'); m.classList.remove('tap'); void m.offsetWidth; m.classList.add('tap'); }
-    if (S.huntArmed && !auto) armHunt(false);
-    if (t.n >= t.need){ t.done = true; finishTap(t); }
-    renderTap();
-  }
-  /* Uygulama açık ve ekrandayken saniyede 1 otomatik vuruş */
-  function autoTap(){
-    if (!S.loaded || !S.me || !S.token || S.huntBusy || document.visibilityState !== 'visible' || tapLimitHit()) return;
-    if (S.tapDay && S.tapDay !== todayKey()){ S.tapDay = todayKey(); tapStatus(); }
-    if ($('#game').hidden || (S.profiles[S.me] || {}).admin) return;
-    tapHit(true);
-  }
-  async function finishTap(t){
-    if (S.tap !== t) return;
-    t.wait = true;
-    S.huntBusy = true; renderTap();
-    const mob = mobFor(t.mob);
-    let retry = 0;
-    try {
-      const r = await rpc('hunt_tap', {p_token:S.token});
-      S.tap = null;
-      if (r.limit != null){ S.tapUsed = r.used; S.tapLimit = r.limit; }
-      onKilled(r, mob, !t.manual);
-    } catch(e){
-      const msg = errText(e), m = /Çok hızlı.*?(\d+) sn/.exec(msg);
-      $('#huntMsg').textContent = msg; $('#huntMsg').dataset.keep = '1';
-      if (m && S.tap === t) retry = (+m[1]) * 1000 + 300;
-      else {
-        S.tap = null;
-        if (LIMIT_RE.test(msg)) S.tapUsed = S.tapLimit = S.tapLimit || 40;
-        if (/Oturumun kapanmış/.test(e && e.message || '')) logoutLocal();
-      }
-    }
-    S.huntBusy = false;
-    render();
-    if (retry) setTimeout(() => finishTap(t), retry);
-  }
-
-  async function attack(){
-    if (S.huntBusy || !S.me) return;
-    if (!S.huntArmed){ armHunt(true); return; }
-    S.huntArmed = false; clearTimeout(S.huntTimer);
-    S.huntBusy = true; render();
-    const mob = mobFor(kills(S.me) + 1);
-    try {
-      const r = await rpc('hunt', {p_token:S.token});
-      S.tap = null;
-      onKilled(r, mob);
-    } catch(e){
-      $('#huntMsg').textContent = errText(e);
-      $('#huntMsg').dataset.keep = '1';
-      if (/Oturumun kapanmış/.test(e && e.message || '')) logoutLocal();
-    } finally {
-      S.huntBusy = false; render();
-    }
   }
 
   function updateButton(){
@@ -2323,845 +1778,6 @@ const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
     if (t !== S.lastT){ S.lastT = t; if (!$('#game').hidden) render(); }
     else if (!$('#game').hidden) updateButton();
     if (S.lastMark && Date.now() - S.lastMark.at > 60000){ S.lastMark = null; $('#undoBtn').hidden = true; }
-    if (S.page === 'arena' && S.arTab === 'ordu'){
-      const off = arOff(), o = $('#offLeft');
-      if (o && off) o.textContent = ' · ' + durTxt(S.ar.offUntil - nowS()) + ' kaldı';
-      if (S.ar.offWas && !off) renderArena();
-      S.ar.offWas = off;
-    }
-    if (S.page === 'arena' && S.arTab === 'savas'){
-      const c = $('#arCd'), cooling = arCdLeft() > 0;
-      if (c) c.textContent = cdText();
-      if (S.ar.cdWas && !cooling) renderArena();
-      S.ar.cdWas = cooling;
-    }
-  }
-
-  /* ---------- arena ---------- */
-  const isBoss = t => !!PETS[t].boss;
-  const isLegend = t => !!PETS[t].legend;
-  const isHero = t => !!PETS[t].hero;
-  const rankCls = t => isHero(t) ? ' hero' : isLegend(t) ? ' efs' : isBoss(t) ? ' boss' : '';
-  const heroNeed = t => 40 * (t - 12);
-  const mergeChance = t => t === 9 ? 60 : t === 10 ? 45 : t === 11 ? 30 : t === 12 ? 25 : 90 - t;
-  const lvTxt = t => 'Sv ' + (t + 1);
-  const petName = t => PETS[t].n;
-  const itemLive = i => !!i.expires_at && Date.parse(i.expires_at) > Date.now() + (S.skew || 0);
-  function leftTxt(i){
-    const ms = Date.parse(i.expires_at) - (Date.now() + (S.skew || 0));
-    if (ms <= 0) return 'süresi doldu';
-    const h = Math.floor(ms / 3600000), m = Math.floor(ms / 60000) % 60;
-    return h >= 24 ? Math.floor(h / 24) + ' gün ' + (h % 24) + ' sa' : h ? h + ' sa ' + m + ' dk' : m + ' dk';
-  }
-  const arCdLeft = () => Math.max(0, (S.ar.cdUntil || 0) - (Date.now() + (S.skew || 0)));
-  const petsOf = pid => S.ar.pets.filter(p => p.owner === pid);
-  const deckOf = pid => petsOf(pid).filter(p => p.slot != null).sort((a, b) => a.slot - b.slot);
-  function gearMap(){
-    const g = {};
-    S.ar.items.forEach(i => { if (i.pet_id != null && itemLive(i)) (g[i.pet_id] ||= {})[i.code[0]] = i; });
-    return g;
-  }
-  function statOf(p, gm){
-    const g = gm[p.id] || {};
-    const k = g.k ? g.k.code : null, z = g.z ? g.z.code : null;
-    return {hp:PET_HP[p.tier], atk:PET_ATK[p.tier], crit:BASE_CRIT + (k ? ITEMS[k].crit : 0), regen:z ? ITEMS[z].regen : 0, k, z};
-  }
-  function btn(cls, text, fn, dis){
-    const b = el('button', {type:'button', class:cls, text});
-    if (fn) b.onclick = fn;
-    b.disabled = !!dis;
-    return b;
-  }
-  const dotOf = pid => el('span', {class:'dot', style:'background:' + colorOf(pid)});
-  const gearIcons = s => (s.k || s.z) ? el('span', {class:'gear', text:(s.k ? ITEMS[s.k].e : '') + (s.z ? ITEMS[s.z].e : '')}) : null;
-
-  async function fetchAll(table, cols){
-    const out = [];
-    for (let from = 0; ; from += 1000){
-      const {data, error} = await S.sb.from(table).select(cols).order('id').range(from, from + 999);
-      if (error) throw error;
-      out.push(...(data || []));
-      if (!data || data.length < 1000) break;
-    }
-    return out;
-  }
-  function applyArenaState(st){
-    if (!st) return;
-    if (st.now) S.skew = Date.parse(st.now) - Date.now();
-    S.ar.coins = st.coins || 0;
-    S.ar.admin = !!st.admin;
-    S.ar.unseen = st.unseen || 0;
-    S.ar.cdUntil = st.cooldown_until ? Date.parse(st.cooldown_until) : 0;
-    S.ar.offUntil = st.off && st.off_until ? Date.parse(st.off_until) : 0;
-    S.ar.leaveUntil = st.leave_until ? Date.parse(st.leave_until) : 0;
-    if (S.profiles[S.me]) S.profiles[S.me].offUntil = S.ar.offUntil;
-    if (st.gift > 0) toast('Günlük ' + st.gift + ' 🪙 geldi! Arena’daki markette harcayabilirsin.', false, {label:'Market', fn:() => { setPage('arena'); setArTab('market'); }});
-    renderNav();
-  }
-  async function arenaState(){
-    if (!S.token || !S.me) return;
-    try { applyArenaState(await rpc('arena_state', {p_token:S.token})); if (S.page === 'arena') renderArena(); } catch(e){}
-  }
-  async function loadArena(){
-    if (!S.me || !S.token) return;
-    const seq = ++S.ar.seq;
-    try {
-      const [pets, items, battles, st] = await Promise.all([
-        fetchAll('pets', 'id,owner,tier,slot,src,at,xp'),
-        fetchAll('items', 'id,owner,code,pet_id,expires_at'),
-        S.sb.from('battles').select('id,attacker,defender,attacker_won,captured,coins,seen,at,a_team,d_team')
-          .order('id', {ascending:false}).limit(60).then(({data, error}) => { if (error) throw error; return data || []; }),
-        rpc('arena_state', {p_token:S.token})
-      ]);
-      if (seq !== S.ar.seq) return;
-      S.ar.pets = pets; S.ar.items = items; S.ar.battles = battles;
-      S.ar.loaded = true; S.ar.err = '';
-      applyArenaState(st);
-    } catch(e){
-      if (seq !== S.ar.seq) return;
-      if (/Oturumun kapanmış/.test(e && e.message || '')){ logoutLocal(); return; }
-      S.ar.err = errText(e);
-    }
-    if (S.page === 'arena'){ renderArena(); maybeMarkSeen(); }
-    if (S.ar.sheet) renderSheet();
-  }
-  async function arenaCall(fn, args){
-    try { return await rpc(fn, Object.assign({p_token:S.token}, args)); }
-    catch(e){
-      toast(errText(e));
-      if (/Oturumun kapanmış/.test(e && e.message || '')) logoutLocal();
-      throw e;
-    }
-  }
-
-  function renderNav(){
-    $('#pgMain').setAttribute('aria-pressed', String(S.page === 'main'));
-    $('#pgArena').setAttribute('aria-pressed', String(S.page === 'arena'));
-    const n = S.ar.unseen || 0;
-    $('#pgBadge').hidden = !n; $('#pgBadge').textContent = n;
-    $('#arBadge').hidden = !n; $('#arBadge').textContent = n;
-  }
-  function setPage(p, fromHash){
-    if (!S.me || !S.profiles[S.me]) p = 'main';
-    const changed = S.page !== p;
-    S.page = p;
-    $('#pageMain').hidden = p !== 'main';
-    $('#pageArena').hidden = p !== 'arena';
-    if (p !== 'main') $('#leaders').hidden = true;
-    if (!fromHash){
-      if (p === 'arena' && location.hash !== '#arena') history.pushState(null, '', '#arena');
-      if (p === 'main' && location.hash === '#arena') history.pushState(null, '', location.pathname + location.search);
-    }
-    renderNav();
-    render();
-    if (p === 'arena'){
-      renderArena();
-      if (changed || !S.ar.loaded) loadArena();
-      maybeMarkSeen();
-    }
-    if (changed) window.scrollTo(0, 0);
-  }
-  function syncPage(){ setPage(location.hash === '#arena' ? 'arena' : 'main', true); }
-  function setArTab(t){
-    S.arTab = t; store.set('peengo.arTab', t);
-    S.ar.armed = null;
-    renderArena(); maybeMarkSeen();
-  }
-  function maybeMarkSeen(){
-    if (S.page !== 'arena' || S.arTab !== 'gecmis' || !S.ar.unseen || S.ar.seenBusy || !S.token) return;
-    S.ar.battles.forEach(b => { if (b.defender === S.me && !b.seen) S.ar.newIds.add(b.id); });
-    S.ar.seenBusy = true;
-    rpc('arena_seen', {p_token:S.token})
-      .then(() => { S.ar.unseen = 0; S.ar.battles.forEach(b => { if (b.defender === S.me) b.seen = true; }); renderNav(); })
-      .catch(() => {})
-      .finally(() => { S.ar.seenBusy = false; });
-  }
-
-  function renderArena(){
-    if ($('#pageArena').hidden) return;
-    $('#arCoins').textContent = fmtCoin(S.ar.coins);
-    document.querySelectorAll('#arTabs [data-tab]').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.tab === S.arTab)));
-    $('#arHelp').hidden = store.get('peengo.arenaHelp') === '1';
-    const ae = document.activeElement, keepFocus = ae && ae.id === 'mottoInput' ? [ae.selectionStart, ae.selectionEnd] : null;
-    const body = $('#arBody'); body.textContent = '';
-    if (keepFocus) setTimeout(() => { const i = $('#mottoInput'); if (i){ i.focus(); try { i.setSelectionRange(keepFocus[0], keepFocus[1]); } catch(e){} } }, 0);
-    if (S.ar.err) body.append(el('p', {class:'ro', style:'color:var(--warn)', text:S.ar.err}));
-    if (!S.ar.loaded){
-      body.append(el('section', {class:'card'}, [el('p', {class:'muted', style:'margin:0', text:S.ar.err ? 'Arena yüklenemedi. Biraz sonra tekrar dene.' : 'Arena yükleniyor…'})]));
-      return;
-    }
-    if (S.ar.unseen && S.arTab !== 'gecmis') body.append(el('p', {class:'ar-note'}, [
-      el('span', {text:'Sen yokken ' + S.ar.unseen + ' kez saldırıya uğradın.'}),
-      btn('ghost', 'Geçmiş’te izle', () => setArTab('gecmis'))
-    ]));
-    if (S.arTab === 'savas') renderSavas(body);
-    else if (S.arTab === 'market') renderMarket(body);
-    else if (S.arTab === 'gecmis') renderGecmis(body);
-    else renderOrdu(body);
-  }
-
-  /* Ordu + envanter */
-  function renderOrdu(body){
-    const me = S.me, gm = gearMap();
-    if (S.ar.admin){
-      body.append(el('section', {class:'card'}, [el('p', {class:'muted', style:'margin:0', text:'Yönetici hesabı arenada savaşamaz. Savaş ve Geçmiş sekmelerinden izleyebilirsin.'})]));
-      return;
-    }
-    const mine = petsOf(me), deck = deckOf(me);
-    body.append(statusCard(), mottoCard());
-    const slots = el('div', {class:'deck'});
-    let thp = 0, tatk = 0;
-    for (let i = 0; i < 5; i++){
-      const p = deck[i];
-      if (!p){ slots.append(el('div', {class:'slot empty'}, [el('span', {class:'no', text:String(i + 1)}), document.createTextNode('Boş')])); continue; }
-      const s = statOf(p, gm); thp += s.hp; tatk += s.atk;
-      slots.append(el('button', {type:'button', class:'slot' + rankCls(p.tier), title:petName(p.tier), onclick:() => openPet(p.id)}, [
-        el('span', {class:'no', text:String(i + 1)}), gearIcons(s),
-        el('span', {class:'em', text:PETS[p.tier].e}),
-        el('span', {class:'lv' + rankCls(p.tier), text:lvTxt(p.tier)}),
-        el('span', {class:'st', text:'❤ ' + s.hp}),
-        el('span', {class:'st', text:'⚔ ' + s.atk})
-      ]));
-    }
-    body.append(el('section', {class:'card'}, [
-      el('div', {class:'row between'}, [el('h2', {class:'h', text:'Ordun'}), el('span', {class:'bcount', text:deck.length + '/5 pet'})]),
-      el('p', {class:'muted', style:'margin:6px 0 0;font-size:13px;max-width:62ch', text:'Savaşta petler 1’den 5’e sırayla çıkar. Ordun sen yokken de savaşır. Kaybedersen ordundaki bütün petler rakibe geçer.'}),
-      slots,
-      deck.length
-        ? el('p', {class:'mono muted', style:'margin:10px 0 0;font-size:13px', text:'Toplam ❤ ' + thp + ' · ⚔ ' + tatk})
-        : el('p', {class:'muted', style:'margin:10px 0 0;font-size:13px', text:mine.length ? 'Aşağıdan bir pete dokunup “Orduya koy”a bas.' : ''})
-    ]));
-
-    const counts = {};
-    mine.forEach(p => { counts[p.tier] = (counts[p.tier] || 0) + 1; });
-    const ready = Object.keys(counts).filter(t => counts[t] >= 2 && +t < 12).length;
-    const inv = el('div', {class:'inv'});
-    mine.slice().sort((a, b) => b.tier - a.tier || (a.slot == null) - (b.slot == null) || a.id - b.id).forEach(p => {
-      const s = statOf(p, gm);
-      inv.append(el('button', {type:'button', class:'tile' + rankCls(p.tier) + (p.slot != null ? ' on' : ''), title:petName(p.tier) + (p.slot != null ? ' (orduda)' : ''), onclick:() => openPet(p.id)}, [
-        p.slot != null ? el('span', {class:'flag', text:'#' + p.slot}) : null,
-        gearIcons(s),
-        el('span', {class:'em', text:PETS[p.tier].e}),
-        el('span', {class:'lv' + rankCls(p.tier), text:lvTxt(p.tier)}),
-        el('span', {class:'nm2', text:petName(p.tier)})
-      ]));
-    });
-    body.append(el('section', {class:'card'}, [
-      el('div', {class:'row between'}, [el('h2', {class:'h', text:'Envanter'}), el('span', {class:'bcount', text:mine.length + ' pet'})]),
-      el('p', {class:'muted', style:'margin:6px 0 0;font-size:13px;max-width:62ch', text:mine.length
-        ? 'Bir pete dokun: orduya koy, eşya giydir ya da aynısından 2 tane varsa birleştir.' + (ready ? ' Şu an ' + ready + ' çeşit pet birleştirmeye hazır.' : '')
-        : 'Henüz petin yok. İşeme sayfasında canavar kes, kestiğin canavar buraya pet olarak gelir.'}),
-      mine.length ? inv : null
-    ]));
-  }
-
-  /* Savaş durumu: aktif / inaktif. İnaktiflik 6 saat sürer, uzatılırsa 6 saat baştan başlar. */
-  const nowS = () => Date.now() + (S.skew || 0);
-  const arOff = () => (S.ar.offUntil || 0) > nowS();
-  const isOff = pid => ((S.profiles[pid] || {}).offUntil || 0) > nowS();
-  const hhmm = serverMs => { const d = new Date(serverMs - (S.skew || 0)); return pad(d.getHours()) + ':' + pad(d.getMinutes()); };
-  function durTxt(ms){ const m = Math.ceil(ms / 60000), h = Math.floor(m / 60); return h ? h + ' sa ' + (m % 60) + ' dk' : m + ' dk'; }
-  function statusCard(){
-    const off = arOff();
-    const leaveLeft = Math.max(0, (S.ar.leaveUntil || 0) - nowS());
-    const lockedIn = !off && leaveLeft > 0;
-    const busy = S.ar.busy === 'toggle';
-    const btns = off
-      ? [btn('ghost', busy ? 'Kaydediliyor…' : 'Süreyi uzat (6 sa)', () => toggleArena(true), !!S.ar.busy),
-         btn('primary', 'Aktif et', () => toggleArena(false), !!S.ar.busy)]
-      : [btn('ghost', busy ? 'Kaydediliyor…' : 'İnaktif yap (6 sa)', () => toggleArena(true), !!S.ar.busy || lockedIn)];
-    return el('section', {class:'card ar-status' + (off ? ' off' : '')}, [
-      el('div', {class:'row between'}, [
-        el('div', {style:'min-width:0;display:flex;flex-direction:column;gap:2px'}, [
-          el('p', {class:'eyebrow', text:'Savaş durumu'}),
-          el('b', {class:'st-line'}, [document.createTextNode(off ? '⚪ İnaktif' : '🟢 Aktif'),
-            off ? el('span', {class:'st-left', id:'offLeft', text:' · ' + durTxt(S.ar.offUntil - nowS()) + ' kaldı'}) : null])
-        ]),
-        el('div', {class:'sheet-actions'}, btns)
-      ]),
-      el('p', {class:'muted', style:'margin:8px 0 0;font-size:13px;max-width:62ch', text:off
-        ? 'Ordun savaşa kapalı: kimse sana saldıramaz, sen de kimseye saldıramazsın. Bitiş saati ' + hhmm(S.ar.offUntil) + ', sonra kendiliğinden aktif olur. “Süreyi uzat”a basarsan 6 saat baştan başlar.'
-        : lockedIn
-          ? 'Yakın zamanda saldırdığın için saat ' + hhmm(S.ar.leaveUntil) + ' olana kadar savaştan çekilemezsin.'
-          : 'Ordun savaşa açık: herkes sana saldırabilir, sen de istediğine saldırabilirsin. İstemezsen 6 saatliğine inaktif yap.'})
-    ]);
-  }
-  /* Ordu sözü */
-  const mottoOf = pid => (S.profiles[pid] || {}).motto || '';
-  const mottoEl = (pid, cls) => mottoOf(pid) ? el('p', {class:'motto' + (cls ? ' ' + cls : ''), text:'“' + mottoOf(pid) + '”'}) : null;
-  function mottoCard(){
-    const cur = mottoOf(S.me);
-    const inp = el('input', {id:'mottoInput', maxlength:'80', autocomplete:'off', placeholder:'Örn. Kaybetmek isteyen saldırsın', 'aria-label':'Ordu sözü'});
-    inp.value = S.ar.mottoDraft != null ? S.ar.mottoDraft : cur;
-    const count = el('span', {class:'mono muted', style:'font-size:12px', text:inp.value.length + '/80'});
-    const save = btn('primary', S.ar.busy === 'motto' ? 'Kaydediliyor…' : 'Kaydet', () => saveMotto(inp.value), !!S.ar.busy || inp.value.trim() === cur);
-    inp.addEventListener('input', () => { S.ar.mottoDraft = inp.value; count.textContent = inp.value.length + '/80'; save.disabled = !!S.ar.busy || inp.value.trim() === cur; });
-    inp.addEventListener('keydown', ev => { if (ev.key === 'Enter' && !save.disabled){ ev.preventDefault(); saveMotto(inp.value); } });
-    return el('section', {class:'card'}, [
-      el('div', {class:'row between'}, [el('h2', {class:'h', text:'Ordu sözün'}), count]),
-      el('p', {class:'muted', style:'margin:6px 0 0;font-size:13px', text:'Rakiplerin Savaş sekmesinde ve savaş ekranında ordunun yanında görür. Bir cümle, en fazla 80 karakter.'}),
-      el('div', {class:'motto-edit'}, [inp, save])
-    ]);
-  }
-  async function saveMotto(text){
-    if (S.ar.busy) return;
-    S.ar.busy = 'motto'; renderArena();
-    try {
-      const r = await arenaCall('arena_motto', {p_text:text});
-      if (S.profiles[S.me]) S.profiles[S.me].motto = r.motto || '';
-      S.ar.mottoDraft = null;
-      toast(r.motto ? 'Ordu sözün kaydedildi.' : 'Ordu sözün silindi.');
-    } catch(e){}
-    S.ar.busy = false;
-    renderArena();
-  }
-
-  async function toggleArena(off){
-    if (S.ar.busy) return;
-    const wasOff = arOff();
-    S.ar.busy = 'toggle'; renderArena();
-    try {
-      const r = await arenaCall('arena_toggle', {p_off:off});
-      S.ar.offUntil = r.off && r.off_until ? Date.parse(r.off_until) : 0;
-      if (S.profiles[S.me]) S.profiles[S.me].offUntil = S.ar.offUntil;
-      toast(!r.off ? 'Ordun aktif. Savaşa hazırsın!'
-        : wasOff ? 'Süre uzadı, yeni bitiş saati ' + hhmm(S.ar.offUntil) + '.' : 'Ordun 6 saat inaktif (bitiş ' + hhmm(S.ar.offUntil) + '). Bu sürede kimse sana saldıramaz.');
-    } catch(e){}
-    S.ar.busy = false;
-    await loadArena();
-  }
-
-  /* Pet kartı */
-  function openPet(id){ S.ar.sheet = {id, armed:'', busy:false, res:null}; renderSheet(); $('#petSheet').hidden = false; }
-  function closePet(){ $('#petSheet').hidden = true; S.ar.sheet = null; }
-  function renderSheet(){
-    const sh = S.ar.sheet; if (!sh) return;
-    const card = $('#petCard'); card.textContent = '';
-    if (sh.res){
-      const r = sh.res, up = r.tier + 1;
-      card.append(el('div', {class:'merge-res'}, [
-        el('span', {class:'em', text:r.ok ? PETS[up].e : '💨'}),
-        el('h2', {class:'h', text:r.ok ? 'Birleşti! ' + petName(up) + ' geldi' : 'Olmadı… iki ' + petName(r.tier) + ' de gitti'}),
-        el('p', {class:'muted', text:r.ok
-          ? lvTxt(up) + ' · ❤ ' + PET_HP[up] + ' · ⚔ ' + PET_ATK[up] + (r.items_back ? '. Üstlerindeki eşyalar çantana döndü.' : '')
-          : '%' + (100 - (r.chance || mergeChance(r.tier))) + ' ihtimal tuttu.' + (r.items_back ? ' Üstlerindeki eşyalar çantana döndü.' : ' Bir dahaki sefere.')})
-      ]));
-      card.append(el('div', {class:'sheet-actions', style:'justify-content:center'}, [
-        r.ok && r.pet ? btn('primary', 'Yeni pete bak', () => openPet(r.pet)) : null,
-        btn('ghost', 'Kapat', closePet)
-      ]));
-      return;
-    }
-    const p = S.ar.pets.find(x => x.id === sh.id);
-    if (!p || p.owner !== S.me){
-      card.append(el('p', {style:'margin:0', text:'Bu pet artık sende değil.'}), btn('ghost', 'Kapat', closePet));
-      return;
-    }
-    const gm = gearMap(), s = statOf(p, gm);
-    const src = {av:'Avdan geldi', birlesim:'Birleşimden doğdu', savas:'Savaşta ele geçirildi'}[p.src] || '';
-    card.append(el('div', {class:'pet-top'}, [
-      el('div', {class:'pet-big' + rankCls(p.tier), text:PETS[p.tier].e}),
-      el('div', {style:'min-width:0;display:flex;flex-direction:column;gap:2px'}, [
-        el('p', {class:'eyebrow', text:(isHero(p.tier) ? 'Kahraman · ' : isLegend(p.tier) ? 'Efsane · ' : isBoss(p.tier) ? 'Boss · ' : '') + 'Seviye ' + (p.tier + 1) + ' / 40'}),
-        el('h2', {class:'h', text:petName(p.tier)}),
-        el('p', {class:'muted', style:'margin:0;font-size:13px', text:src + (p.slot != null ? ' · Orduda ' + p.slot + '. sırada' : '') + (isLegend(p.tier) ? ' · Avda çıkmaz, sadece birleştirmeyle' : isHero(p.tier) ? ' · Pet yedirerek seviye atlar, savaşta ele geçirilmez' : '')})
-      ])
-    ]));
-    card.append(el('div', {class:'pet-stats'}, [
-      el('div', null, [el('span', {class:'eyebrow', text:'Can'}), el('b', {text:'❤ ' + s.hp})]),
-      el('div', null, [el('span', {class:'eyebrow', text:'Saldırı'}), el('b', {text:'⚔ ' + s.atk})]),
-      el('div', null, [el('span', {class:'eyebrow', text:'Kritik'}), el('b', {text:'🎯 %' + s.crit}), s.k ? el('small', {class:'muted', text:'+%' + ITEMS[s.k].crit + ' kılıçtan'}) : null]),
-      el('div', null, [el('span', {class:'eyebrow', text:'Yenileme'}), el('b', {text:'♥ +' + s.regen + '/tur'}), s.z ? el('small', {class:'muted', text:'zırhtan'}) : null])
-    ]));
-    if (isHero(p.tier)) card.append(heroBox(p, sh));
-    ['k', 'z'].forEach(kind => {
-      const cur = (gm[p.id] || {})[kind];
-      const byCode = {};
-      S.ar.items.filter(i => i.owner === S.me && i.pet_id == null && i.code[0] === kind && itemLive(i)).forEach(i => { (byCode[i.code] ||= []).push(i); });
-      const chips = el('div', {class:'chips'});
-      if (cur) chips.append(btn('chip on', ITEMS[cur.code].e + ' ' + ITEMS[cur.code].n + ' · ' + leftTxt(cur) + ' · Çıkar', () => equip(cur.id, null), S.ar.busy));
-      Object.keys(byCode).sort().forEach(code => {
-        const it = ITEMS[code], list = byCode[code].sort((a, b) => Date.parse(a.expires_at) - Date.parse(b.expires_at)), n = list.length;
-        chips.append(btn('chip', it.e + ' ' + it.n + ' (' + itemFx(code) + ', ' + leftTxt(list[0]) + ')' + (n > 1 ? ' ×' + n : '') + ' · Giydir', () => equip(list[0].id, p.id), S.ar.busy));
-      });
-      if (!chips.children.length) chips.append(el('span', {class:'muted', style:'font-size:13px', text:'Çantanda ' + (kind === 'k' ? 'kılıç' : 'zırh') + ' yok. Market’ten alabilirsin.'}));
-      card.append(el('div', {class:'gear-row'}, [el('p', {class:'eyebrow', text:kind === 'k' ? 'Kılıç' : 'Zırh'}), chips]));
-    });
-
-    const deck = deckOf(S.me);
-    const acts = el('div', {class:'sheet-actions'});
-    if (p.slot != null) acts.append(btn('ghost', 'Ordudan çıkar', () => setDeck(deck.filter(x => x.id !== p.id).map(x => x.id)), S.ar.busy));
-    else acts.append(btn('primary', deck.length >= 5 ? 'Ordun dolu (5/5)' : 'Orduya koy', () => setDeck(deck.map(x => x.id).concat(p.id)), deck.length >= 5 || S.ar.busy));
-    card.append(acts);
-
-    const mates = S.ar.pets.filter(x => x.owner === S.me && x.tier === p.tier && x.id !== p.id);
-    if (isHero(p.tier)) {}
-    else if (p.tier >= 39) card.append(el('p', {class:'muted', style:'margin:0;font-size:13px', text:'En üst seviye.'}));
-    else if (!mates.length) card.append(el('p', {class:'muted', style:'margin:0;font-size:13px', text:'Birleştirmek için 1 tane daha ' + petName(p.tier) + ' lazım.'}));
-    else {
-      const armed = sh.armed === 'merge', up = p.tier + 1;
-      const fromDeck = mates.every(x => x.slot != null);
-      card.append(el('div', {class:'gear-row'}, [
-        el('p', {class:'eyebrow', text:'Birleştir'}),
-        el('p', {style:'margin:0;font-size:14px', text:'2 × ' + PETS[p.tier].e + ' ' + petName(p.tier) + ' → %' + mergeChance(p.tier) + ' ihtimalle ' + PETS[up].e + ' ' + petName(up) + ' (' + lvTxt(up) + (isHero(up) ? ', kahraman' : isLegend(up) ? ', efsane' : '') + '). %' + (100 - mergeChance(p.tier)) + ' ihtimalle ikisi de gider.' + (fromDeck ? ' Eşi ordundan alınır.' : '')}),
-        btn('attack' + (armed ? ' armed' : ''), sh.busy ? 'Birleştiriliyor…' : armed ? 'Eminim, birleştir!' : 'Birleştir', () => mergePet(p.id), sh.busy || S.ar.busy)
-      ]));
-    }
-    // Satış
-    const price = PET_PRICE[p.tier];
-    const bulk = S.ar.pets.filter(x => x.owner === S.me && x.tier === p.tier && x.slot == null && !(gm[x.id] && (gm[x.id].k || gm[x.id].z)));
-    const sellArmed = sh.armed === 'sell', bulkArmed = sh.armed === 'bulk';
-    const sellBox = el('div', {class:'gear-row'}, [
-      el('p', {class:'eyebrow', text:'Sat'}),
-      el('p', {class:'muted', style:'margin:0;font-size:13px', text:'Bu pet ' + fmtCoin(price) + ' 🪙 eder.' + (p.slot != null ? ' Satarsan ordudan da çıkar.' : '') + ((gm[p.id] || {}).k || (gm[p.id] || {}).z ? ' Üstündeki eşyalar çantana döner.' : '')}),
-      el('div', {class:'sheet-actions'}, [
-        btn('ghost' + (sellArmed ? ' armed' : ''), sellArmed ? 'Eminim, sat (+' + fmtCoin(price) + ' 🪙)' : 'Bunu sat · ' + fmtCoin(price) + ' 🪙', () => sellPets([p.id], 'sell'), S.ar.busy),
-        bulk.length >= 2 ? btn('ghost' + (bulkArmed ? ' armed' : ''), bulkArmed ? 'Eminim, ' + bulk.length + ' tanesini sat' : 'Ordu dışındaki ' + bulk.length + ' tane ' + lvTxt(p.tier) + ' petini sat · ' + fmtCoin(price * bulk.length) + ' 🪙', () => sellPets(bulk.map(x => x.id), 'bulk'), S.ar.busy) : null
-      ])
-    ]);
-    card.append(sellBox);
-    card.append(btn('ghost', 'Kapat', closePet));
-    card.lastChild.style.alignSelf = 'center';
-  }
-  /* Kahraman: XP ve besleme */
-  function heroBox(p, sh){
-    const max = p.tier >= 39, need = heroNeed(p.tier), xp = p.xp || 0;
-    const gm = gearMap();
-    const food = maxLv => S.ar.pets.filter(x => x.owner === S.me && x.id !== p.id && x.tier < 13 && x.tier + 1 <= maxLv && x.slot == null && !(gm[x.id] && (gm[x.id].k || gm[x.id].z)));
-    const opts = el('div', {class:'sheet-actions'});
-    if (!max) [[4, 'Sv1–4'], [9, 'Sv1–9'], [13, 'Sv1–13']].forEach(([mx, label]) => {
-      const list = food(mx); if (!list.length) return;
-      const gain = list.reduce((a, x) => a + x.tier + 1, 0), key = 'feed' + mx, armed = sh.armed === key;
-      opts.append(btn('ghost' + (armed ? ' armed' : ''), armed ? 'Eminim, ' + list.length + ' peti yedir' : label + ' yedir · ' + list.length + ' pet · +' + gain + ' XP', () => feedHero(p.id, list.map(x => x.id), key), S.ar.busy));
-    });
-    return el('div', {class:'gear-row'}, [
-      el('p', {class:'eyebrow', text:'Kahraman XP'}),
-      max ? el('p', {style:'margin:0;font-size:14px', text:'En üst seviyede (Sv40). Tebrikler!'}) : el('div', {class:'bar', style:'height:10px'}, [el('i', {style:'width:' + Math.min(100, xp / need * 100) + '%;background:#7B4DFF'})]),
-      max ? null : el('p', {class:'mono muted', style:'margin:0;font-size:12px', text:xp + ' / ' + need + ' XP → ' + lvTxt(p.tier + 1) + ' · her pet seviyesi kadar XP verir'}),
-      max ? null : (opts.children.length ? opts : el('p', {class:'muted', style:'margin:0;font-size:13px', text:'Yedirecek pet yok. Ordu dışındaki eşyasız petler yedirilebilir.'}))
-    ]);
-  }
-  async function feedHero(heroId, ids, kind){
-    const sh = S.ar.sheet;
-    if (!sh || S.ar.busy || !ids.length) return;
-    if (sh.armed !== kind){
-      sh.armed = kind; renderSheet();
-      clearTimeout(sh.t); sh.t = setTimeout(() => { if (S.ar.sheet === sh && sh.armed === kind){ sh.armed = ''; renderSheet(); } }, 6000);
-      return;
-    }
-    sh.armed = ''; S.ar.busy = 'feed'; renderSheet();
-    try {
-      const r = await arenaCall('arena_feed', {p_hero:heroId, p_pets:ids});
-      const gone = new Set(ids);
-      S.ar.pets = S.ar.pets.filter(x => !gone.has(x.id));
-      const h = S.ar.pets.find(x => x.id === heroId); if (h){ h.tier = r.tier; h.xp = r.xp; }
-      toast(r.tier > r.from ? PETS[r.tier].e + ' Seviye atladı: ' + lvTxt(r.from) + ' → ' + lvTxt(r.tier) + '! (+' + r.gained + ' XP)' : '+' + r.gained + ' XP. ' + r.xp + ' / ' + r.need + ' XP');
-      if (navigator.vibrate && r.tier > r.from) try { navigator.vibrate([30, 40, 90]); } catch(e){}
-    } catch(e){}
-    S.ar.busy = false;
-    renderSheet(); renderArena();
-    await loadArena();
-  }
-  async function sellPets(ids, kind){
-    const sh = S.ar.sheet;
-    if (!sh || S.ar.busy || !ids.length) return;
-    if (sh.armed !== kind){
-      sh.armed = kind; renderSheet();
-      clearTimeout(sh.t); sh.t = setTimeout(() => { if (S.ar.sheet === sh && sh.armed === kind){ sh.armed = ''; renderSheet(); } }, 6000);
-      return;
-    }
-    sh.armed = ''; S.ar.busy = 'sell'; renderSheet();
-    try {
-      const r = await arenaCall('arena_sell', {p_pets:ids});
-      S.ar.coins = r.coins;
-      const gone = new Set(ids);
-      S.ar.pets = S.ar.pets.filter(x => !gone.has(x.id));
-      toast(r.sold + ' pet satıldı, +' + fmtCoin(r.gained) + ' 🪙.' + (r.items_back ? ' Eşyalar çantana döndü.' : ''));
-      if (gone.has(sh.id)) closePet();
-    } catch(e){}
-    S.ar.busy = false;
-    renderSheet(); renderArena();
-    await loadArena();
-  }
-  async function setDeck(ids){
-    if (S.ar.busy) return;
-    S.ar.busy = true;
-    S.ar.pets.forEach(p => { if (p.owner === S.me) p.slot = null; });
-    ids.forEach((id, i) => { const p = S.ar.pets.find(x => x.id === id); if (p) p.slot = i + 1; });
-    renderArena(); renderSheet();
-    try { await arenaCall('arena_deck', {p_pets:ids}); } catch(e){}
-    S.ar.busy = false;
-    await loadArena();
-  }
-  async function equip(itemId, petId){
-    if (S.ar.busy) return;
-    S.ar.busy = true;
-    const it = S.ar.items.find(i => i.id === itemId);
-    if (it){
-      if (petId != null) S.ar.items.forEach(i => { if (i.pet_id === petId && i.code[0] === it.code[0]) i.pet_id = null; });
-      it.pet_id = petId;
-    }
-    renderSheet(); renderArena();
-    try { await arenaCall('arena_equip', {p_item:itemId, p_pet:petId}); } catch(e){}
-    S.ar.busy = false;
-    await loadArena();
-  }
-  async function mergePet(id){
-    const sh = S.ar.sheet;
-    if (!sh || sh.busy || S.ar.busy) return;
-    if (sh.armed !== 'merge'){
-      sh.armed = 'merge'; renderSheet();
-      clearTimeout(sh.t); sh.t = setTimeout(() => { if (S.ar.sheet === sh && !sh.busy){ sh.armed = ''; renderSheet(); } }, 6000);
-      return;
-    }
-    sh.busy = true; sh.armed = ''; S.ar.busy = true; renderSheet();
-    try {
-      const r = await arenaCall('arena_merge', {p_pet:id});
-      sh.res = r;
-      if (navigator.vibrate) try { navigator.vibrate(r.ok ? [30, 40, 90] : [160]); } catch(e){}
-    } catch(e){}
-    sh.busy = false; S.ar.busy = false;
-    renderSheet();
-    await loadArena();
-  }
-
-  /* Savaş */
-  function cdText(){
-    if (S.ar.admin) return 'Sadece izleyici';
-    if (arOff()) return 'Ordun inaktif';
-    const l = arCdLeft();
-    return l ? 'Sonraki saldırı ' + mmss(l) : 'Saldırmaya hazırsın';
-  }
-  function armyRow(deck, gm){
-    return el('div', {class:'army'}, deck.map(p => {
-      const s = statOf(p, gm);
-      return el('i', {class:rankCls(p.tier).trim(), title:petName(p.tier) + ' · ❤ ' + s.hp + ' · ⚔ ' + s.atk}, [
-        document.createTextNode(PETS[p.tier].e), el('small', {text:lvTxt(p.tier)}),
-        (s.k || s.z) ? el('span', {class:'g', text:(s.k ? ITEMS[s.k].e : '') + (s.z ? ITEMS[s.z].e : '')}) : null
-      ]);
-    }));
-  }
-  function renderSavas(body){
-    const me = S.me, gm = gearMap();
-    const myDeck = S.ar.admin ? [] : deckOf(me);
-    const cooling = arCdLeft() > 0;
-    S.ar.cdWas = cooling;
-    body.append(el('section', {class:'card'}, [
-      el('div', {class:'row between'}, [el('h2', {class:'h', text:'Savaş aç'}), el('span', {class:'bcount', id:'arCd', text:cdText()})]),
-      el('p', {class:'muted', style:'margin:6px 0 0;font-size:13px;max-width:62ch', text:'Rakibin çevrimdışı olsa da ordusu savaşır. Önce iki ordunun 1. petleri çarpışır, sırayla vururlar; ölenin yerine sıradaki çıkar. Kazanan, kaybeden ordunun bütün petlerini alır ve +5 🪙 kazanır. 10 dakikada bir saldırabilirsin.'}),
-      S.ar.admin || !arOff() ? null : el('p', {class:'ar-note', style:'margin-top:12px'}, [
-        el('span', {text:'Ordun inaktif (bitiş ' + hhmm(S.ar.offUntil) + '), şu an saldıramazsın.'}),
-        btn('ghost', 'Aktif et', () => toggleArena(false), S.ar.busy)
-      ]),
-      S.ar.admin ? null : el('div', {style:'margin-top:12px'}, [
-        el('p', {class:'eyebrow', text:'Senin ordun'}),
-        mottoEl(me),
-        myDeck.length ? armyRow(myDeck, gm) : el('p', {class:'ro', style:'margin-top:6px', text:'Ordun boş. Önce Ordu sekmesinden en az 1 pet seç.'})
-      ])
-    ]));
-    const foes = Object.keys(S.profiles).filter(pid => pid !== me && !S.profiles[pid].admin).map(pid => {
-      const d = deckOf(pid); let hp = 0, atk = 0;
-      d.forEach(p => { const s = statOf(p, gm); hp += s.hp; atk += s.atk; });
-      return {pid, d, hp, atk, off:isOff(pid), offUntil:S.profiles[pid].offUntil};
-    }).sort((a, b) => (!b.off && b.d.length > 0) - (!a.off && a.d.length > 0) || (b.hp + b.atk * 4) - (a.hp + a.atk * 4) || nameOf(a.pid).localeCompare(nameOf(b.pid), 'tr'));
-    const ul = el('ul', {class:'foes'});
-    foes.forEach(f => {
-      const armed = S.ar.armed === f.pid;
-      const can = !S.ar.admin && !arOff() && !f.off && myDeck.length > 0 && f.d.length > 0 && !cooling && !S.ar.busy;
-      ul.append(el('li', {class:'foe'}, [
-        el('div', {style:'min-width:0;display:flex;flex-direction:column;gap:2px'}, [
-          el('span', {class:'nm'}, [dotOf(f.pid), el('span', {text:nameOf(f.pid)})]),
-          mottoEl(f.pid),
-          el('span', {class:'mono muted', style:'font-size:12px', text:f.off ? '⚪ İnaktif (bitiş ' + hhmm(f.offUntil) + '), saldırılamaz' : f.d.length ? f.d.length + ' pet · ❤ ' + f.hp + ' · ⚔ ' + f.atk : 'Ordusu yok, saldırılamaz'})
-        ]),
-        S.ar.admin ? el('span') : btn('attack' + (armed ? ' armed' : ''), S.ar.busy === f.pid ? 'Savaşılıyor…' : armed ? 'Eminim, saldır!' : f.off ? 'İnaktif' : 'Saldır', () => attackFoe(f.pid), !can),
-        armed ? el('p', {class:'warnline', text:'Kaybedersen ordundaki ' + myDeck.length + ' pet ona geçer. Kazanırsan onun ' + f.d.length + ' peti senin olur.'}) : null,
-        f.d.length ? armyRow(f.d, gm) : null
-      ]));
-    });
-    body.append(el('section', {class:'card'}, [
-      el('h2', {class:'h', text:'Rakipler'}),
-      foes.length ? ul : el('p', {class:'muted', style:'margin:8px 0 0', text:'Henüz başka oyuncu yok.'})
-    ]));
-  }
-  async function attackFoe(pid){
-    if (S.ar.busy) return;
-    if (S.ar.armed !== pid){
-      S.ar.armed = pid;
-      clearTimeout(S.ar.armT);
-      S.ar.armT = setTimeout(() => { S.ar.armed = null; if (S.page === 'arena') renderArena(); }, 8000);
-      renderArena();
-      return;
-    }
-    S.ar.armed = null; clearTimeout(S.ar.armT);
-    S.ar.busy = pid; renderArena();
-    try {
-      const b = await arenaCall('arena_attack', {p_target:pid});
-      if (b.cooldown_until) S.ar.cdUntil = Date.parse(b.cooldown_until);
-      S.ar.battles = [b].concat(S.ar.battles.filter(x => x.id !== b.id));
-      playBattle(b);
-    } catch(e){}
-    S.ar.busy = false;
-    await loadArena();
-  }
-
-  /* Market */
-  function renderMarket(body){
-    const shop = el('div', {class:'shop'});
-    Object.keys(ITEMS).forEach(code => {
-      const it = ITEMS[code];
-      shop.append(el('div', {class:'ware'}, [
-        el('span', {class:'em', text:it.e}),
-        el('b', {text:it.n}),
-        el('span', {class:'fx', text:itemFx(code)}),
-        el('span', {class:'mono muted', style:'font-size:12px', text:it.days + ' gün geçerli'}),
-        btn('buy', S.ar.busy === code ? 'Alınıyor…' : 'Satın al · ' + it.price + ' 🪙', () => buyItem(code), S.ar.admin || !!S.ar.busy || S.ar.coins < it.price)
-      ]));
-    });
-    body.append(el('section', {class:'card'}, [
-      el('div', {class:'row between'}, [el('h2', {class:'h', text:'Market'}), el('span', {class:'coin'}, [el('span', {'aria-hidden':'true', text:'🪙'}), el('b', {text:fmtCoin(S.ar.coins)})])]),
-      el('p', {class:'muted', style:'margin:6px 0 0;font-size:13px;max-width:62ch', text:'Her gün ilk girişinde 10 🪙 gelir, savaş kazanınca +5 🪙. Petlerini de satabilirsin: Ordu sekmesinde pete dokun. Kılıç kritik vuruş ihtimalini artırır (kritik ×1.75 hasar), zırh petin her turunda can yeniler. Eşyalar süreli: süre satın aldığın an başlar. Bir pet aynı anda 1 kılıç + 1 zırh giyer.'}),
-      el('p', {class:'mono muted', style:'margin:6px 0 0;font-size:12px', text:'Pet satış fiyatı: Sv1–2 0,1 · Sv3–4 0,2 · Sv5 0,4 · Sv6–7 0,3 · Sv8 0,4 · Sv9 0,5 · Sv10 1 · Sv11 3 · Sv12 12 · Sv13 70 · Kahraman 80+ 🪙'}),
-      shop
-    ]));
-    const mine = S.ar.items.filter(i => i.owner === S.me && itemLive(i));
-    const ul = el('ul', {class:'bag'});
-    mine.slice().sort((a, b) => Date.parse(a.expires_at) - Date.parse(b.expires_at)).forEach(i => {
-      const p = i.pet_id != null ? S.ar.pets.find(x => x.id === i.pet_id) : null;
-      ul.append(el('li', null, [
-        el('span', {text:ITEMS[i.code].e + ' ' + ITEMS[i.code].n}),
-        el('span', {class:'muted', text:(p ? '→ ' + PETS[p.tier].e + ' ' + lvTxt(p.tier) : '· boşta') + ' · ' + leftTxt(i) + ' kaldı'})
-      ]));
-    });
-    body.append(el('section', {class:'card'}, [
-      el('div', {class:'row between'}, [el('h2', {class:'h', text:'Çantan'}), el('span', {class:'bcount', text:mine.length + ' eşya'})]),
-      mine.length ? ul : el('p', {class:'muted', style:'margin:6px 0 0', text:'Çantan boş.'}),
-      mine.length ? el('p', {class:'muted', style:'margin:10px 0 0;font-size:13px', text:'Giydirmek için Ordu sekmesinde bir pete dokun.'}) : null
-    ]));
-  }
-  async function buyItem(code){
-    if (S.ar.busy) return;
-    S.ar.busy = code; renderArena();
-    try {
-      const r = await arenaCall('arena_buy', {p_code:code});
-      S.ar.coins = r.coins;
-      toast(ITEMS[code].e + ' ' + ITEMS[code].n + ' çantana eklendi.', false, {label:'Giydir', fn:() => { setPage('arena'); setArTab('ordu'); }});
-    } catch(e){}
-    S.ar.busy = false;
-    await loadArena();
-  }
-
-  /* Geçmiş */
-  function whenTxt(at){ const d = new Date(Date.parse(at)); return chatDay(d.getTime()) + ' ' + pad(d.getHours()) + ':' + pad(d.getMinutes()); }
-  function segBtn(text, on, fn){ const b = el('button', {type:'button', 'aria-pressed':String(on), text}); b.onclick = fn; return b; }
-  function renderGecmis(body){
-    const me = S.me;
-    const list = S.ar.battles.filter(b => S.ar.histAll || b.attacker === me || b.defender === me);
-    const ul = el('ul', {class:'hist'});
-    list.forEach(b => {
-      const mineB = b.attacker === me || b.defender === me;
-      const iWon = (b.attacker === me) === b.attacker_won;
-      const winner = b.attacker_won ? b.attacker : b.defender;
-      const isNew = (b.defender === me && !b.seen) || S.ar.newIds.has(b.id);
-      const res = mineB ? (iWon ? 'Kazandın · +' + b.captured + ' pet' : 'Kaybettin · −' + b.captured + ' pet') : nameOf(winner) + ' kazandı · ' + b.captured + ' pet el değiştirdi';
-      ul.append(el('li', null, [
-        el('div', {style:'min-width:0;display:flex;flex-direction:column;gap:3px'}, [
-          el('span', {class:'vs'}, [
-            dotOf(b.attacker), el('span', {text:b.attacker === me ? 'Sen' : nameOf(b.attacker)}),
-            el('span', {class:'muted', text:'⚔'}),
-            dotOf(b.defender), el('span', {text:b.defender === me ? 'Sen' : nameOf(b.defender)}),
-            isNew ? el('span', {class:'new-tag', text:'YENİ'}) : null
-          ]),
-          el('span', {class:'res ' + (mineB ? (iWon ? 'win' : 'lose') : ''), text:res}),
-          el('span', {class:'when', text:whenTxt(b.at) + ' · ' + (b.a_team || []).length + ' vs ' + (b.d_team || []).length + ' pet'})
-        ]),
-        el('div', {style:'display:flex;flex-direction:column;gap:6px;align-items:stretch'}, [
-          btn('ghost', 'İzle', () => watchBattle(b.id)),
-          shareBtn(b.id, 'ghost')
-        ])
-      ]));
-    });
-    body.append(el('section', {class:'card'}, [
-      el('div', {class:'row between'}, [
-        el('h2', {class:'h', text:'Savaş geçmişi'}),
-        el('div', {class:'seg', role:'group', 'aria-label':'Kimin savaşları'}, [
-          segBtn('Benim', !S.ar.histAll, () => { S.ar.histAll = false; renderArena(); }),
-          segBtn('Herkes', S.ar.histAll, () => { S.ar.histAll = true; renderArena(); })
-        ])
-      ]),
-      list.length ? ul : el('p', {class:'muted', style:'margin:10px 0 0', text:S.ar.histAll ? 'Henüz hiç savaş olmadı.' : 'Henüz savaşa girmedin. Savaş sekmesinden birine saldır.'})
-    ]));
-  }
-  function shareBtn(id, cls){
-    const done = S.ar.shared && S.ar.shared.has(id);
-    return btn(cls, done ? 'Sohbete atıldı ✓' : '💬 Sohbete at', ev => shareBattle(id, ev.currentTarget), done);
-  }
-  async function shareBattle(id, b){
-    if (!S.token) return;
-    if (b){ b.disabled = true; b.textContent = 'Atılıyor…'; }
-    try {
-      const r = await rpc('share_battle', {p_token:S.token, p_battle:id});
-      (S.ar.shared ||= new Set()).add(id);
-      addMessage(r);
-      if (b) b.textContent = 'Sohbete atıldı ✓';
-      toast('Maç sohbete atıldı, millet izleyebilir.', false, {label:'Sohbet', fn:() => { closeBattle(); openChat(true); }});
-    } catch(e){
-      if (b){ b.disabled = false; b.textContent = '💬 Sohbete at'; }
-      toast(errText(e));
-    }
-  }
-  async function watchBattle(id){
-    const cached = S.ar.battles.find(b => b.id === id && b.log);
-    if (cached){ playBattle(cached); return; }
-    try {
-      const {data, error} = await S.sb.from('battles').select('*').eq('id', id).single();
-      if (error) throw error;
-      const i = S.ar.battles.findIndex(b => b.id === id);
-      if (i >= 0) S.ar.battles[i] = data;
-      playBattle(data);
-    } catch(e){ toast(errText(e)); }
-  }
-
-  /* ---------- savaş oynatıcı: sunucunun hesapladığı turları canlı gibi oynatır ---------- */
-  function setSpeed(v){
-    const sp = [1, 2, 4].includes(v) ? v : 1;
-    store.set('peengo.btSpeed', String(sp));
-    if (S.bt) S.bt.speed = sp;
-    $('#battle').style.setProperty('--sp', sp);
-    document.querySelectorAll('#btSpeed [data-s]').forEach(b => b.setAttribute('aria-pressed', String(+b.dataset.s === sp)));
-  }
-  function stopBattle(){ if (S.bt){ clearTimeout(S.bt.timer); S.bt.timers.forEach(clearTimeout); } S.bt = null; }
-  function closeBattle(){
-    if ($('#battle').hidden && !S.bt) return;
-    stopBattle();
-    $('#battle').hidden = true;
-    if (S.page === 'arena') renderArena();
-  }
-  const teamOf = side => S.bt.b[side === 0 ? 'a_team' : 'd_team'] || [];
-  const btWho = side => S.bt.owners[side] === S.me ? 'Sen' : nameOf(S.bt.owners[side]);
-  function anim(node, cls){
-    node.classList.remove('lungeR', 'lungeL', 'hit');
-    void node.offsetWidth;
-    node.classList.add(cls);
-  }
-  function btLater(fn, ms){ const bt = S.bt; const t = setTimeout(() => { if (S.bt === bt && !bt.done) fn(); }, ms); bt.timers.push(t); }
-  function logLine(kids, cls){
-    const box = $('#btLog');
-    box.prepend(el('p', {class:cls || ''}, kids));
-    while (box.children.length > 3) box.lastChild.remove();
-  }
-  function setHp(side, idx){
-    const c = S.bt.cols[side], p = teamOf(side)[idx]; if (!p) return;
-    const v = S.bt.hp[side][idx], pct = Math.max(0, v / p.hp * 100);
-    c.bar.style.width = pct + '%';
-    c.bar.style.background = pct > 50 ? 'var(--accent)' : pct > 20 ? '#E0A800' : 'var(--warn)';
-    c.hpTxt.textContent = '❤ ' + v + ' / ' + p.hp;
-  }
-  function showFighter(side, idx){
-    const bt = S.bt, c = bt.cols[side], p = teamOf(side)[idx];
-    if (!p) return;
-    bt.cur[side] = idx;
-    c.art.className = 'bt-art' + rankCls(p.t);
-    c.art.textContent = PETS[p.t].e;
-    c.pname.textContent = petName(p.t);
-    c.gear.textContent = lvTxt(p.t) + ' · ⚔ ' + p.atk + (p.crit && p.crit > BASE_CRIT ? ' · 🎯%' + p.crit : '') + (p.regen ? ' · ♥+' + p.regen : '') + (p.k ? ' ' + ITEMS[p.k].e : '') + (p.z ? ' ' + ITEMS[p.z].e : '');
-    setHp(side, idx);
-    c.chips.forEach((ch, j) => { ch.classList.toggle('cur', j === idx); ch.classList.toggle('dead', bt.hp[side][j] <= 0); });
-  }
-  function playBattle(b){
-    stopBattle();
-    if (!b || !Array.isArray(b.log)){ toast('Bu savaşın kaydı açılamadı.'); return; }
-    const flip = S.me === b.defender;
-    const bt = S.bt = {b, i:0, timer:null, timers:[], done:false, cur:[0, 0], cols:[], owners:[b.attacker, b.defender],
-      hp:[(b.a_team || []).map(p => p.hp), (b.d_team || []).map(p => p.hp)], speed:1};
-    setSpeed(+(store.get('peengo.btSpeed') || 1));
-    [0, 1].forEach(side => {
-      const left = (side === 0) !== flip;
-      const col = left ? $('#btL') : $('#btR');
-      col.textContent = '';
-      const art = el('div', {class:'bt-art'}), pname = el('div', {class:'bt-pname'}), bar = el('i'), hpTxt = el('span');
-      const gear = el('div', {class:'bt-gear'}), bench = el('div', {class:'bt-bench'});
-      const chips = teamOf(side).map(p => { const ch = el('i', {title:petName(p.t), text:PETS[p.t].e}); bench.append(ch); return ch; });
-      col.append(...[
-        el('div', {class:'bt-who'}, [dotOf(bt.owners[side]), el('span', {class:'n', text:btWho(side)}), el('span', {class:'bt-role', text:side === 0 ? 'Saldıran' : 'Savunan'})]),
-        mottoEl(bt.owners[side], 'bt'),
-        art, pname, el('div', {class:'bt-hp'}, [el('div', {class:'bar'}, [bar]), hpTxt]), gear, bench
-      ].filter(Boolean));
-      bt.cols[side] = {art, pname, bar, hpTxt, gear, chips, left};
-      showFighter(side, 0);
-    });
-    $('#btLog').textContent = '';
-    $('#btResult').hidden = true;
-    $('#btSkip').hidden = false;
-    $('#btTitle').textContent = whenTxt(b.at || new Date().toISOString());
-    logLine([el('span', {text:'Yazı tura atıldı. İlk vuruş:'}), dotOf(bt.owners[b.starter || 0]), el('b', {text:btWho(b.starter || 0)})]);
-    $('#battle').hidden = false;
-    bt.timer = setTimeout(btStep, 900 / bt.speed);
-  }
-  function btStep(){
-    const bt = S.bt;
-    if (!bt || bt.done) return;
-    const log = bt.b.log;
-    if (bt.i >= log.length){ finishBattle(); return; }
-    const [s, ai, ti, dmg, flag, hpAfter, heal, selfHp] = log[bt.i++];
-    const t = 1 - s;
-    if (bt.cur[s] !== ai) showFighter(s, ai);
-    if (bt.cur[t] !== ti) showFighter(t, ti);
-    bt.hp[t][ti] = hpAfter;
-    const A = bt.cols[s], T = bt.cols[t], ap = teamOf(s)[ai], tp = teamOf(t)[ti];
-    if (heal > 0){
-      bt.hp[s][ai] = selfHp; setHp(s, ai);
-      const hd = el('span', {class:'bt-dmg heal', text:'+' + heal}); A.art.append(hd);
-      setTimeout(() => hd.remove(), 1000 / bt.speed + 150);
-    }
-    anim(A.art, A.left ? 'lungeR' : 'lungeL');
-    btLater(() => {
-      if (flag !== 2) anim(T.art, 'hit');
-      const d = el('span', {class:'bt-dmg' + (flag === 1 ? ' crit' : flag === 2 ? ' miss' : ''), text:flag === 2 ? 'ISKA' : (flag === 1 ? 'KRİTİK −' : '−') + dmg});
-      T.art.append(d);
-      setTimeout(() => d.remove(), 1000 / bt.speed + 150);
-      setHp(t, ti);
-    }, 140 / bt.speed);
-    logLine([dotOf(bt.owners[s]), el('span', {text:PETS[ap.t].e + ' ' + petName(ap.t)}), el('span', {class:'muted', text:'→'}), dotOf(bt.owners[t]),
-      el('span', {text:PETS[tp.t].e + ' ' + (flag === 2 ? 'ıska!' : dmg + ' hasar' + (flag === 1 ? ', kritik!' : ''))})]);
-    let wait = 780 / bt.speed;
-    if (hpAfter <= 0){
-      btLater(() => { T.chips[ti].classList.add('dead'); anim(T.art, 'hit'); T.art.classList.add('dead');
-        logLine([dotOf(bt.owners[t]), el('span', {text:PETS[tp.t].e + ' ' + petName(tp.t) + ' yere serildi!'})], 'ko'); }, 420 / bt.speed);
-      wait += 700 / bt.speed;
-      if (ti + 1 < teamOf(t).length) btLater(() => showFighter(t, ti + 1), wait - 160 / bt.speed);
-    }
-    bt.timer = setTimeout(btStep, wait);
-  }
-  function finishBattle(){
-    const bt = S.bt;
-    if (!bt || bt.done) return;
-    bt.done = true;
-    clearTimeout(bt.timer); bt.timers.forEach(clearTimeout);
-    const log = bt.b.log;
-    for (; bt.i < log.length; bt.i++){ const e = log[bt.i]; if (e[7] != null) bt.hp[e[0]][e[1]] = e[7]; bt.hp[1 - e[0]][e[2]] = e[5]; }
-    [0, 1].forEach(side => {
-      const hp = bt.hp[side];
-      let idx = hp.findIndex(v => v > 0);
-      const allDead = idx < 0;
-      if (allDead) idx = hp.length - 1;
-      showFighter(side, idx);
-      bt.cols[side].art.querySelectorAll('.bt-dmg').forEach(d => d.remove());
-      if (allDead) bt.cols[side].art.classList.add('ko');
-    });
-    const b = bt.b, me = S.me;
-    const winner = b.attacker_won ? b.attacker : b.defender, loser = b.attacker_won ? b.defender : b.attacker;
-    logLine([el('b', {text:'Savaş ' + log.length + ' vuruşta bitti.'})]);
-    let title, sub, cls = 'win';
-    if (winner === me){ title = '🏆 Kazandın!'; sub = 'Rakibin ' + b.captured + ' peti artık senin. +' + (b.coins || 5) + ' 🪙'; }
-    else if (loser === me){ title = '💀 Kaybettin'; sub = 'Ordundaki ' + b.captured + ' pet gitti. Yeni sahibi: ' + nameOf(winner) + '.' + (((b.attacker_won ? b.d_team : b.a_team) || []).some(x => x.t >= 13) ? ' Kahramanların sende kaldı.' : ''); cls = 'lose'; }
-    else { title = '🏆 ' + nameOf(winner) + ' kazandı'; sub = b.captured + ' pet el değiştirdi.'; }
-    const r = $('#btResult');
-    r.textContent = ''; r.className = 'bt-result ' + cls; r.hidden = false;
-    r.append(el('b', {class:'bt-title', text:title}), el('span', {text:sub}),
-      el('div', {class:'sheet-actions', style:'justify-content:center;margin-top:4px'}, [btn('ghost', 'Tekrar izle', () => playBattle(b)), b.id ? shareBtn(b.id, 'ghost') : null, btn('primary', 'Tamam', closeBattle)]));
-    $('#btSkip').hidden = true;
-    if (navigator.vibrate && (winner === me || loser === me)) try { navigator.vibrate(winner === me ? [40, 60, 120] : [220]); } catch(e){}
   }
 
   /* ---------- wire up ---------- */
@@ -3171,10 +1787,6 @@ const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
   $('#newForm').addEventListener('submit', doCreate);
   $('#flush').onclick = pee;
   $('#undoBtn').onclick = undo;
-  $('#huntBtn').onclick = attack;
-  $('#tapBtn').onclick = () => tapHit(false);
-  setInterval(autoTap, 1000);
-  $('#huntCancel').onclick = () => armHunt(false);
   $('#modeAll').onclick = () => { S.mode = 'all'; render(); };
   $('#modeMe').onclick = () => { S.mode = 'me'; render(); };
   $('#modePick').addEventListener('change', ev => { S.mode = ev.target.value || 'all'; render(); });
@@ -3182,27 +1794,7 @@ const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
   $('#pushOn').onclick = pushEnable;
   $('#pushOff').onclick = pushDisable;
   $('#pushTest').onclick = pushTest;
-  window.addEventListener('hashchange', () => { S.hashDone = false; maybeHashPee(); syncPage(); });
-  window.addEventListener('popstate', () => syncPage());
-  $('#pgMain').onclick = () => setPage('main');
-  $('#pgArena').onclick = () => setPage('arena');
-  document.querySelectorAll('#arTabs [data-tab]').forEach(b => { b.onclick = () => setArTab(b.dataset.tab); });
-  $('#arHelpOk').onclick = () => { store.set('peengo.arenaHelp', '1'); $('#arHelp').hidden = true; };
-  $('#arHelpBtn').onclick = () => { store.set('peengo.arenaHelp', null); $('#arHelp').hidden = false; $('#arHelp').scrollIntoView({behavior:'smooth', block:'nearest'}); };
-  $('#petSheet').addEventListener('click', ev => { if (ev.target === $('#petSheet')) closePet(); });
-  $('#btClose').onclick = closeBattle;
-  $('#btSkip').onclick = () => finishBattle();
-  document.querySelectorAll('#btSpeed [data-s]').forEach(b => { b.onclick = () => setSpeed(+b.dataset.s); });
-  document.addEventListener('keydown', ev => {
-    if (ev.key !== 'Escape') return;
-    if (!$('#battle').hidden) closeBattle();
-    else if (!$('#petSheet').hidden) closePet();
-  });
-  document.addEventListener('visibilitychange', () => {
-    if (document.visibilityState !== 'visible' || !S.loaded || !S.me) return;
-    if (S.page === 'arena') loadArena(); else arenaState();
-    tapStatus();
-  });
+  window.addEventListener('hashchange', () => { S.hashDone = false; maybeHashPee(); });
   document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible' && S.loaded) refreshAll(); });
 
   $('#meEdit').onclick = openProfile;
@@ -3253,7 +1845,7 @@ const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
     try {
       const html = await fetch(location.pathname + '?vc=' + Date.now(), {cache:'no-store'}).then(r => r.ok ? r.text() : '');
       const m = html.match(/name="peengo-version" content="([^"]+)"/);
-      if (m && MY_VERSION && m[1] !== MY_VERSION && !S.busy && !S.huntBusy && !S.bt && !S.ar.busy && !(S.tap && S.tap.manual)){
+      if (m && MY_VERSION && m[1] !== MY_VERSION && !S.busy){
         location.replace(location.pathname + '?v=' + encodeURIComponent(m[1]) + location.hash);
       }
     } catch(e){}
@@ -3272,7 +1864,7 @@ const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
     const slow = setTimeout(() => { if (!S.loaded) $('#bootMsg').textContent = 'Sunucuya ulaşılamadı. İnternet bağlantını kontrol et; açık kalırsa kendisi yüklenir.'; }, 10000);
     for (let i = 0; i < 3 && !S.loaded; i++){
       try {
-        const jobs = [loadPlayers(), loadMarks(), loadHunts(), loadMessages(), loadDaily()];
+        const jobs = [loadPlayers(), loadMarks(), loadMessages(), loadDaily()];
         if (S.token) jobs.push(rpc('me', {p_token:S.token}).then(r => {
           if (r && r.id){ S.me = r.id; applyMe(r); } else { S.token = null; store.set('peengo.token', null); }
         }));
