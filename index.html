@@ -6,7 +6,7 @@
 <title>Peengo</title>
 <meta name="description" content="Arkadaşlarınla günün 1440 dakikasını doldur.">
 <meta name="theme-color" content="#13262B">
-<meta name="peengo-version" content="2026-11-06.1">
+<meta name="peengo-version" content="2026-11-17.1">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Peengo">
@@ -190,6 +190,9 @@ button{cursor:pointer}
 .lb .nm span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .lb .ct{font-family:var(--f-mono);font-size:13px;text-align:right}
 .lb .bar{grid-column:2 / 4;height:6px}
+.lb .ct small{color:var(--muted);font-size:12px}
+.rank-note{margin:6px 0 0}
+.rank-rest{margin:12px 0 0;font-size:13px}
 .gaps{margin:12px 0 0;padding:0;list-style:none;display:flex;flex-direction:column;gap:6px}
 .gaps li{display:flex;justify-content:space-between;gap:10px;font-size:14px}
 .badges{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px;margin-top:12px}
@@ -496,8 +499,16 @@ img{max-width:100%}
 
     <section class="two">
       <div class="card">
-        <h2 class="h">Sıralama</h2>
+        <div class="row between">
+          <h2 class="h">Sıralama</h2>
+          <div class="seg" role="group" aria-label="Sıralama türü">
+            <button type="button" id="rankToday" aria-pressed="true">Bugün</button>
+            <button type="button" id="rankAll" aria-pressed="false">Toplam</button>
+          </div>
+        </div>
+        <p class="muted rank-note" id="rankNote"></p>
         <ol class="lb" id="lb"></ol>
+        <p class="muted rank-rest" id="rankRest" hidden></p>
       </div>
       <div class="card">
         <h2 class="h">Boş kalanlar</h2>
@@ -653,7 +664,7 @@ const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
     loaded:false, mode:'all', selHour:null, selMin:null,
     authTab:'login', newColor:null, lastMark:null, busy:false, hashDone:false,
     lastT:-1, toastTimer:null,
-    daily:{}, dailyOk:false,
+    daily:{}, dailyNew:{}, dailyOk:false, dayKey:'', rank:store.get('peengo.rank') === 'all' ? 'all' : 'today',
     msgs:[], chatOpen:false, chatSeen:+(store.get('peengo.chatSeen') || 0), chatBusy:false
   };
   function el(tag, attrs, kids){
@@ -759,13 +770,16 @@ const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
     S.msgs = (data || []).reverse();
   }
   async function loadDaily(){
-    const {data, error} = await S.sb.from('pee_counts').select('player_id,last24');
+    const key = localDay();
+    const {data, error} = await S.sb.from('pee_counts').select('player_id,today,today_new');
     if (error){ S.dailyOk = false; return; }
-    const d = {};
-    (data || []).forEach(r => { d[r.player_id] = r.last24; });
-    S.daily = d; S.dailyOk = true;
+    const d = {}, n = {};
+    (data || []).forEach(r => { d[r.player_id] = r.today || 0; n[r.player_id] = r.today_new || 0; });
+    S.daily = d; S.dailyNew = n; S.dailyOk = true; S.dayKey = key;
   }
+  const localDay = () => { const d = new Date(); return d.getFullYear() + '-' + (d.getMonth() + 1) + '-' + d.getDate(); };
   const daily = pid => S.daily[pid] || 0;
+  const dailyNew = pid => S.dailyNew[pid] || 0;
   const dailyTag = (pid, me) => {
     if (!S.dailyOk) return pid === me ? ' (sen)' : '';
     return pid === me ? ' (sen, günlük ' + daily(pid) + ')' : ' (günlük ' + daily(pid) + ')';
@@ -783,7 +797,7 @@ const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
       .on('postgres_changes', {event:'*', schema:'public', table:'marks'}, p => {
         if (p.eventType === 'INSERT' && p.new){
           (S.marks[p.new.player_id] ||= {})[p.new.minute] = Date.parse(p.new.at);
-          if (p.new.player_id !== S.me && S.dailyOk) S.daily[p.new.player_id] = daily(p.new.player_id) + 1;
+          if (p.new.player_id !== S.me && S.dailyOk){ S.daily[p.new.player_id] = daily(p.new.player_id) + 1; S.dailyNew[p.new.player_id] = dailyNew(p.new.player_id) + 1; }
           if (!S.profiles[p.new.player_id]) loadPlayers().then(route).catch(() => {});
         } else if (p.eventType === 'DELETE' && p.old && S.marks[p.old.player_id]){
           delete S.marks[p.old.player_id][p.old.minute];
@@ -1403,6 +1417,7 @@ const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
       if (!r.new && !r.counted){ toast(fmt(t) + ' zaten senin. Bir sonraki dakikayı bekle.'); render(); return; }
       S.coolUntil = r.cooldown_until ? Date.parse(r.cooldown_until) : Date.now() + (S.skew || 0) + COOLDOWN;
       S.daily[S.me] = daily(S.me) + 1;
+      if (r.new) S.dailyNew[S.me] = dailyNew(S.me) + 1;
       S.lastMark = {t, at:Date.now(), isNew:!!r.new};
       if (!r.new){ toast(fmt(t) + ' zaten seninydi. İşeme sayıldı ✓', true); render(); return; }
       const f = $('#flush'); f.classList.remove('pop'); void f.offsetWidth; f.classList.add('pop');
@@ -1428,7 +1443,7 @@ const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
     S.lastMark = null; $('#undoBtn').hidden = true;
     try {
       const ok = await rpc('undo', {p_token:S.token, p_minute:lm.t});
-      if (ok){ if (lm.isNew !== false) delete mine()[lm.t]; S.coolUntil = 0; S.daily[S.me] = Math.max(0, daily(S.me) - 1); toast(fmt(lm.t) + ' geri alındı.'); }
+      if (ok){ if (lm.isNew !== false){ delete mine()[lm.t]; S.dailyNew[S.me] = Math.max(0, dailyNew(S.me) - 1); } S.coolUntil = 0; S.daily[S.me] = Math.max(0, daily(S.me) - 1); toast(fmt(lm.t) + ' geri alındı.'); }
       else toast('Geri alma süresi doldu.');
       render();
     } catch(e){ toast(errText(e)); }
@@ -1616,16 +1631,7 @@ const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
       o.forEach(pid => info.append(el('span', {class:'who'}, [el('span', {class:'dot', style:'background:' + colorOf(pid)}), document.createTextNode(nameOf(pid) + ' · ' + dayStr(S.marks[pid][t]))])));
     } else info.append(el('span', {class:'muted', text:'Bir dakikaya dokun, kimlerin bastığını gör.'}));
 
-    const lb = $('#lb'); lb.textContent = '';
-    pids.slice().sort((a, b) => (D.counts[b] || 0) - (D.counts[a] || 0)).forEach((pid, i) => {
-      const c = D.counts[pid] || 0;
-      lb.append(el('li', null, [
-        el('span', {class:'rk', text:'#' + (i + 1)}),
-        el('span', {class:'nm'}, [el('span', {class:'dot', style:'background:' + colorOf(pid)}), el('span', {text:nameOf(pid) + dailyTag(pid, me)})]),
-        el('span', {class:'ct', text:c + ' · %' + (c / 14.4).toFixed(1).replace('.', ',')}),
-        el('div', {class:'bar'}, [el('i', {style:'width:' + (c / 14.4) + '%;background:' + colorOf(pid)})])
-      ]));
-    });
+    renderRank(D, pids, me);
 
     const perHour = [];
     for (let h = 0; h < 24; h++){ let e = 0; for (let m = 0; m < 60; m++) if (!D.owners[h * 60 + m].length) e++; perHour.push({h, e}); }
@@ -1738,6 +1744,46 @@ const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
     ];
   }
 
+  /* ---------- sıralama ---------- */
+  function renderRank(D, pids, me){
+    const lb = $('#lb'); lb.textContent = '';
+    const note = $('#rankNote'), rest = $('#rankRest');
+    const today = S.rank !== 'all';
+    $('#rankToday').setAttribute('aria-pressed', String(today));
+    $('#rankAll').setAttribute('aria-pressed', String(!today));
+    rest.hidden = true; rest.textContent = '';
+    const row = (rank, pid, label, ct, pct) => lb.append(el('li', null, [
+      el('span', {class:'rk', text:'#' + rank}),
+      el('span', {class:'nm'}, [el('span', {class:'dot', style:'background:' + colorOf(pid)}), el('span', {text:label})]),
+      ct,
+      el('div', {class:'bar'}, [el('i', {style:'width:' + pct + '%;background:' + colorOf(pid)})])
+    ]));
+    if (!today){
+      note.textContent = 'Doldurulan dakikalar, tüm zamanlar.';
+      pids.slice().sort((a, b) => (D.counts[b] || 0) - (D.counts[a] || 0)).forEach((pid, i) => {
+        const c = D.counts[pid] || 0;
+        row(i + 1, pid, nameOf(pid) + dailyTag(pid, me), el('span', {class:'ct', text:c + ' · %' + (c / 14.4).toFixed(1).replace('.', ',')}), c / 14.4);
+      });
+      return;
+    }
+    note.textContent = 'Bugün kim kaç kez işedi. Her gece 00:00’da sıfırlanır.';
+    if (!S.dailyOk){ note.textContent = 'Bugünün sayıları şu an yüklenemedi, birazdan yeniden denenecek.'; return; }
+    const on = pids.filter(p => daily(p) > 0).sort((a, b) => daily(b) - daily(a) || dailyNew(b) - dailyNew(a) || (D.counts[b] || 0) - (D.counts[a] || 0));
+    const top = on.length ? daily(on[0]) : 1;
+    let rank = 0;
+    on.forEach((pid, i) => {
+      const prev = on[i - 1];
+      if (!prev || daily(prev) !== daily(pid) || dailyNew(prev) !== dailyNew(pid)) rank = i + 1;
+      const n = dailyNew(pid);
+      row(rank, pid, nameOf(pid) + (pid === me ? ' (sen)' : ''),
+        el('span', {class:'ct'}, [document.createTextNode(daily(pid) + ' işeme'), n ? el('small', {text:' · ' + n + ' yeni dk'}) : null]),
+        daily(pid) / top * 100);
+    });
+    const off = pids.filter(p => daily(p) === 0);
+    if (!on.length){ rest.hidden = false; rest.textContent = 'Bugün henüz kimse işemedi. İlk işeyen 1. olur.'; }
+    else if (off.length){ rest.hidden = false; rest.textContent = 'Bugün henüz işemedi: ' + off.map(p => nameOf(p) + (p === me ? ' (sen)' : '')).join(', '); }
+  }
+
   /* ---------- lider ---------- */
   function setLeader(whoId, countId, pid, me, text, empty){
     const w = $(whoId); w.textContent = '';
@@ -1775,6 +1821,7 @@ const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
 
   function tick(){
     const t = nowT();
+    if (S.dayKey && localDay() !== S.dayKey){ S.dayKey = localDay(); S.daily = {}; S.dailyNew = {}; if (S.loaded) loadDaily().then(() => { if (!$('#game').hidden) render(); }).catch(() => {}); }
     if (t !== S.lastT){ S.lastT = t; if (!$('#game').hidden) render(); }
     else if (!$('#game').hidden) updateButton();
     if (S.lastMark && Date.now() - S.lastMark.at > 60000){ S.lastMark = null; $('#undoBtn').hidden = true; }
@@ -1788,6 +1835,8 @@ const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
   $('#flush').onclick = pee;
   $('#undoBtn').onclick = undo;
   $('#modeAll').onclick = () => { S.mode = 'all'; render(); };
+  $('#rankToday').onclick = () => { S.rank = 'today'; store.set('peengo.rank', 'today'); render(); };
+  $('#rankAll').onclick = () => { S.rank = 'all'; store.set('peengo.rank', 'all'); render(); };
   $('#modeMe').onclick = () => { S.mode = 'me'; render(); };
   $('#modePick').addEventListener('change', ev => { S.mode = ev.target.value || 'all'; render(); });
   $('#logout').onclick = async () => { const tk = S.token; await pushDetach(tk); logoutLocal(); if (tk) rpc('logout', {p_token:tk}).catch(() => {}); };
