@@ -6,7 +6,7 @@
 <title>Peengo</title>
 <meta name="description" content="Arkadaşlarınla günün 1440 dakikasını doldur.">
 <meta name="theme-color" content="#13262B">
-<meta name="peengo-version" content="2026-11-17.2">
+<meta name="peengo-version" content="2026-11-17.3">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Peengo">
@@ -269,6 +269,8 @@ body.intro-open .chat-fab{z-index:45;animation:fabPulse 1.4s ease-in-out infinit
 .msg-del{border:0;background:transparent;color:var(--muted);font-size:11px;font-weight:700;padding:0 0 0 4px;margin-left:auto;font-family:var(--f-body)}
 .msg-del:hover,.msg-del[data-armed="1"]{color:var(--warn)}
 .day-sep{align-self:center;font-size:11px;font-weight:700;color:var(--muted);letter-spacing:.1em;text-transform:uppercase;margin:6px 0}
+.chat-more{align-self:center;border:0;background:var(--tile);color:var(--ink);border-radius:999px;padding:7px 14px;font-weight:700;font-size:13px;margin-bottom:4px}
+.chat-more:disabled{opacity:.6}
 .chat-empty{margin:auto;text-align:center;color:var(--muted);max-width:30ch}
 .chat-form{display:flex;gap:8px;padding:12px 16px;border-top:1px solid var(--grout)}
 .chat-form input{flex:1;min-width:0;border:1px solid var(--grout);background:var(--tile);border-radius:12px;padding:11px 12px;font-size:16px}
@@ -617,6 +619,7 @@ img{max-width:100%}
 <script>
 /* ==== AYARLAR: Supabase projesinin adresi ve anon (public) anahtarı ==== */
 const SUPABASE_URL = 'https://klaeugeeyltdgjexfhfk.supabase.co';
+const MSG_PAGE = 150;
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtsYWV1Z2VleWx0ZGdqZXhmaGZrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTM3Mjg3NDEsImV4cCI6MjEwOTMwNDc0MX0.7dWRtD9BC2w7eu2iV2g5KZWsBm3b_tXZwLh1V_HKJHY';
 /* ===================================================================== */
 (() => {
@@ -664,7 +667,7 @@ const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
     authTab:'login', newColor:null, lastMark:null, busy:false, hashDone:false,
     lastT:-1, toastTimer:null,
     daily:{}, dailyNew:{}, dailyOk:false, dayKey:'', rank:store.get('peengo.rank') === 'all' ? 'all' : 'today',
-    msgs:[], chatOpen:false, chatSeen:+(store.get('peengo.chatSeen') || 0), chatBusy:false
+    msgs:[], chatOpen:false, chatSeen:+(store.get('peengo.chatSeen') || 0), chatBusy:false, msgMore:false, keepScroll:false
   };
   function el(tag, attrs, kids){
     const e = document.createElement(tag);
@@ -764,9 +767,27 @@ const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
     S.marks = m;
   }
   async function loadMessages(){
-    const {data, error} = await S.sb.from('messages').select('id,player_id,body,at,image_path').order('id', {ascending:false}).limit(150);
+    const {data, error} = await S.sb.from('messages').select('id,player_id,body,at,image_path').order('id', {ascending:false}).limit(MSG_PAGE);
     if (error) return;
-    S.msgs = (data || []).reverse();
+    const fresh = (data || []).reverse();
+    const minId = fresh.length ? fresh[0].id : Infinity;
+    const older = S.msgs.filter(m => m.id < minId);
+    if (!older.length) S.msgMore = fresh.length === MSG_PAGE;
+    S.msgs = older.concat(fresh);
+  }
+  async function loadOlder(btn){
+    if (!S.msgs.length) return;
+    btn.disabled = true; btn.textContent = 'Yükleniyor…';
+    const list = $('#chatList'), h0 = list.scrollHeight, top0 = list.scrollTop;
+    const {data, error} = await S.sb.from('messages').select('id,player_id,body,at,image_path').lt('id', S.msgs[0].id).order('id', {ascending:false}).limit(MSG_PAGE);
+    if (error){ btn.disabled = false; btn.textContent = 'Daha eski mesajlar'; $('#chatErr').textContent = 'Eski mesajlar yüklenemedi, tekrar dene.'; return; }
+    const have = new Set(S.msgs.map(m => m.id));
+    S.msgs = (data || []).filter(m => !have.has(m.id)).reverse().concat(S.msgs);
+    S.msgMore = (data || []).length === MSG_PAGE;
+    S.keepScroll = true;
+    renderChat(false);
+    S.keepScroll = false;
+    list.scrollTop = list.scrollHeight - h0 + top0;
   }
   async function loadDaily(){
     const key = localDay();
@@ -844,7 +865,7 @@ const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
     if (!m || S.msgs.some(x => x.id === m.id)) return;
     S.msgs.push(m);
     S.msgs.sort((a, b) => a.id - b.id);
-    if (S.msgs.length > 300) S.msgs = S.msgs.slice(-300);
+    if (S.msgs.length > 2000){ S.msgs = S.msgs.slice(-2000); S.msgMore = true; }
     if (!S.profiles[m.player_id]) loadPlayers().then(() => renderChat(false)).catch(() => {});
     renderChat(m.player_id === S.me);
   }
@@ -853,13 +874,6 @@ const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
     S.msgs = S.msgs.filter(x => x.id !== id);
     if (S.msgs.length !== n) renderChat(false);
   }
-  /* Sohbet her pazar 00:00 (Türkiye, UTC+3) sıfırlanır */
-  function chatWeekStart(){
-    const TR = 3 * 3600 * 1000;
-    const t = new Date(Date.now() + TR);
-    return Date.UTC(t.getUTCFullYear(), t.getUTCMonth(), t.getUTCDate() - t.getUTCDay()) - TR;
-  }
-  const visibleMsgs = () => { const w = chatWeekStart(); return S.msgs.filter(m => Date.parse(m.at) >= w); };
   async function deleteMsg(id, btn, mine){
     if (btn.dataset.armed !== '1'){
       btn.dataset.armed = '1'; btn.textContent = 'Emin misin?';
@@ -886,7 +900,7 @@ const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
     if (last > S.chatSeen){ S.chatSeen = last; store.set('peengo.chatSeen', String(last)); }
   }
   function renderChat(forceBottom){
-    const msgs = visibleMsgs();
+    const msgs = S.msgs;
     const unread = msgs.filter(m => m.id > S.chatSeen && m.player_id !== S.me).length;
     const badge = $('#chatBadge');
     badge.hidden = S.chatOpen || unread === 0;
@@ -894,9 +908,10 @@ const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
     $('#chatFab').setAttribute('aria-label', unread && !S.chatOpen ? 'Sohbeti aç, ' + unread + ' yeni mesaj' : 'Sohbeti aç');
     if (!S.chatOpen) return;
     const list = $('#chatList');
-    const nearBottom = list.scrollHeight - list.scrollTop - list.clientHeight < 80;
+    const nearBottom = !S.keepScroll && list.scrollHeight - list.scrollTop - list.clientHeight < 80;
     list.textContent = '';
-    $('#chatSub').textContent = Object.keys(S.profiles).filter(p => !S.profiles[p].admin).length + ' kişi · her pazar 00:00’da sıfırlanır';
+    $('#chatSub').textContent = Object.keys(S.profiles).filter(p => !S.profiles[p].admin).length + ' kişi';
+    if (S.msgMore && msgs.length){ const more = el('button', {type:'button', class:'chat-more', text:'Daha eski mesajlar'}); more.onclick = () => loadOlder(more); list.append(more); }
     if (!msgs.length){
       list.append(el('p', {class:'chat-empty', text:'Henüz mesaj yok. İlk mesajı sen yaz, arkadaşlarını gaza getir.'}));
     }
