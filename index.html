@@ -6,7 +6,7 @@
 <title>Peengo</title>
 <meta name="description" content="Arkadaşlarınla günün 1440 dakikasını doldur.">
 <meta name="theme-color" content="#13262B">
-<meta name="peengo-version" content="2026-11-17.1">
+<meta name="peengo-version" content="2026-11-17.2">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Peengo">
@@ -467,6 +467,19 @@ img{max-width:100%}
 
     <section class="card">
       <div class="row between">
+        <h2 class="h">Sıralama</h2>
+        <div class="seg" role="group" aria-label="Sıralama türü">
+          <button type="button" id="rankToday" aria-pressed="true">Bugün</button>
+          <button type="button" id="rankAll" aria-pressed="false">Toplam</button>
+        </div>
+      </div>
+      <p class="muted rank-note" id="rankNote"></p>
+      <ol class="lb" id="lb"></ol>
+      <p class="muted rank-rest" id="rankRest" hidden></p>
+    </section>
+
+    <section class="card">
+      <div class="row between">
         <h2 class="h">Dakika duvarı</h2>
         <div class="view-tools">
           <div class="seg" role="group" aria-label="Görünüm">
@@ -497,24 +510,10 @@ img{max-width:100%}
       <div class="info" id="info"><span class="muted">Bir dakikaya dokun, kimlerin bastığını gör.</span></div>
     </section>
 
-    <section class="two">
-      <div class="card">
-        <div class="row between">
-          <h2 class="h">Sıralama</h2>
-          <div class="seg" role="group" aria-label="Sıralama türü">
-            <button type="button" id="rankToday" aria-pressed="true">Bugün</button>
-            <button type="button" id="rankAll" aria-pressed="false">Toplam</button>
-          </div>
-        </div>
-        <p class="muted rank-note" id="rankNote"></p>
-        <ol class="lb" id="lb"></ol>
-        <p class="muted rank-rest" id="rankRest" hidden></p>
-      </div>
-      <div class="card">
-        <h2 class="h">Boş kalanlar</h2>
-        <p class="muted" style="margin:6px 0 0" id="gapNote">Kimsenin dokunmadığı dakikalar.</p>
-        <ul class="gaps" id="gaps"></ul>
-      </div>
+    <section class="card">
+      <h2 class="h">Boş kalanlar</h2>
+      <p class="muted" style="margin:6px 0 0" id="gapNote">Kimsenin dokunmadığı dakikalar.</p>
+      <ul class="gaps" id="gaps"></ul>
     </section>
 
     <section class="card">
